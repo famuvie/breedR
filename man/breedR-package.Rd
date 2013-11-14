@@ -6,10 +6,11 @@
 Frequentist and Bayesian methods for breeders and quantitative genetists
 }
 \description{
-This package provides statistical tools to build predictive models for the breeders community.
-It aims to assess the genetic value of individuals under a number of situations, including spatial autocorrelation, genetic/environment interaction and competition.
-It is under active development as part of the Trees4Future project, particularly developed having forest genetic trials in mind.
-But can be used for animals or other situations as well.
+This package provides statistical tools to build predictive models for the breeders community. 
+  It aims to assess the genetic value of individuals under a number of situations, including
+  spatial autocorrelation, genetic/environment interaction and competition. It is under active
+  development as part of the Trees4Future project, particularly developed having forest genetic
+  trials in mind. But can be used for animals or other situations as well.
 }
 \details{
 \tabular{ll}{
@@ -24,18 +25,35 @@ Particularly, the function \code{reml} performs classical Restricted-Maximum Lik
 The Fortran back-end allows for fast inference on rather large datasets (hundreds of thousands of individuals) with complex pedigrees.
 }
 \author{
-Facundo Muñoz
+Facundo Muñoz <facundo.munoz@orleans.inra.fr>
 Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
 }
 \references{
-~~ Literature or other references for background information ~~
+  Most functionality in the package is based on Ignacy Misztal's suite of 
+  Fortran programs for mixed model computations in breeding.
+  \url{http://nce.ads.uga.edu/wiki/doku.php}
+  
+  M. Lynch \& B. Walsh (1998). \emph{Genetics and Analysis of Quantitative Traits}. Sinauer Associates, Inc.
 }
-~~ Optionally other standard keywords, one per line, from file KEYWORDS in the R documentation directory ~~
 \keyword{ package }
 \seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
+  \code{\link[pedigreemm:pedigreemm-package]{pedigreemm}}
 }
 \examples{
-~~ simple examples of the most important functions ~~
+  data(m4)
+  plot(m4)
+  effects <- list(
+          generation = list(type = 'cross', model = 'fixed'),
+          genetic = list(type = 'cross', model = 'add_animal', var = 10, pedigree = pedigree(m4)))
+  
+  # Exclude founders from data, as they don't have phenotypic values
+  dat <- as.data.frame(m4[m4$gen!=0,])
+  # Model generation as categorical (in agreement with the effects list)
+  dat$gen <- as.factor(dat$gen)
+  
+  res.f90 <- remlf90(formula=phe_X ~ gen + self, effects=effects, data=dat)
+  summary(res.f90)
+  
+  # Observed phenotypes vs. Fitted values
+  qplot(fitted(res.f90), dat$phe_X, color=dat$gen) + geom_abline(int=0, slope=1)
 }

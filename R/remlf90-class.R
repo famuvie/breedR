@@ -1,4 +1,5 @@
-#### Inference with REMLF90 ####
+#' Inference with REMLF90
+#' @export
 remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   
   ## Assumptions:
@@ -144,9 +145,10 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   # file.show(pedigree.file.path)
   
   # variance components with REML
+  binary.path <- system.file('bin', 'linux', package='breedR')
   reml.out <- switch(method,
-                     ai = system('~/t4f/bin/airemlf90', input = parameter.file.path, intern=TRUE),
-                     em = system('~/t4f/bin/remlf90', input = parameter.file.path, intern=TRUE)
+                     ai = system(file.path(binary.path, 'airemlf90'), input = parameter.file.path, intern=TRUE),
+                     em = system(file.path(binary.path, 'remlf90'), input = parameter.file.path, intern=TRUE)
   )
   
   # Error catching
@@ -267,6 +269,7 @@ extractAIC.remlf90 <- function(object, ...) {
   
 }
   
+#' @export
 fitted.remlf90 <- function (object, ...) {
   object$mu
 }
@@ -344,6 +347,7 @@ residuals.remlf90 <- function (object, ...) {
   object$residuals
 }
 
+#' @export
 summary.remlf90 <- function(object, ...) {
   ans <- object
   
@@ -379,6 +383,7 @@ summary.remlf90 <- function(object, ...) {
 }
 
 ## This is modeled a bit after  print.summary.lm :
+#' @export
 print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
                                   correlation = TRUE, symbolic.cor = FALSE,
                                   signif.stars = getOption("show.signif.stars"), ...) {

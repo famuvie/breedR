@@ -3,8 +3,8 @@
 #%% Facundo Muñoz  %%#
 #%%%%%%%%%%%%%%%%%%%%#
 
-require(pedigreemm)   # For returning the pedigree in the pedigree::pedigree-class
-require(INLA)         # For simulating a spatial effect
+# require(pedigreemm)   # For returning the pedigree in the pedigree::pedigree-class
+# require(INLA)         # For simulating a spatial effect
 
 # Read the output file (the one with the pedigree. Usually: insim.002)
 # of te Metagene program, and build an object of class metagene.
@@ -38,7 +38,12 @@ read.metagene <- function(file) {
 }
 
 
-# Summary
+#' Summary method for metagene objects
+#' 
+#' Prints a summary of a metagene objects.
+#' @param x A metagene object
+#' @return Prints summary
+#' @export
 summary.metagene <- function(x, ...) {
 #   attach(x)
   xsummary <- function(x) c(summary(x), 'SD'=sd(x), 'Var'=var(x))[c(4, 7, 8, 1:3, 5:6)]
@@ -62,6 +67,7 @@ summary.metagene <- function(x, ...) {
   return(summeta)
 }
 
+#' @export
 print.summary.metagene <- function(x, ...) {
   cat('Metagene simulated dataset\n===========================\n')
   cat('Number of individuals: ', format(x$n.individuals, width=4), '\n')
@@ -90,7 +96,10 @@ print.summary.metagene <- function(x, ...) {
   }
 }
 
-# Plot breeding values
+#' Plot method for metagene objects
+#' 
+#' Plots either genetic and phenotypic values, or the spatial component of the phenotype
+#' @export
 plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 #   dat <- data(x)
   type <- match.arg(type)
@@ -111,37 +120,48 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 
 #### Interface functions ####
 
-# Number of traits
+#' Number of traits
+#' @export
 ntraits <- function(x) UseMethod('ntraits')
+#' @export
 ntraits.metagene <- function(x) {
   return(x$n.traits)
 }
 
-# Number of generations
+#' Number of generations
+#' @export
 ngenerations <- function(x) UseMethod('ngenerations')
+#' @export
 ngenerations.metagene <- function(x) {
   return(x$n.generations)
 }
 
-# Number of individuals
+#' Number of individuals
+#' @export
 nindividuals <- function(x) UseMethod('nindividuals')
+#' @export
 nindividuals.metagene <- function(x, exclude.founders = FALSE) {
   N <- x$n.individuals
   if(exclude.founders) N = N - sum(x$gen==0)
   return(N)
 }
 
-# Pedigree (method masked from pedigreemm)
-# Returns an object from the formal class 'pedigree'
+#' Pedigree (method masked from pedigreemm)
+#' 
+#' Returns an object from the formal class 'pedigree'
+#' @export
 pedigree <- function(x, ...) UseMethod('pedigree')
+#' @export
 pedigree.metagene <- function(x) {
   return(with(x$pedigree, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))
 }
+#' @export
 pedigree.default <- function(...) {
   pedigreemm::pedigree(...)
 }
 
-# Coerce a pedigree to a data.frame
+#' Coerce a pedigree to a data.frame
+#' @export
 as.data.frame.pedigree <- function(x, ...) {
   y <- as(x, 'data.frame')
   z <- cbind(self=as.numeric(row.names(y)), y)
@@ -158,8 +178,10 @@ as.data.frame.pedigree <- function(x, ...) {
 #   utils::data(...)
 # }
 
-# Coerce metagene to a data.frame
-# i.e. returns the pedigree data.frame
+#' Coerce metagene to a data.frame
+#' 
+#' i.e. returns the pedigree data.frame
+#' @export
 as.data.frame.metagene <- function(x, ...) {
   if('spatial' %in% names(x)) {
     return(data.frame(rbind(matrix(NA, sum(x$gen==0), 2), coordinates(x)), x$pedigree))
@@ -168,7 +190,8 @@ as.data.frame.metagene <- function(x, ...) {
 }
 
 
-# Extract columns directly from the dataframe
+#' Extract columns directly from the dataframe
+#' @export
 "$.metagene" <- function(x, name) {
   # Decide wether we asked for an element of the list
   # or an element of the dataframe
@@ -176,7 +199,8 @@ as.data.frame.metagene <- function(x, ...) {
   else x[['pedigree']][[name]]
 }
 
-# Write columns of the dataframe
+#' Write columns of the dataframe
+#' @export
 "$<-.metagene" <- function(x, name, value) {
   # Decide wether we asked for an element of the list
   # or an element of the dataframe
@@ -185,7 +209,8 @@ as.data.frame.metagene <- function(x, ...) {
   x
 }
 
-# Subset data
+#' Subset data
+#' @export
 "[.metagene" <- function(x, ...) {
   pedigree.subset <- "[.data.frame"(x$pedigree, ...)
   # update items
@@ -196,7 +221,8 @@ as.data.frame.metagene <- function(x, ...) {
   y
 }
 
-# Breeding values
+#' Breeding values
+#' @export
 b.values <- function(x, ...) {
   stopifnot(inherits(x, 'metagene'))
   dat <- data(x)[,c('self', 'gen', 'sex', 'BV_X')]

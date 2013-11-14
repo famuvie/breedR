@@ -1,12 +1,33 @@
 Package: breedR
 Type: Package
 Title: Frequentist and Bayesian methods for breeders and quantitative genetists
-Version: 1.0
+Version: 0.1-0
 Date: 2013-11-12
-Author: INRA
+Encoding: UTF-8
+Authors@R: c(person("Facundo","Muñoz",
+    role=c("aut", "cre"),
+    email="facundo.munoz@orleans.inra.fr"),
+    person("Ignacy","Misztal", role="ctb"))
+Author: Facundo Muñoz with libraries by Ignacy Misztal
 Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
-Description: This package provides statistical tools to build predictive models for the breeders community.
-It aims to assess the genetic value of individuals under a number of situations, including spatial autocorrelation, genetic/environment interaction and competition.
-It is under active development as part of the Trees4Future project, particularly developed having forest genetic trials in mind.
-But can be used for animals or other situations as well.
+Description: This package provides statistical tools to build predictive models
+    for the breeders community. It aims to assess the genetic value of
+    individuals under a number of situations, including spatial
+    autocorrelation, genetic/environment interaction and competition. It is
+    under active development as part of the Trees4Future project, particularly
+    developed having forest genetic trials in mind. But can be used for animals
+    or other situations as well.
 License: GPL-3
+Copyright: (C) 2013 European Commission
+Depends:
+    ggplot2,
+    pedigreemm,
+    INLA,
+    methods
+LazyLoad: yes
+LazyData: yes
+URL: https://github.com/famuvie/breedR
+BugReports: https://github.com/famuvie/breedR
+Collate:
+    'metagene-class.R'
+    'remlf90-class.R'
