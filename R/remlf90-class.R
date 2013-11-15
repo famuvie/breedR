@@ -145,7 +145,11 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   # file.show(pedigree.file.path)
   
   # variance components with REML
-  binary.path <- system.file('bin', 'linux', package='breedR')
+  platform <- switch(.Platform$OS.type, 
+                     unix = 'linux',
+                     windows = 'windows',
+                     mac = 'mac')
+  binary.path <- system.file('bin', platform, package='breedR')
   reml.out <- switch(method,
                      ai = system(file.path(binary.path, 'airemlf90'), input = parameter.file.path, intern=TRUE),
                      em = system(file.path(binary.path, 'remlf90'), input = parameter.file.path, intern=TRUE)

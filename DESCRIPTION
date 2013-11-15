@@ -22,8 +22,9 @@ Copyright: (C) 2013 European Commission
 Depends:
     ggplot2,
     pedigreemm,
-    INLA,
-    methods
+    methods,
+    sp
+Suggest: INLA, testthat
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
