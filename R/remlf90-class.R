@@ -59,6 +59,7 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   ped <- as.data.frame(effects[[ped.effect.idx]]$pedigree)
   
   # Temporary files
+  # Issue #1
   # WORKAROUND: in Windows, tmpdir is too lengthy for AIREMLF90 
   # This is somewhat dangerous: there might be permission issues
   tmpdir <- tempdir()
@@ -209,11 +210,16 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   
   # Variance components
   # ASSUMPTION: I always have a Genetic Variance component
+  
+  # Issue #2 In Linux, AIREMLF90 prints S.D. for R and G
+  # while under Windows it outputs SE for R and G
+  sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
+  
   gen.var.idx <- grep('Genetic variance', reml.out) + 1
   stopifnot(length(gen.var.idx)==1)
   gen.var <- as.numeric(reml.out[gen.var.idx])
 
-  gen.var.sd.idx <- grep('S.D. for G', reml.out) + 1
+  gen.var.sd.idx <- grep(paste(sd.label, 'for G'), reml.out) + 1
   stopifnot(length(gen.var.sd.idx)==1)
   gen.var.sd <- as.numeric(reml.out[gen.var.sd.idx])
   
@@ -221,7 +227,7 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   stopifnot(length(res.var.idx)==1)
   res.var <- as.numeric(reml.out[res.var.idx])
   
-  res.var.sd.idx <- grep('S.D. for R', reml.out) + 1
+  res.var.sd.idx <- grep(paste(sd.label, 'for R'), reml.out) + 1
   stopifnot(length(res.var.sd.idx)==1)
   res.var.sd <- as.numeric(reml.out[res.var.sd.idx])
   
