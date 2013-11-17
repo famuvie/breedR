@@ -59,7 +59,15 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   ped <- as.data.frame(effects[[ped.effect.idx]]$pedigree)
   
   # Temporary files
+  # WORKAROUND: in Windows, tmpdir is too lengthy for AIREMLF90 
+  # This is somewhat dangerous: there might be permission issues
   tmpdir <- tempdir()
+  if(.Platform$OS.type == 'windows') {
+    tmpdir = "C:\\Rtmp"
+    if(file.exists(tmpdir)) stop(paste(tmpdir, 'already exists'))
+    dir.create(tmpdir)
+    on.exit(unlink(tmpdir, recursive=TRUE))
+  }
   parameter.file.path <- file.path(tmpdir, 'parameters')
   data.file.path <- file.path(tmpdir, 'data')
   pedigree.file.path <- file.path(tmpdir, 'pedigree')
@@ -151,8 +159,8 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
                      mac = 'mac')
   binary.path <- system.file('bin', platform, package='breedR')
   reml.out <- switch(method,
-                     ai = system(file.path(binary.path, 'airemlf90'), input = parameter.file.path, intern=TRUE),
-                     em = system(file.path(binary.path, 'remlf90'), input = parameter.file.path, intern=TRUE)
+                     ai = system(shQuote(file.path(binary.path, 'airemlf90')), input = parameter.file.path, intern=TRUE),
+                     em = system(shQuote(file.path(binary.path, 'remlf90')), input = parameter.file.path, intern=TRUE)
   )
   
   # Error catching

@@ -19,7 +19,7 @@ Description: This package provides statistical tools to build predictive models
     or other situations as well.
 License: GPL-3
 Copyright: (C) 2013 European Commission
-Depends:
+Depends: R (>= 2.15),
     ggplot2,
     pedigreemm,
     methods,

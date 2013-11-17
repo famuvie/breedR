@@ -41,6 +41,7 @@ Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
 }
 \examples{
   data(m4)
+  summary(m4)
   plot(m4)
   effects <- list(
           generation = list(type = 'cross', model = 'fixed'),
