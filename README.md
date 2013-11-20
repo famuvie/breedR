@@ -16,6 +16,7 @@ This package provides statistical tools to build predictive models for the breed
 - Install the `devtools` R-package
   - `install.packages('devtools')`
 - Update to the latest development version
+  - (Not estrictly necessary under Windows)
   - `devtools::install_github('devtools')`
 
 ##### Test cycle
