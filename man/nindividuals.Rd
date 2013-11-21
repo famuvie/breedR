@@ -2,7 +2,7 @@
 \alias{nindividuals}
 \title{Number of individuals}
 \usage{
-  nindividuals(x)
+  nindividuals(x, ...)
 }
 \description{
   Number of individuals

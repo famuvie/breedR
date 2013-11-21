@@ -2,7 +2,7 @@
 \alias{summary.metagene}
 \title{Summary method for metagene objects}
 \usage{
-  summary.metagene(x, ...)
+  summary.metagene(object, ...)
 }
 \arguments{
   \item{x}{A metagene object}

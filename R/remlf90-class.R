@@ -354,7 +354,7 @@ print.remlf90 <- function (object, ...) {
 }
 
 ranef.remlf90 <- function (object, ...) {
-  res.f90$ranef
+  object$ranef
 }
 
 residuals.remlf90 <- function (object, ...) {

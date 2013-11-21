@@ -44,25 +44,31 @@ read.metagene <- function(file) {
 #' @param x A metagene object
 #' @return Prints summary
 #' @export
-summary.metagene <- function(x, ...) {
+summary.metagene <- function(object, ...) {
 #   attach(x)
   xsummary <- function(x) c(summary(x), 'SD'=sd(x), 'Var'=var(x))[c(4, 7, 8, 1:3, 5:6)]
   
   breeding.values <- list(
-    global = xsummary(x$BV_X),
-    generation = do.call(rbind, tapply(x$BV_X, x$gen, xsummary)),
-    sex = do.call(rbind, tapply(x$BV_X, x$sex, xsummary))
+    global = do.call(rbind, tapply(object$BV_X, rep(1, object$n.individuals), xsummary)),
+    generation = do.call(rbind, tapply(object$BV_X, object$gen, xsummary)),
+    sex = do.call(rbind, tapply(object$BV_X, object$sex, xsummary))
   )
 
   # Exclude founders except for generation-specific results
-  x.noF <- x[x$gen!=0,]
+  object.noF <- object[object$gen!=0,]
   phenotype <- list(
-    'global (exc. founders)' = xsummary(x.noF$phe_X),
-    generation = do.call(rbind, tapply(x$phe_X, x$gen, xsummary)),
-    'sex (exc. founders)' = do.call(rbind, tapply(x.noF$phe_X, x.noF$sex, xsummary))
+    'global (exc. founders)' = do.call(rbind, tapply(object.noF$phe_X, rep(1, object.noF$n.individuals), xsummary)),
+    generation = do.call(rbind, tapply(object$phe_X, object$gen, xsummary)),
+    'sex (exc. founders)' = do.call(rbind, tapply(object.noF$phe_X, object.noF$sex, xsummary))
   )
   
-  summeta <- list(file.path=x$file.path, file=x$file, n.traits=x$n.traits, n.generations=x$n.generations, n.individuals=x$n.individuals, pedigree=x$pedigree, breeding.values=breeding.values, phenotype=phenotype)
+  # If only 1 generation, don't split by generation
+  if(object$n.generations < 2) {
+    breeding.values <- breeding.values[-which(names(breeding.values)=='generation')]
+    phenotype <- phenotype[-which(names(phenotype)=='generation')]
+  }
+  
+  summeta <- list(file.path=object$file.path, file=object$file, n.traits=object$n.traits, n.generations=object$n.generations, n.individuals=object$n.individuals, pedigree=object$pedigree, breeding.values=breeding.values, phenotype=phenotype)
   class(summeta) <- 'summary.metagene'  
   return(summeta)
 }
@@ -90,7 +96,7 @@ print.summary.metagene <- function(x, ...) {
   for(i in 1:length(x$phenotype)){
     cat(names(x$phenotype)[i], ':\n')
     if(is.null(dim(x$phenotype[[i]])))
-      print(x$breeding.values[[i]]['Var']/x$phenotype[[i]]['Var'])
+      print(x$breeding.values[[i]][,'Var']/x$phenotype[[i]][,'Var'])
     else
       print(x$breeding.values[[i]][,'Var']/x$phenotype[[i]][,'Var'])
   }
@@ -138,9 +144,9 @@ ngenerations.metagene <- function(x) {
 
 #' Number of individuals
 #' @export
-nindividuals <- function(x) UseMethod('nindividuals')
+nindividuals <- function(x, ...) UseMethod('nindividuals')
 #' @export
-nindividuals.metagene <- function(x, exclude.founders = FALSE) {
+nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   N <- x$n.individuals
   if(exclude.founders) N = N - sum(x$gen==0)
   return(N)
@@ -152,7 +158,7 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE) {
 #' @export
 pedigree <- function(x, ...) UseMethod('pedigree')
 #' @export
-pedigree.metagene <- function(x) {
+pedigree.metagene <- function(x, ...) {
   return(with(x$pedigree, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))
 }
 #' @export
@@ -335,7 +341,7 @@ sim.spatial.metagene <- function(meta, ...) {
 
 #### Spatial interface functions ####
 
-# coordinates() is an S4 function
+# sp::coordinates() is an S4 function
 # Register the S3 class 'metagene' as an S4 class
 setOldClass('metagene')
 setMethod('coordinates', signature = 'metagene', 
