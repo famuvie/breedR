@@ -15,6 +15,10 @@ read.metagene <- function(file) {
   pedigree <- read.table(file=file.path, quote="", skip=pedigree.start, col.names=scan(file=file.path, what=character(), skip=pedigree.start - 1, nlines=1, sep=','))
   t.max = as.integer(strsplit(file[grep('Tmax:', file)], '^Tmax: *')[[1]][2])
   
+  # generation as factor
+  # functions like max() can operate on ordered factors
+  pedigree$gen <- factor(pedigree$gen, ordered=TRUE)
+  
   # Number of traits (metagene handles either 1 or 2)
   # We try to guess the name of the file .001 where it reads the input parameters
   # otherwise, we try to infer it from the pedigree
@@ -30,6 +34,7 @@ read.metagene <- function(file) {
   
   # Number of individuals
   n.ind = max(pedigree$self)
+  
   # Build object
   meta <- list(file.path=file.path, file=file, n.traits=n.traits, n.generations=t.max, n.individuals=n.ind, pedigree=pedigree)
   attr(meta, 'pedigree.starting.line') <- pedigree.start
@@ -224,7 +229,12 @@ as.data.frame.metagene <- function(x, ...) {
   y$pedigree <- pedigree.subset
   y$n.generations <- max(y$gen)
   y$n.individuals <- nrow(pedigree.subset)
-  y
+  # drop unused levels of factors
+  y.factors <- which(sapply(pedigree.subset, is.factor))
+  for(var in y.factors) {
+    y$pedigree[[var]] <- factor(pedigree.subset[[var]], ordered=is.ordered(pedigree.subset[[var]]))
+  }
+  return(y)
 }
 
 #' Breeding values
@@ -298,7 +308,7 @@ sim.spatial.metagene <- function(meta, ...) {
                          theta.prior.prec=1)
   
   # Precision matrix (using the prior means of the parameters)
-  Q=inla.spde2.precision(spde,theta=c(0,0))
+  Q=suppressMessages(inla.spde2.precision(spde,theta=c(0,0)))
   
   # Sample
   x=suppressWarnings(as.vector(inla.qsample(n=1,Q)))

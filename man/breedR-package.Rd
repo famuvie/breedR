@@ -3,10 +3,10 @@
 \alias{breedR}
 \docType{package}
 \title{
-Frequentist and Bayesian methods for breeders and quantitative genetists
+Frequentist and Bayesian methods for breeders, quantitative genetists and forest genetic resources analysts.
 }
 \description{
-This package provides statistical tools to build predictive models for the breeders community. 
+  This package provides statistical tools to build predictive models for the breeders, quantitative genetists and forest genetic resources analysts communities.
   It aims to assess the genetic value of individuals under a number of situations, including
   spatial autocorrelation, genetic/environment interaction and competition. It is under active
   development as part of the Trees4Future project, particularly developed having forest genetic
@@ -49,12 +49,13 @@ Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
   
   # Exclude founders from data, as they don't have phenotypic values
   dat <- as.data.frame(m4[m4$gen!=0,])
-  # Model generation as categorical (in agreement with the effects list)
-  dat$gen <- as.factor(dat$gen)
-  
+
+  # Fit Mixed Model using REML
   res.f90 <- remlf90(formula=phe_X ~ gen + self, effects=effects, data=dat)
+  
+  # Summary of results
   summary(res.f90)
   
   # Observed phenotypes vs. Fitted values
-  qplot(fitted(res.f90), dat$phe_X, color=dat$gen) + geom_abline(int=0, slope=1)
+  qplot(dat$phe_X, fitted(res.f90), color=dat$gen) + geom_abline(int=0, slope=1)
 }

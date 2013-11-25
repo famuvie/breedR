@@ -1,7 +1,7 @@
 breedR
 ======
 
-### Frequentist and Bayesian methods for breeders and quantitative genetists
+### Frequentist and Bayesian methods for breeders, quantitative genetists and forest genetic resources analysts.
 
 #### Description
 This package provides statistical tools to build predictive models for the breeders community. It aims to assess the genetic value of individuals under a number of situations, including spatial autocorrelation, genetic/environment interaction and competition. It is under active development as part of the Trees4Future project, particularly developed having forest genetic trials in mind. But can be used for animals or other situations as well.

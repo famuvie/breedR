@@ -18,14 +18,14 @@ Description: This package provides statistical tools to build predictive models
     developed having forest genetic trials in mind. But can be used for animals
     or other situations as well.
 License: GPL-3
-Copyright: (C) 2013 European Commission
 Depends:
     R (>= 2.15),
     ggplot2,
     pedigreemm,
     methods,
+    INLA, 
     sp
-Suggest: INLA, testthat
+Suggest: testthat
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
