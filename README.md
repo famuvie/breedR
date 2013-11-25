@@ -25,6 +25,6 @@ This package provides statistical tools to build predictive models for the breed
 - Install or update the `breedR` package
   - `install_github('breedR', 'famuvie')`
 - Check-out the basic example
-  - `example('breedR', 'breedR')
+  - `example('breedR', 'breedR')`
 - Try it with your own data or with provided datasets
 - Report [issues](https://github.com/famuvie/breedR/issues "Issues page")
