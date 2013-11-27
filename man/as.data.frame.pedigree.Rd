@@ -1,10 +1,21 @@
 \name{as.data.frame.pedigree}
 \alias{as.data.frame.pedigree}
-\title{Coerce a pedigree to a data.frame}
+\title{Coerce to a data.frame}
 \usage{
-  as.data.frame.pedigree(x, ...)
+  \method{as.data.frame}{metagene} (x, ...)
+}
+\arguments{
+  \item{x}{a \code{\link[pedigree]{pedigree}} object}
+
+  \item{...}{not used}
+}
+\value{
+  returns a data frame with one row per individual, the
+  first column being the identification code, and the other
+  two columns are dad and mum codes respectively.
 }
 \description{
-  Coerce a pedigree to a data.frame
+  This function returns a \code{\link[pedigree]{pedigree}}
+  object in a data frame
 }
 

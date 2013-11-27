@@ -6,10 +6,17 @@
 # require(pedigreemm)   # For returning the pedigree in the pedigree::pedigree-class
 # require(INLA)         # For simulating a spatial effect
 
-# Read the output file (the one with the pedigree. Usually: insim.002)
-# of te Metagene program, and build an object of class metagene.
-read.metagene <- function(file) {
-  file.path = file
+#' Metagene Data Input
+#' 
+#' Read the output file (the one with the pedigree. Usually: insim.002)
+#' of te Metagene program, and build an object of class metagene.
+#' @param fname file name of the second metagene output file (usually: insim.002)
+#' @return read.metagene returns the data in the file as an object of class \code{metagene}
+#' @references \url{http://www.igv.fi.cnr.it/noveltree/}
+#' @family metagene
+#' @export
+read.metagene <- function(fname) {
+  file.path = fname
   file      = readLines(con=file.path)
   pedigree.start <- grep('pedigree', file) + 1
   pedigree <- read.table(file=file.path, quote="", skip=pedigree.start, col.names=scan(file=file.path, what=character(), skip=pedigree.start - 1, nlines=1, sep=','))
@@ -46,6 +53,7 @@ read.metagene <- function(file) {
 #' Summary method for metagene objects
 #' 
 #' Prints a summary of a metagene objects.
+#' @method summary metagene
 #' @param x A metagene object
 #' @return Prints summary
 #' @export
@@ -110,6 +118,7 @@ print.summary.metagene <- function(x, ...) {
 #' Plot method for metagene objects
 #' 
 #' Plots either genetic and phenotypic values, or the spatial component of the phenotype
+#' @method plot metagene
 #' @export
 plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 #   dat <- data(x)
@@ -171,7 +180,15 @@ pedigree.default <- function(...) {
   pedigreemm::pedigree(...)
 }
 
-#' Coerce a pedigree to a data.frame
+#' Coerce to a data.frame
+#' 
+#' This function returns a \code{\link[pedigree]{pedigree}} object in a data frame
+#' 
+#' @method as.data.frame metagene
+#' @param x a \code{\link[pedigree]{pedigree}} object
+#' @param ... not used
+#' 
+#' @return returns a data frame with one row per individual, the first column being the identification code, and the other two columns are dad and mum codes respectively.
 #' @export
 as.data.frame.pedigree <- function(x, ...) {
   y <- as(x, 'data.frame')
@@ -189,19 +206,33 @@ as.data.frame.pedigree <- function(x, ...) {
 #   utils::data(...)
 # }
 
-#' Coerce metagene to a data.frame
+#' Coerce to a data.frame
 #' 
-#' i.e. returns the pedigree data.frame
+#' This function returns the data frame with the pedigree and phenotypes of the simulated individuals.
+#' 
+#' @method as.data.frame metagene
+#' @param x a metagene object
+#' @param ... not used
+#' @param exclude.founders logical: should the data.frame contain the genetic values of the founders?
+#' 
+#' @return returns a data frame with one row per individual, with the spatial coordinates if applicable, the pedigree information, the generation, the true breeding value, the phenotype, the sex, the spatially structured component of the phenotype and other internal metagene variables.
 #' @export
-as.data.frame.metagene <- function(x, ...) {
-  if('spatial' %in% names(x)) {
-    return(data.frame(rbind(matrix(NA, sum(x$gen==0), 2), coordinates(x)), x$pedigree))
-  }
-  else return(x$pedigree)
+as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
+  # Exclude founders if appropriate
+  if(exclude.founders) x = x[x$gen!=0, ]
+  
+  # If it has a spatial structure, add coordinates as columns
+  if('spatial' %in% names(x))
+    dat = data.frame(rbind(matrix(NA, sum(x$gen==0), 2), coordinates(x)), x$pedigree)
+  else dat = x$pedigree
+  
+  return(dat)
 }
 
 
 #' Extract columns directly from the dataframe
+#' 
+#' @rdname Extract.metagene
 #' @export
 "$.metagene" <- function(x, name) {
   # Decide wether we asked for an element of the list
@@ -211,6 +242,8 @@ as.data.frame.metagene <- function(x, ...) {
 }
 
 #' Write columns of the dataframe
+#' 
+#' @rdname Extract.metagene
 #' @export
 "$<-.metagene" <- function(x, name, value) {
   # Decide wether we asked for an element of the list
@@ -221,6 +254,8 @@ as.data.frame.metagene <- function(x, ...) {
 }
 
 #' Subset data
+#' 
+#' @rdname Extract.metagene
 #' @export
 "[.metagene" <- function(x, ...) {
   pedigree.subset <- "[.data.frame"(x$pedigree, ...)

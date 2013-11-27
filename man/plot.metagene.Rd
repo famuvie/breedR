@@ -2,7 +2,8 @@
 \alias{plot.metagene}
 \title{Plot method for metagene objects}
 \usage{
-  plot.metagene(x, type = c("default", "spatial"), ...)
+  \method{plot}{metagene} (x,
+    type = c("default", "spatial"), ...)
 }
 \description{
   Plots either genetic and phenotypic values, or the

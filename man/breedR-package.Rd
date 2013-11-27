@@ -37,7 +37,7 @@ Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
 }
 \keyword{ package }
 \seealso{
-  \code{\link[pedigreemm:pedigreemm-package]{pedigreemm}}
+  \code{\link[pedigreemm]{pedigreemm}}
 }
 \examples{
   data(m4)
