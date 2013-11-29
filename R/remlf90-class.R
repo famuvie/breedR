@@ -145,7 +145,15 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   
   # Write the spatial file if applicable
   if(!is.null(spatial)) {
-    # Write U matrix
+    # Determine the number of knots
+    
+    # Compute B matrix of tensor product of B-spline bases
+    
+    # Compute U matrix
+    
+    # Write the columns of B in the data file 
+    
+    # put the random effects b in a RANDOM_GROUP section in the parameters file
   }
   
   # variance components with REML
