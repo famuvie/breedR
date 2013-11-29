@@ -294,7 +294,10 @@ b.values <- function(x, ...) {
 
 #### Simulate spatial structure ####
 
+#' Simulate a spatial structure
 sim.spatial <- function(meta, ...) UseMethod('sim.spatial')
+#' @method sim.spatial metagene
+#' @export
 sim.spatial.metagene <- function(meta, ...) {
   #### Distribute the individuals (except founders) randomly in space
 #   meta <- meta[meta$gen!=0,]

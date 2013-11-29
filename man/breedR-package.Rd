@@ -16,7 +16,7 @@ Frequentist and Bayesian methods for breeders, quantitative genetists and forest
 \tabular{ll}{
 Package: \tab breedR\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
+Version: \tab 0.1-1\cr
 Date: \tab 2013-11-12\cr
 License: \tab GPL-3\cr
 }
@@ -40,22 +40,20 @@ Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
   \code{\link[pedigreemm]{pedigreemm}}
 }
 \examples{
+  # Load, summarize and visualize data
   data(m4)
   summary(m4)
   plot(m4)
-  effects <- list(
-          generation = list(type = 'cross', model = 'fixed'),
-          genetic = list(type = 'cross', model = 'add_animal', var = 10, pedigree = pedigree(m4)))
-  
-  # Exclude founders from data, as they don't have phenotypic values
-  dat <- as.data.frame(m4[m4$gen!=0,])
 
   # Fit Mixed Model using REML
-  res.f90 <- remlf90(formula=phe_X ~ gen + self, effects=effects, data=dat)
+  res.f90 <- remlf90(formula = phe_X ~ gen, 
+                     genetic = list(model = 'add_animal', var.ini = 10, pedigree = pedigree(m4)), 
+                     data = as.data.frame(m4),
+                     id = 'self')
   
   # Summary of results
   summary(res.f90)
   
   # Observed phenotypes vs. Fitted values
-  qplot(dat$phe_X, fitted(res.f90), color=dat$gen) + geom_abline(int=0, slope=1)
+  qplot(phe_X, fitted(res.f90), color=gen, data = as.data.frame(m4)) + geom_abline(int=0, slope=1)
 }

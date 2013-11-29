@@ -1,6 +1,22 @@
 #' Inference with REMLF90
+#' 
+#' Fits a Linear Mixed Model by Restricted Maximum Likelihood
+#' @param formula an object of class \link{formula} (or one that can be coerced to that class): a symbolic description of the model to be fitted. The details of model specification are given under 'Details'.
+#' @param genetic if not \code{NULL}, a list with relevant parameters for an additive genetic effect; see 'Details'.
+#' @param spatial if not \code{NULL}, a list with relevant parameters for a spatial random effect; see 'Details'.
+#' @details 
+#' If either \code{genetic} and/or \code{param} are not \code{NULL}, the model residuals are assumed to have an additive genetic effects and a spatially structured random effect, respectively.
+#' The relevant parameters are \code{model} and \code{var.ini} in both cases, and \code{pedigree} in the case of a genetic effect.
+#' 
+#' The available models for the genetic effect are \code{add_animal}. \code{add_animal} stands for an additive animal model with a given pedigree.
+#' The available models for the spatial effect are \code{Cappa07}. \code{Cappa07} uses a  two-dimensional tensor product of B-splines to represent the smooth spatially structured effect.
+#' @seealso \code{\link[pedigreemm]{pedigree}}
+#' @references
+#'    \code{\link{http://nce.ads.uga.edu/wiki/doku.php}}
+#'    
+#'    E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to account for a spatial trend using penalized splines in an individual-tree mixed model. \emph{Canadian Journal of Forest Research} \strong{37}(12):2677-2688.
 #' @export
-remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
+remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data), method=c('ai', 'em')) {
   
   ## Assumptions:
   ## Only 1 pedigree
@@ -16,10 +32,6 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   # TODO: discriminate properly factor covariates (cross) 
   # from numeric covariates (cov)
   
-  # TODO: Allow for subsetting the data (i.e. exclude founders)
-  # in the function call (parameter subset). Use this parameter
-  # when building up the model frame.
-  
   # TODO: Allow for multiple responses
   
   # TODO: Allow for generalized mixed models
@@ -30,39 +42,39 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   # Parse arguments
   method <- tolower(method)
   method <- match.arg(method)
+  
+  if(length(id)==1) id <- data[, id]
 
   ## parse data and formula
   # NOTE: This complicated way of calling a function accounts
   # for the fact that the user possibly didn't pass a data argument
-  # and the formula must be evaluated in the calling environment (parent)
+  # and the formula must be evaluated in the calling environment (parent.frame())
   # besides, it allows passing additional arguments to model.frame
   # like subset, na.action, etc.
   mc[[1]] <- quote(stats::model.frame)
-  mc$effects <- NULL
-  mf <- eval(mc, parent.frame(1L))
+  mc$genetic <- mc$spatial <- mc$id <- NULL
+  mf <- eval(mc, parent.frame())
   mt <- attr(mf, 'terms')
 #   mf <- model.frame(update(formula, ~.-1), data)
   # Better add an intercept to progsf90
   
-#   # Extract data columns in the right order
-#   # (the same as in the formula)
-#   # the response goes to the last column
-#   tf <- terms.formula(formula)
-#   dat <- data[,c(attr(attr(mf, 'terms'), 'term.labels'), as.character(tf[[2]]))]
-#   # This is bullshit. Do it right with model.frame and so on
-#   # TODO: adapt everything
-
-  # Extract pedigree
-  # TODO: If there is. Include a parameter pedigree
-  withPedigree = TRUE
-  ped.effect.idx <- which(sapply(effects, function(x) !is.null(x$pedigree)))
-  ped <- as.data.frame(effects[[ped.effect.idx]]$pedigree)
+  # Genetic effect
+  if(!is.null(genetic)) {
+    genetic$model <- match.arg(genetic$model, choices = c('add_animal'))
+    if(!inherits(genetic$pedigree, 'pedigree')) stop("The argument genetic should contain a 'pedigree' object")
+    ped <- as.data.frame(genetic$pedigree)   # Extract pedigree
+  }
+  
+  # Spatial effect
+  if(!is.null(spatial)) {
+    spatial$model <- match.arg(spatial$model, choices = c('Cappa07'))
+  }
   
   # Temporary files
-  # Issue #1
+  tmpdir <- tempdir()
   # WORKAROUND: in Windows, tmpdir is too lengthy for AIREMLF90 
   # This is somewhat dangerous: there might be permission issues
-  tmpdir <- tempdir()
+  # Fixes Issue #1
   if(.Platform$OS.type == 'windows') {
     tmpdir = "C:\\Rtmp"
     if(file.exists(tmpdir)) stop(paste(tmpdir, 'already exists'))
@@ -71,50 +83,26 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   }
   parameter.file.path <- file.path(tmpdir, 'parameters')
   data.file.path <- file.path(tmpdir, 'data')
-  pedigree.file.path <- file.path(tmpdir, 'pedigree')
-  
-  # Complete effects data (position and levels)
-  # The order in the list of effects is *assumed*
-  # the same as in the formula terms
-
-  # the given effects list must have the same number of therms as the formula
-  stopifnot(identical(length(effects), length(attr(mt, 'term.labels'))))
+  if(!is.null(genetic)) genetic$tempfile <- file.path(tmpdir, 'pedigree')
+  if(!is.null(spatial)) spatial$tempfile <- file.path(tmpdir, 'spatial')
   
   
-  # Levels of factors
-  # Watch out! the parameters file must read the levels present in the pedigree
-  # even if the data is restricted
-  factor.effects <- which(sapply(effects, function(x) x$type == 'cross'))
-    # TODO: We should better assess factors from data (model frame)
-    # rather than from this artificial effects argument
-    # TODO: We also need the levels of numeric (cov) covariates
-  factor.levels <- sapply(as.data.frame(as.matrix(mf[,-1])[,factor.effects]), function(x) nlevels(as.factor(x)))
-    # NOTE: as.data.frame and as.matrix are needed to avoid simplification in the case there is only one effect.
-  effects[] <- mapply(c, lapply(factor.levels, function(x) list(levels=x)), effects, SIMPLIFY=FALSE)
-  # For pedigree effects, there might be more levels than those
-  # present in the data. We should state the levels present in the pedigree.
-  effects[[ped.effect.idx]]$levels <- nrow(ped)
-  # Add intercept to effects list, if not precluded explicitly in the formula
-  # Caution: this must be after adding the levels and befor adding the position
-  if(attr(mt, 'intercept')) effects <- c(list('(Intercept)'=list(levels=1L, type='cross', model='fixed')), effects)
-  # Position in formula
-  effects[] <- mapply(c, lapply(1:length(effects), function(x) list(pos=x)), effects)
-#   # Retrieve lost names # Unnecessary?
-#   effects[] <- ... preserves the names!
+  
+  # Build effects' parameters
+  effects <- build.effects(mf, genetic, spatial)
+  
+  # Build models for random effects
+  random.effects.idx <- which(names(effects)=='genetic' | names(effects)=='spatial') # For the moment, the only random effects are either genetic or spatial --- TODO
+  
   
   
   # Number of traits
-  # (size of the response vector)
-  # TODO: this is probably wrong. If the response was a matrix,
-  # there would still be one single term in the formula.
-  # Better use (check later)
-#   ncol(as.matrix(model.response(mf)))
-  ntraits <- length(formula[[2]])
+  # (size of the response vector or matrix)
+  ntraits <- ncol(as.matrix(model.response(mf)))
   
   # Write the parameter file
-  weights <- ''     # No weights for the moment
+  weights <- ''     # No weights for the moment --- TODO
   res.var.ini <- 10 # Initial variance for residuals  # FIXED ??
-  random.effects.idx <- which(sapply(effects, function(x) x$model != 'fixed'))
   parameter.file <- c('DATAFILE', data.file.path, 
                       'NUMBER_OF_TRAITS', ntraits, 
                       'NUMBER_OF_EFFECTS', length(effects),
@@ -123,35 +111,42 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
                       'EFFECTS: POSITIONS_IN_DATAFILE NUMBER_OF_LEVELS TYPE_OF_EFFECT [EFFECT NESTED]',
                       paste(lapply(effects, function(x) paste(do.call(c, x[c('pos', 'levels', 'type')]), collapse=' '))),
                       'RANDOM_RESIDUAL VALUES', res.var.ini, 
-                      sapply(random.effects.idx, function(x) c('RANDOM_GROUP', x, 'RANDOM_TYPE', effects[[x]]$model, 'FILE', pedigree.file.path, '(CO)VARIANCES', effects[[x]]$var))
+                      sapply(random.effects.idx, function(x) c('RANDOM_GROUP', x, 'RANDOM_TYPE', effects[[x]]$model, 'FILE', effects[[x]]$file, '(CO)VARIANCES', effects[[x]]$var))
   )
   
   writeLines(parameter.file, con = parameter.file.path)
   # file.show(parameter.file.path)
   
   # Write the data file
-  # Columns ordered as in the effects list (or formula)
-  # TODO: derive this from the formula
-  # strsplit(labels(terms(formula)), '^.*\\(')
-  # match(labels(terms(formula)), names(data(meta)))
-  # sapply(names(data(meta)), grep, labels(terms(formula)))
-  # In the simplest case, the terms of the formula correspond to 
-  # variable names in the data file
-  # dat <- head(dat)
-  # Numerically encode factors
-  dat.factor.idx <- sapply(mf, is.factor)
-  dat <- mf
-  dat[dat.factor.idx] <- sapply(mf[dat.factor.idx], unclass)
-  # Add the intercept column, and put the response(s) last
-  dat <- cbind(data.frame(intercept=1L), dat[, -attr(mt, 'response')], dat[, attr(mt, 'response')])
+  # Columns ordered as in the effects list
+  # TODO data[, id] in build.dat.single will fail if the data is not provided
+  # everything we need we have to take it from mf.
+  build.dat.single <- function(name, mf) {
+    n <- nrow(mf)
+    switch(name,
+           '(Intercept)' = rep(1L, n),
+           genetic       = id,
+           spatial       = 1:n,
+           mf[[name]])
+  }
+  
+  dat <- cbind(sapply(names(effects), build.dat.single, mf),
+               phenotype = mf[, attr(mt, 'response')])
   
   write.table(dat, file = data.file.path, row.names = FALSE, col.names = FALSE)
   # file.show(data.file.path)
   
-  # Write the pedigree file
-  # ASSUMPTION: there is only one effect with an associated pedigree
-  write.table(ped, file=pedigree.file.path, row.names = FALSE, col.names = FALSE, na = "0")   # NAs are written as 0
-  # file.show(pedigree.file.path)
+  # Write the pedigree file if applicable
+  if(!is.null(genetic)) {
+    # ASSUMPTION: there is only one effect with an associated pedigree
+    write.table(ped, file=genetic$tempfile, row.names = FALSE, col.names = FALSE, na = "0")   # NAs are written as 0
+    # file.show(pedigree.file.path)
+  }
+  
+  # Write the spatial file if applicable
+  if(!is.null(spatial)) {
+    # Write U matrix
+  }
   
   # variance components with REML
   platform <- switch(.Platform$OS.type, 
@@ -259,7 +254,7 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   ans <- list(
     call = mc,
     method = method,
-    effects = list(pedigree = withPedigree), # TODO spatial, competition, ...
+    effects = list(pedigree = !is.null(genetic)), # TODO spatial, competition, ...
     mf = mf,
     mm = 'TODO',
     y = y,
@@ -277,12 +272,99 @@ remlf90 <- function(formula, effects, data, method=c('ai', 'em')) {
   ans
 }
 
-#### Non-exported methods ####
+#%%%%%%%%%%%%%%%%%%%%%%%%%#
+#### Internal methods  ####
+#%%%%%%%%%%%%%%%%%%%%%%%%%#
 
+#' Build effects parameters
+#' 
+#' This function builds a list of effects parameters
+#' as required by Mistal'z progsf90 suite of programs
+#' @references
+#' \url{http://nce.ads.uga.edu/wiki/lib/exe/fetch.php?media=blupf90.pdf}
+build.effects <- function (mf, genetic, spatial) {
+  
+  # Build up effects data (position, levels, type)
+  
+  # Model terms
+  mt <- attr(mf, 'terms')
+
+  # Intercept term, if not precluded explicitly in the formula
+  if(attr(mt, 'intercept')) effects <- list('(Intercept)'=list(pos = 1L, levels=1L, type='cross'))
+  
+  # Parameters of a single effect in the formula
+  eff.par.f <- function(name) {
+    # position (in the data file)
+    pos <- parent.env(environment())$pos
+    assign('pos', pos + 1, envir = parent.env(environment()))
+    # number of levels
+    nl <- ifelse(inherits(mf[[name]], 'factor'), nlevels(mf[[name]]), length(unique(mf[[name]])))
+    # type: factors = "cross"; continuous = "cov"
+    type <- switch(attr(mt, 'dataClasses')[name],
+                   ordered = 'cross',
+                   factor = 'cross',
+                   numeric = 'cov',
+                   'cross')
+    # nested effects
+    # TODO
+    return(list(pos=pos, levels=nl, type=type))
+  }
+  
+  # Parameters for all effects in the formula
+  pos = 2L
+  effects <- c(effects, lapply(attr(mt, 'term.labels'), eff.par.f))
+  names(effects)[-1] <- attr(mt, 'term.labels')
+  
+  # Genetic effect
+  # Both the genetic and spatial terms are "cross"
+  # For pedigree effects, there might be more levels than those
+  # present in the data. We should declare the levels present in the pedigree.
+  if(!is.null(genetic)) {
+    effects <- c(effects, 
+                 genetic = list(
+                   list(pos = pos,
+                        levels = nrow(as.data.frame(genetic$pedigree)),
+                        type = 'cross',
+                        model = genetic$model,
+                        file = genetic$tempfile,
+                        var = genetic$var.ini)))
+    pos = pos + 1
+  }
+  
+  # Spatial effect
+  # We only have spatial coordinates of the dataset elements
+  if(!is.null(spatial)) {
+    effects <- c(effects, 
+                 spatial = list(
+                   list(pos = pos,
+                        levels = nrow(mf),
+                        type = 'cross',
+                        model = 'user_file',
+                        file = spatial$tempfile,
+                        var = spatial$var.ini)))
+  }
+  return(effects)
+}
+
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%#
+#### Interface methods ####
+#%%%%%%%%%%%%%%%%%%%%%%%%%#
+
+
+#' Extract fixed and random effects coefficients
+#' 
+#' @method coef remlf90
+#' @export
 coef.remlf90 <- function(object, ...) { 
   c(fixef(object), ranef(object))
 }
 
+#' Extract the Akaike Information Criterion from a fitted model
+#' 
+#' @method extractAIC remlf90
+#' @export
 extractAIC.remlf90 <- function(object, ...) {
   
 }
@@ -411,7 +493,7 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
   if(!is.null(x$call$formula))
     cat("Formula:", x$formula,"\n")
   if(!is.null(x$call$data))
-    cat("   Data:", x$call$data,"\n")
+    cat("   Data:", deparse(x$call$data),"\n")
   if(!is.null(x$call$subset))
     cat(" Subset:", x$call$subset,"\n")
   print(x$model.fit, digits = digits)
