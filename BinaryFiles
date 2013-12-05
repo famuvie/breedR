@@ -1,2 +1,6 @@
 inst/bin/linux/airemlf90
 inst/bin/linux/remlf90
+inst/bin/mac/airemlf90
+inst/bin/mac/remlf90
+inst/bin/windows/airemlf90.exe
+inst/bin/windows/remlf90.exe

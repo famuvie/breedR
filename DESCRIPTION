@@ -33,3 +33,5 @@ BugReports: https://github.com/famuvie/breedR
 Collate:
     'metagene-class.R'
     'remlf90-class.R'
+    'data.R'
+    'help.R'

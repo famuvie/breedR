@@ -365,10 +365,11 @@ coef.remlf90 <- function(object, ...) {
 #' 
 #' @method extractAIC remlf90
 #' @export
-extractAIC.remlf90 <- function(object, ...) {
+extractAIC.remlf90 <- function(object, scale, k,...) {
   
 }
   
+#' @method fitted remlf90
 #' @export
 fitted.remlf90 <- function (object, ...) {
   object$mu
