@@ -24,6 +24,8 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   ## No intercept
   ## (not generalized) Linear Mixed Model
   ## There always is a genetic variance component
+
+  # TODO: Allow for removing the intercept in the formula
   
   # TODO: Allow for other (diagonal) random effects (notation??)
   
@@ -86,6 +88,59 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   if(!is.null(genetic)) genetic$tempfile <- file.path(tmpdir, 'pedigree')
   if(!is.null(spatial)) spatial$tempfile <- file.path(tmpdir, 'spatial')
   
+ 
+  # Spatial component if applicable
+  if(!is.null(spatial)) {
+    # Determine the number of (inner) knots for rows and columns
+    # TODO: Let the user fix these numbers
+    n.knots.row <- determine.n.knots(nrow(mf))
+    n.knots.col <- determine.n.knots(nrow(mf))
+    
+    # Place the knots
+    x.interdist <- 3
+    y.interdist <- 3
+#     x.knots.inner <- mgcv::place.knots(spatial$coord[, 1], n.knots.row)
+#     y.knots.inner <- mgcv::place.knots(spatial$coord[, 2], n.knots.col)
+    x.knot.interdist <- diff(range(spatial$coord[, 1]) + c(-1, 1)*x.interdist/2)/(n.knots.row-1)
+    y.knot.interdist <- diff(range(spatial$coord[, 2]) + c(-1, 1)*y.interdist/2)/(n.knots.col-1)
+    x.knots.inner <- seq(range(spatial$coord[, 1])[1] - x.interdist/2, range(spatial$coord[, 1])[2]  + x.interdist/2, length = n.knots.row)
+    y.knots.inner <- seq(range(spatial$coord[, 2])[1] - y.interdist/2, range(spatial$coord[, 2])[2]  + y.interdist/2, length = n.knots.col)
+    
+    # Add three additional knots before and after
+    add.knots <- function(x.inner, n.add) {
+      # Use the mean spacing between the inner knots
+      spacing <- mean(diff(x.inner))
+      x <- c(x.inner[1] - (n.add:1)*spacing, x.inner, tail(x.inner, 1) + (1:n.add)*spacing)
+      return(x)
+    }
+    x.knots <- add.knots(x.knots.inner, 3)
+    y.knots <- add.knots(y.knots.inner, 3)
+    
+    # Compute B matrix of tensor product of B-spline bases
+    # TODO: let the user determine the degree/order of the B-splines
+    degree = 3
+    b.x <- splineDesign(x.knots, spatial$coord[, 1], ord = degree  + 1, sparse = TRUE)
+    b.y <- splineDesign(y.knots, spatial$coord[, 2], ord = degree  + 1, sparse = TRUE)
+    
+    bb <- kronecker(b.x, matrix(1, ncol = ncol(b.y)))*kronecker(matrix(1, ncol=ncol(b.x)), b.y)
+    
+    # Compute U matrix (Green & Silverman, 2003)
+    Sigma.marginal <- function(n) {
+      temp <- diag(4, n)
+      subdiag <- rbind(cbind(0, diag(1, n-1)), 0)
+      return((temp + subdiag + t(subdiag))/6)
+    }
+    U <- kronecker(Sigma.marginal(ncol(b.x)), Sigma.marginal(ncol(b.y)))
+    
+    # Number of base functions
+    spatial$n.bases <- ncol(bb)
+    
+    # Write the columns of B in the data file 
+    
+    # put the random effects b in a RANDOM_GROUP section in the parameters file
+  }
+#   browser()
+  
   
   
   # Build effects' parameters
@@ -100,18 +155,30 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   # (size of the response vector or matrix)
   ntraits <- ncol(as.matrix(model.response(mf)))
   
+  
+  parse.effect <- function(x) {
+    if(!is.null(x$grouped)){
+      sapply(x$pos, function(y) parse.effect(list(pos = y, levels = x$levels, type = x$type)))
+    }
+    else  paste(do.call(c, x[c('pos', 'levels', 'type')]), collapse=' ')
+  }
+  
+  ### TODO: Put the obervation column right!!!
+  
   # Write the parameter file
   weights <- ''     # No weights for the moment --- TODO
   res.var.ini <- 10 # Initial variance for residuals  # FIXED ??
+  n.effects <- sum(sapply(effects, function(x) length(x$pos)))
   parameter.file <- c('DATAFILE', data.file.path, 
                       'NUMBER_OF_TRAITS', ntraits, 
-                      'NUMBER_OF_EFFECTS', length(effects),
-                      'OBSERVATION(S)', length(effects) + 1:ntraits,
+                      'NUMBER_OF_EFFECTS', n.effects,
+                      'OBSERVATION(S)', n.effects + 1:ntraits,
                       'WEIGHT(S)', weights,
                       'EFFECTS: POSITIONS_IN_DATAFILE NUMBER_OF_LEVELS TYPE_OF_EFFECT [EFFECT NESTED]',
-                      paste(lapply(effects, function(x) paste(do.call(c, x[c('pos', 'levels', 'type')]), collapse=' '))),
+                      paste(unlist(sapply(effects, function(x) unlist(parse.effect(x))))),
                       'RANDOM_RESIDUAL VALUES', res.var.ini, 
-                      sapply(random.effects.idx, function(x) c('RANDOM_GROUP', x, 'RANDOM_TYPE', effects[[x]]$model, 'FILE', effects[[x]]$file, '(CO)VARIANCES', effects[[x]]$var))
+                      sapply(random.effects.idx, function(x) c('RANDOM_GROUP', paste(effects[[x]]$pos, collapse = ' '), 'RANDOM_TYPE', effects[[x]]$model, 'FILE', effects[[x]]$file, '(CO)VARIANCES', effects[[x]]$var)),
+                      'OPTION sol se'
   )
   
   writeLines(parameter.file, con = parameter.file.path)
@@ -119,19 +186,21 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   
   # Write the data file
   # Columns ordered as in the effects list
-  # TODO data[, id] in build.dat.single will fail if the data is not provided
-  # everything we need we have to take it from mf.
+  # TODO data[, id] (at the begining) will fail in build.dat.single if the data
+  # argument is not provided. Everything we need we have to take it from mf.
   build.dat.single <- function(name, mf) {
     n <- nrow(mf)
     switch(name,
            '(Intercept)' = rep(1L, n),
            genetic       = id,
-           spatial       = 1:n,
+           spatial       = as.matrix(bb),
            mf[[name]])
   }
   
-  dat <- cbind(sapply(names(effects), build.dat.single, mf),
-               phenotype = mf[, attr(mt, 'response')])
+#   dat <- cbind(sapply(names(effects), build.dat.single, mf),
+#                phenotype = mf[, attr(mt, 'response')])
+  dat <- do.call(cbind, c(sapply(names(effects), build.dat.single, mf),
+               list(phenotype = mf[, attr(mt, 'response')])))
   
   write.table(dat, file = data.file.path, row.names = FALSE, col.names = FALSE)
   # file.show(data.file.path)
@@ -140,21 +209,22 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   if(!is.null(genetic)) {
     # ASSUMPTION: there is only one effect with an associated pedigree
     write.table(ped, file=genetic$tempfile, row.names = FALSE, col.names = FALSE, na = "0")   # NAs are written as 0
-    # file.show(pedigree.file.path)
+    # file.show(genetic$tempfile)
+  }
+
+  # Write the spatial structure matrix if applicable
+  if(!is.null(spatial)) {
+    # TODO: Work sparse from the begining
+    U.sparse <- as(Matrix(tril(U), sparse = TRUE), 'dgTMatrix')
+    
+    # Note: The Matrix package counts rows and columns starting from zero
+    # Thus, I add 1 to the corresponding columns
+    U.values <- cbind(U.sparse@i + 1, U.sparse@j + 1, U.sparse@x)
+    write.table(U.values, file=spatial$tempfile, row.names = FALSE, col.names = FALSE, na = "0")   # NAs     
+    # file.show(spatial$tempfile)
   }
   
-  # Write the spatial file if applicable
-  if(!is.null(spatial)) {
-    # Determine the number of knots
-    
-    # Compute B matrix of tensor product of B-spline bases
-    
-    # Compute U matrix
-    
-    # Write the columns of B in the data file 
-    
-    # put the random effects b in a RANDOM_GROUP section in the parameters file
-  }
+
   
   # variance components with REML
   platform <- switch(.Platform$OS.type, 
@@ -172,8 +242,8 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   
   # Parsing the results
   sol.file <- read.table('solutions', header=FALSE, skip=1)
-  colnames(sol.file) <- c('trait', 'effect', 'level', 'value')
-  file.remove('solutions')
+  colnames(sol.file) <- c('trait', 'effect', 'level', 'value', 's.e.')
+#   file.remove('solutions')
   
   # One trait only
   result <- tapply(sol.file$value, sol.file$effect, identity)
@@ -258,6 +328,11 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
 #   # Response in the linear predictor scale
 #   # TODO: apply link
 #   y.scaled <- y
+  
+# TODO: Add inbreeding coefficient for each tree (in the pedigree) (use pedigreemm::inbreeding())
+#       Include the matrix A of additive relationships (as sparse. Use pedigreemm::getA)
+#       Compute the heritability estimates and its standard error 
+#       Compute covariances estimates for multiple traits (and their standard errors)
   
   ans <- list(
     call = mc,
@@ -344,12 +419,13 @@ build.effects <- function (mf, genetic, spatial) {
   if(!is.null(spatial)) {
     effects <- c(effects, 
                  spatial = list(
-                   list(pos = pos,
-                        levels = nrow(mf),
-                        type = 'cross',
+                   list(pos = pos - 1 + 1:spatial$n.bases,
+                        levels = 1,
+                        type = 'cov',
                         model = 'user_file',
                         file = spatial$tempfile,
-                        var = spatial$var.ini)))
+                        var = spatial$var.ini,
+                        grouped = TRUE)))
   }
   return(effects)
 }
