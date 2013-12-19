@@ -3,7 +3,7 @@
 \title{Inference with REMLF90}
 \usage{
   remlf90(formula, genetic = NULL, spatial = NULL, data,
-    id = 1:nrow(data), method = c("ai", "em"))
+    method = c("ai", "em"))
 }
 \arguments{
   \item{formula}{an object of class \link{formula} (or one

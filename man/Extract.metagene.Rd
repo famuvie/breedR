@@ -1,7 +1,7 @@
 \name{$.metagene}
-\alias{[.metagene}
-\alias{$<-.metagene}
 \alias{$.metagene}
+\alias{$<-.metagene}
+\alias{[.metagene}
 \title{Extract columns directly from the dataframe}
 \usage{
   $.metagene(x, name)
