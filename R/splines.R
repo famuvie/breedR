@@ -44,8 +44,12 @@ build.splines.model <- function (mf, coord, degree = 3) {
   
   # Compute incidence matrix B of tensor product of B-spline bases
   tensor <- function (knots, xx, ord) {
-    b.x <- splineDesign(knots[[1]], xx[, 1], ord = ord, sparse = TRUE)
-    b.y <- splineDesign(knots[[2]], xx[, 2], ord = ord, sparse = TRUE)
+    b.x <- splineDesign(knots[[1]], xx[, 1], ord = ord)#, sparse=TRUE)
+    b.y <- splineDesign(knots[[2]], xx[, 2], ord = ord)#, sparse=TRUE)
+      # sparse argument was introduced between versions 2.15.0
+      # and 3.0.2 of the splines package.
+      # sparseness is useful but unnecessary. I prefer to keep this
+      # more widely compatible.
     ones.y <- matrix(1, ncol = ncol(b.y))
     ones.x <- matrix(1, ncol = ncol(b.x))
     B <- kronecker(b.x, ones.y)*kronecker(ones.x, b.y)
