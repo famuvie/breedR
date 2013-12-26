@@ -93,7 +93,6 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   
  
   # Build effects' parameters
-  # TODO: Can I build this within progsf90?
   effects <- build.effects(mf, genetic, spatial)
   
   
@@ -129,20 +128,36 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   # Parsing the results
   sol.file <- read.table(file.path(tmpdir, 'solutions'), header=FALSE, skip=1)
   colnames(sol.file) <- c('trait', 'effect', 'level', 'value', 's.e.')
-#   file.remove('solutions')
-
   
   # One trait only
-  result <- tapply(sol.file$value, sol.file$effect, identity)
+  result <- by(sol.file[,4:5], sol.file$effect, identity)
   names(result) <- names(effects)
 
   
-  # Fixed effects coefficients
+  # Random and Fixed effects indices
   random.effects.idx <- which(names(effects)=='genetic' | names(effects)=='spatial') # For the moment, the only random effects are either genetic or spatial --- TODO
   fixed.effects.idx <- (1:length(effects))[-random.effects.idx]
+  
+  # Fixed effects coefficients
   beta <- sol.file$value[sol.file$effect %in% fixed.effects.idx]
 #   .getXlevels(mt, mf)
   
+  # Random effects coefficients
+  # TODO: Return Standard Errors as well.
+  # How to compute standard errors of splines predicted values?
+  ranef <- list()
+  if(!is.null(genetic))
+    ranef$genetic <- result$genetic[genetic$id, 'value']
+  if(!is.null(spatial))
+    ranef$spatial <- as.vector(effects$spatial$splines$B %*% result$spatial$value)
+  
+  # Spatial Surface
+  if (!is.null(spatial)) {
+    spatial.pred <- cbind(effects$spatial$splines$plotting$grid,
+                          z = as.vector(effects$spatial$splines$plotting$B
+                                        %*% result$spatial$value))
+  } else
+    spatial.pred <- NULL
   
   # INTERCEPT ISSUE
   # PROGSF90 do not use an intercept when it has factor variables
@@ -167,11 +182,7 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   # TODO: Misztal doesn't really like the intercept term
   stopifnot(identical(beta[1], 0))
   eta.genetic <- eta.spatial <- 0
-  if(!is.null(genetic))
-    eta.genetic <- result$genetic[genetic$id]
-  if(!is.null(spatial))
-    eta.spatial <- as.vector(effects$spatial$splines$B %*% result$spatial)
-  eta <- mm %*% beta[-1] + eta.genetic + eta.spatial
+  eta <- mm %*% beta[-1] + rowSums(do.call(cbind, ranef))
   
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
@@ -247,10 +258,11 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
     mm = mm,
     y = y,
     fixed = result[fixed.effects.idx],
-    ranef = result[random.effects.idx],
+    ranef = ranef,
     eta = eta,
     mu = mu,
     residuals = y - mu,
+    spatial = spatial.pred,
     var = varcomp,
     fit = fit,
     reml = reml
@@ -381,7 +393,10 @@ summary.remlf90 <- function(object, ...) {
   
   # Literal description of the model
   effects <- paste(names(ans$effects), sep=' and ')
-  title <- paste('Linear Mixed Model with', effects, ifelse(length(effects)==1, 'effect', 'effects'), 'fit by', paste(toupper(ans$method), 'REML', sep='-'))
+  title <- paste('Linear Mixed Model with', 
+                 paste(effects, collapse = ' and '), 
+                 ifelse(length(effects)==1, 'effect', 'effects'), 
+                 'fit by', paste(toupper(ans$method), 'REML', sep='-'))
   
   # Formula
   fml <- deparse(attr(object$mf, 'terms'))
@@ -389,8 +404,8 @@ summary.remlf90 <- function(object, ...) {
   # Coefficients
   # TODO: How to compute Standard errors (and therefore t scores and p-values)
   # TODO: How to avoid showing the unused levels
-  coef <- as.matrix(unlist(object$fixed))
-  colnames(coef) <- c('Estimate')
+  coef <- do.call(rbind, object$fixed)
+#   colnames(coef) <- c('Estimate')
   
   # Model fit measures
   # AIC and BIC might fail if logLik fails to retrieve
@@ -404,7 +419,7 @@ summary.remlf90 <- function(object, ...) {
 #TODO                          deviance = dev[["ML"]],
 #                          REMLdev = dev[["REML"]],
                          row.names = "")
-  
+  browser()
   ans <- c(ans, 
            model.description = title, 
            formula = fml,
