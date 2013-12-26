@@ -300,13 +300,25 @@ logLik.remlf90 <- function (object, ...) {
   # But I am not sure if it is the right way.
   reml.out <- object$reml$output
   rank.idx <- grep('RANK', reml.out)
-  rank <- as.numeric(strsplit(reml.out[rank.idx], split=' +RANK += +')[[1]][2])
   npar.idx <- grep('parameters=', reml.out)
-  npar <- as.numeric(strsplit(reml.out[npar.idx], split=' # parameters= +')[[1]][2])
+  rank <- ifelse(identical(length(rank.idx), 1L),
+                 as.numeric(strsplit(reml.out[rank.idx],
+                                     split=' +RANK += +')[[1]][2]),
+                 'unknown')
+  npar <- ifelse(identical(length(npar.idx), 1L),
+                 as.numeric(strsplit(reml.out[npar.idx],
+                                     split=' # parameters= +')[[1]][2]),
+                 'unknown')
+  if(any(identical(rank, 'unknown') | identical(npar, 'unknown')))
+    warning(paste('Could not deduce the', 
+                  paste(c('rank', 'number of parameters')
+                        [which(c(rank, npar)=='unknown')],
+                        collapse = ' and '),
+                  'from REMLF90 output'))
   
   res <- object$residual
   N <- length(res)
-  rank <- object$fit$rank
+#   rank <- object$fit$rank
   
   if (is.null(w <- object$weights)) {
     w <- rep.int(1, N)
@@ -381,8 +393,13 @@ summary.remlf90 <- function(object, ...) {
   colnames(coef) <- c('Estimate')
   
   # Model fit measures
+  # AIC and BIC might fail if logLik fails to retrieve
+  # appropriate df or nobs attributes
   llik <- logLik(object)
-  AICframe <- data.frame(AIC = AIC(llik), BIC = BIC(llik),
+  AICframe <- data.frame(AIC = tryCatch(AIC(llik), 
+                                        error = function(e) 'unknown'), 
+                         BIC = tryCatch(BIC(llik),
+                                        error = function(e) 'unknown'),
                          logLik = as.vector(llik),
 #TODO                          deviance = dev[["ML"]],
 #                          REMLdev = dev[["REML"]],
