@@ -23,7 +23,7 @@ determine.n.knots <- function(n, cutoff = 4, rate = 0.2) {
 build.splines.model <- function (mf, coord, degree = 3) {
   # Determine the number of (inner) knots for rows and columns
   # TODO: Let the user fix these numbers
-  obs.loc <- sapply(coord, function(x) sort(unique(x)))
+  obs.loc <- lapply(as.data.frame(coord), function(x) sort(unique(x)))
   n.knots <- determine.n.knots(sapply(obs.loc, length))
   obs.step <- sapply(obs.loc, function(x) summary(diff(x)))['Median',]
   

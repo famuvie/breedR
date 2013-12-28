@@ -95,7 +95,7 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   # Build effects' parameters
   effects <- build.effects(mf, genetic, spatial)
   
-  
+  # Generate progsf90 parameters
   # Initial variance for residuals  # FIXED ??
   pf90 <- progsf90(mf, effects, res.var.ini = 10)
   
@@ -167,6 +167,8 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   # Alternatively, we introduce an intercept term in the reml data
   # But as a result, the random effects remain the same, and the
   # fixed effects take the *last* level as the reference (effect=0)
+  # Watch out! Sometimes Misztal takes the intercept as reference
+  # I don't know the rule for this.
 #   mm <- model.matrix(formula, mf)
   
 #   # Linear Predictor
@@ -179,10 +181,15 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
 #   }
 #   eta = apply(dat[,-(length(effects) + 1:ntraits)], 1, eta.i)
 
-  # TODO: Misztal doesn't really like the intercept term
-  stopifnot(identical(beta[1], 0))
+  # TODO: Misztal uses either the intercept or one of the levels
+  # of a factor as reference (so one of the elements in beta is zero)
+  # But I don't know which one it will be.
+  # With globulus it is the intercept, while with m4 is the gen4.
+  # For the moment, I build manually a full model matrix
+  mm <- cbind(1, mm)
+  stopifnot(identical(sum(sapply(beta, identical, 0)), 1L))
   eta.genetic <- eta.spatial <- 0
-  eta <- mm %*% beta[-1] + rowSums(do.call(cbind, ranef))
+  eta <- mm %*% beta + rowSums(do.call(cbind, ranef))
   
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
@@ -419,7 +426,6 @@ summary.remlf90 <- function(object, ...) {
 #TODO                          deviance = dev[["ML"]],
 #                          REMLdev = dev[["REML"]],
                          row.names = "")
-  browser()
   ans <- c(ans, 
            model.description = title, 
            formula = fml,
