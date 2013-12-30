@@ -201,7 +201,13 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   
   # Issue #2 In Linux, AIREMLF90 prints S.D. for R and G
   # while under Windows it outputs SE for R and G
-  sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
+  # Update: from version 1.109 (at least), Linux updated to SE as well
+#   sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
+  sd.label <- ifelse(TRUE, 'SE', 'S.D.')
+  
+  gen.var.idx <- grep('Genetic variance', reml.out) + 1
+  stopifnot(length(gen.var.idx)==1)
+  gen.var <- as.numeric(reml.out[gen.var.idx])
 
   varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
   # There should be one variance for each random effect plus one resid. var.
