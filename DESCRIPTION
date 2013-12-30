@@ -35,3 +35,4 @@ Collate:
     'remlf90-class.R'
     'data.R'
     'help.R'
+    'devutils.R'
