@@ -16,7 +16,7 @@
 #'    
 #'    E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to account for a spatial trend using penalized splines in an individual-tree mixed model. \emph{Canadian Journal of Forest Research} \strong{37}(12):2677-2688.
 #' @export
-remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data), method=c('ai', 'em')) {
+remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'em')) {
   
   ## Assumptions:
   ## Only 1 pedigree
@@ -24,6 +24,8 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   ## No intercept
   ## (not generalized) Linear Mixed Model
   ## There always is a genetic variance component
+
+  # TODO: Allow for removing the intercept in the formula
   
   # TODO: Allow for other (diagonal) random effects (notation??)
   
@@ -42,8 +44,6 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   # Parse arguments
   method <- tolower(method)
   method <- match.arg(method)
-  
-  if(length(id)==1) id <- data[, id]
 
   ## parse data and formula
   # NOTE: This complicated way of calling a function accounts
@@ -62,7 +62,12 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   if(!is.null(genetic)) {
     genetic$model <- match.arg(genetic$model, choices = c('add_animal'))
     if(!inherits(genetic$pedigree, 'pedigree')) stop("The argument genetic should contain a 'pedigree' object")
-    ped <- as.data.frame(genetic$pedigree)   # Extract pedigree
+    if(length(genetic$id)==1) {
+      # TODO: Do it right. data need not be present.
+#       mc[[2]] <- ~ genetic$id
+#       genetic$id <- eval(mc, parent.frame())[[1]]
+      genetic$id <- data[, genetic$id]
+    }
   }
   
   # Spatial effect
@@ -86,67 +91,18 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   if(!is.null(genetic)) genetic$tempfile <- file.path(tmpdir, 'pedigree')
   if(!is.null(spatial)) spatial$tempfile <- file.path(tmpdir, 'spatial')
   
-  
-  
+ 
   # Build effects' parameters
   effects <- build.effects(mf, genetic, spatial)
   
-  # Build models for random effects
-  random.effects.idx <- which(names(effects)=='genetic' | names(effects)=='spatial') # For the moment, the only random effects are either genetic or spatial --- TODO
+  # Generate progsf90 parameters
+  # Initial variance for residuals  # FIXED ??
+  pf90 <- progsf90(mf, effects, res.var.ini = 10)
   
-  
-  
-  # Number of traits
-  # (size of the response vector or matrix)
-  ntraits <- ncol(as.matrix(model.response(mf)))
-  
-  # Write the parameter file
-  weights <- ''     # No weights for the moment --- TODO
-  res.var.ini <- 10 # Initial variance for residuals  # FIXED ??
-  parameter.file <- c('DATAFILE', data.file.path, 
-                      'NUMBER_OF_TRAITS', ntraits, 
-                      'NUMBER_OF_EFFECTS', length(effects),
-                      'OBSERVATION(S)', length(effects) + 1:ntraits,
-                      'WEIGHT(S)', weights,
-                      'EFFECTS: POSITIONS_IN_DATAFILE NUMBER_OF_LEVELS TYPE_OF_EFFECT [EFFECT NESTED]',
-                      paste(lapply(effects, function(x) paste(do.call(c, x[c('pos', 'levels', 'type')]), collapse=' '))),
-                      'RANDOM_RESIDUAL VALUES', res.var.ini, 
-                      sapply(random.effects.idx, function(x) c('RANDOM_GROUP', x, 'RANDOM_TYPE', effects[[x]]$model, 'FILE', effects[[x]]$file, '(CO)VARIANCES', effects[[x]]$var))
-  )
-  
-  writeLines(parameter.file, con = parameter.file.path)
-  # file.show(parameter.file.path)
-  
-  # Write the data file
-  # Columns ordered as in the effects list
-  # TODO data[, id] in build.dat.single will fail if the data is not provided
-  # everything we need we have to take it from mf.
-  build.dat.single <- function(name, mf) {
-    n <- nrow(mf)
-    switch(name,
-           '(Intercept)' = rep(1L, n),
-           genetic       = id,
-           spatial       = 1:n,
-           mf[[name]])
-  }
-  
-  dat <- cbind(sapply(names(effects), build.dat.single, mf),
-               phenotype = mf[, attr(mt, 'response')])
-  
-  write.table(dat, file = data.file.path, row.names = FALSE, col.names = FALSE)
-  # file.show(data.file.path)
-  
-  # Write the pedigree file if applicable
-  if(!is.null(genetic)) {
-    # ASSUMPTION: there is only one effect with an associated pedigree
-    write.table(ped, file=genetic$tempfile, row.names = FALSE, col.names = FALSE, na = "0")   # NAs are written as 0
-    # file.show(pedigree.file.path)
-  }
-  
-  # Write the spatial file if applicable
-  if(!is.null(spatial)) {
-    # Write U matrix
-  }
+  # Write progsf90 files
+  write.progsf90(pf90, dir = tmpdir)
+
+
   
   # variance components with REML
   platform <- switch(.Platform$OS.type, 
@@ -154,29 +110,54 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
                      windows = 'windows',
                      mac = 'mac')
   binary.path <- system.file('bin', platform, package='breedR')
+  
+  # Change to temporal directory to avoid specification of long paths
+  # Avoids Issue #1
+  cdir <- setwd(tmpdir)
   reml.out <- switch(method,
                      ai = system(shQuote(file.path(binary.path, 'airemlf90')), input = parameter.file.path, intern=TRUE),
                      em = system(shQuote(file.path(binary.path, 'remlf90')), input = parameter.file.path, intern=TRUE)
   )
+  # Return to current directory
+  setwd(cdir)
+  
   
   # Error catching
   stopifnot(is.null(attr(reml.out, 'status')))
   
   # Parsing the results
-  sol.file <- read.table('solutions', header=FALSE, skip=1)
-  colnames(sol.file) <- c('trait', 'effect', 'level', 'value')
-  file.remove('solutions')
+  sol.file <- read.table(file.path(tmpdir, 'solutions'), header=FALSE, skip=1)
+  colnames(sol.file) <- c('trait', 'effect', 'level', 'value', 's.e.')
   
   # One trait only
-  result <- tapply(sol.file$value, sol.file$effect, identity)
+  result <- by(sol.file[,4:5], sol.file$effect, identity)
   names(result) <- names(effects)
 
   
-  # Fixed effects coefficients
+  # Random and Fixed effects indices
+  random.effects.idx <- which(names(effects)=='genetic' | names(effects)=='spatial') # For the moment, the only random effects are either genetic or spatial --- TODO
   fixed.effects.idx <- (1:length(effects))[-random.effects.idx]
+  
+  # Fixed effects coefficients
   beta <- sol.file$value[sol.file$effect %in% fixed.effects.idx]
 #   .getXlevels(mt, mf)
   
+  # Random effects coefficients
+  # TODO: Return Standard Errors as well.
+  # How to compute standard errors of splines predicted values?
+  ranef <- list()
+  if(!is.null(genetic))
+    ranef$genetic <- result$genetic[genetic$id, 'value']
+  if(!is.null(spatial))
+    ranef$spatial <- as.vector(effects$spatial$splines$B %*% result$spatial$value)
+  
+  # Spatial Surface
+  if (!is.null(spatial)) {
+    spatial.pred <- cbind(effects$spatial$splines$plotting$grid,
+                          z = as.vector(effects$spatial$splines$plotting$B
+                                        %*% result$spatial$value))
+  } else
+    spatial.pred <- NULL
   
   # INTERCEPT ISSUE
   # PROGSF90 do not use an intercept when it has factor variables
@@ -186,17 +167,29 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   # Alternatively, we introduce an intercept term in the reml data
   # But as a result, the random effects remain the same, and the
   # fixed effects take the *last* level as the reference (effect=0)
-  mm <- model.matrix(formula, mf)
+  # Watch out! Sometimes Misztal takes the intercept as reference
+  # I don't know the rule for this.
+#   mm <- model.matrix(formula, mf)
   
-  # Linear Predictor
-  # ASSUMPTION: the model has no intercept
-  # TODO: This can be computed more efficiently by using the model matrix
-  # as soon as I can match the progsf90 parameterization with the 
-  # standard parameterization in R
-  eta.i <- function(levels) {
-    sum(mapply(function(y, x) y[x], result, levels))
-  }
-  eta = apply(dat[,-(length(effects) + 1:ntraits)], 1, eta.i)
+#   # Linear Predictor
+#   # ASSUMPTION: the model has no intercept
+#   # TODO: This can be computed more efficiently by using the model matrix
+#   # as soon as I can match the progsf90 parameterization with the 
+#   # standard parameterization in R
+#   eta.i <- function(levels) {
+#     sum(mapply(function(y, x) y[x], result, levels))
+#   }
+#   eta = apply(dat[,-(length(effects) + 1:ntraits)], 1, eta.i)
+
+  # TODO: Misztal uses either the intercept or one of the levels
+  # of a factor as reference (so one of the elements in beta is zero)
+  # But I don't know which one it will be.
+  # With globulus it is the intercept, while with m4 is the gen4.
+  # For the moment, I build manually a full model matrix
+  mm <- cbind(1, mm)
+  stopifnot(identical(sum(sapply(beta, identical, 0)), 1L))
+  eta.genetic <- eta.spatial <- 0
+  eta <- mm %*% beta + rowSums(do.call(cbind, ranef))
   
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
@@ -208,65 +201,76 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   
   # Issue #2 In Linux, AIREMLF90 prints S.D. for R and G
   # while under Windows it outputs SE for R and G
-  # Update: from version 1.109 (at least), Linux updated to SE as well
-#   sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
-  sd.label <- ifelse(TRUE, 'SE', 'S.D.')
-  
-  gen.var.idx <- grep('Genetic variance', reml.out) + 1
-  stopifnot(length(gen.var.idx)==1)
-  gen.var <- as.numeric(reml.out[gen.var.idx])
+  sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
 
-  gen.var.sd.idx <- grep(paste(sd.label, 'for G'), reml.out) + 1
-  stopifnot(length(gen.var.sd.idx)==1)
-  gen.var.sd <- as.numeric(reml.out[gen.var.sd.idx])
+  varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
+  # There should be one variance for each random effect plus one resid. var.
+  stopifnot(identical(length(varcomp.idx), length(random.effects.idx) + 1L))
+  varcomp <- as.numeric(reml.out[varcomp.idx])
+  names(varcomp) <- c(names(effects)[random.effects.idx], 'residual')
+  varcomp <- cbind('Estimated variances' = varcomp)
   
-  res.var.idx <- grep('Residual variance', reml.out) + 1
-  stopifnot(length(res.var.idx)==1)
-  res.var <- as.numeric(reml.out[res.var.idx])
+  # REML does not print Standard Errors for variance components
+  if(method == 'ai'){
+    varsd.idx <- grep(paste(sd.label, 'for G|for R'), reml.out) + 1
+    # There should be one variance for each random effect plus one resid. var.
+    stopifnot(identical(length(varcomp.idx), length(random.effects.idx) + 1L))
+    varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
+  }
   
-  res.var.sd.idx <- grep(paste(sd.label, 'for R'), reml.out) + 1
-  stopifnot(length(res.var.sd.idx)==1)
-  res.var.sd <- as.numeric(reml.out[res.var.sd.idx])
-  
+
   
   # REML info
+  reml.ver <- grep('REML', reml.out, value = TRUE)
   last.round.idx <- tail(grep('In round', reml.out), 1)
-  last.round <- as.numeric(strsplit(strsplit(reml.out[last.round.idx], split='In round')[[1]][2], split='convergence=')[[1]])
+  last.round <- as.numeric(strsplit(strsplit(reml.out[last.round.idx],
+                                             split='In round')[[1]][2],
+                                    split='convergence=')[[1]])
   reml <- list(
+    version = reml.ver,
     rounds = last.round[1],
     convergence = last.round[2],
-    delta.conv = as.numeric(strsplit(reml.out[last.round.idx+1], split='delta convergence=')[[1]][2]),
+    delta.conv = as.numeric(strsplit(reml.out[last.round.idx+1],
+                                     split='delta convergence=')[[1]][2]),
     output = reml.out
     )
   
   # Fit info
-  last.fit <- as.numeric(strsplit(strsplit(reml.out[last.round.idx-1], split='-2logL =')[[1]][2], split=': AIC =')[[1]])
+  last.fit <- as.numeric(strsplit(strsplit(reml.out[last.round.idx-1],
+                                           split='-2logL =')[[1]][2],
+                                  split=': AIC =')[[1]])
   fit <- list(
     '-2logL' = last.fit[1],
     AIC = last.fit[2]
     )
   
   # Observed response
-  y = dat[, length(effects) + 1:ntraits]
+  y = mf[[attr(attr(mf, 'terms'), 'response')]]
   
 #   # Response in the linear predictor scale
 #   # TODO: apply link
 #   y.scaled <- y
   
+# TODO: Add inbreeding coefficient for each tree (in the pedigree) (use pedigreemm::inbreeding())
+#       Include the matrix A of additive relationships (as sparse. Use pedigreemm::getA)
+#       Compute the heritability estimates and its standard error 
+#       Compute covariances estimates for multiple traits (and their standard errors)
+  
   ans <- list(
-    call = mc,
+    call = mcout,
     method = method,
-    effects = list(pedigree = !is.null(genetic)), # TODO spatial, competition, ...
+    effects = list(pedigree = !is.null(genetic),
+                   spatial  = !is.null(spatial)), # TODO competition, ...
     mf = mf,
-    mm = 'TODO',
+    mm = mm,
     y = y,
-    fixed = result[-random.effects.idx],
-    ranef = result[random.effects.idx],
+    fixed = result[fixed.effects.idx],
+    ranef = ranef,
     eta = eta,
     mu = mu,
     residuals = y - mu,
-    var = rbind(genetic=c(mean=gen.var, sd=gen.var.sd), 
-                residual=c(res.var, res.var.sd)),
+    spatial = spatial.pred,
+    var = varcomp,
     fit = fit,
     reml = reml
     )
@@ -277,77 +281,6 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
 #%%%%%%%%%%%%%%%%%%%%%%%%%#
 #### Internal methods  ####
 #%%%%%%%%%%%%%%%%%%%%%%%%%#
-
-#' Build effects parameters
-#' 
-#' This function builds a list of effects parameters
-#' as required by Mistal'z progsf90 suite of programs
-#' @references
-#' \url{http://nce.ads.uga.edu/wiki/lib/exe/fetch.php?media=blupf90.pdf}
-build.effects <- function (mf, genetic, spatial) {
-  
-  # Build up effects data (position, levels, type)
-  
-  # Model terms
-  mt <- attr(mf, 'terms')
-
-  # Intercept term, if not precluded explicitly in the formula
-  if(attr(mt, 'intercept')) effects <- list('(Intercept)'=list(pos = 1L, levels=1L, type='cross'))
-  
-  # Parameters of a single effect in the formula
-  eff.par.f <- function(name) {
-    # position (in the data file)
-    pos <- parent.env(environment())$pos
-    assign('pos', pos + 1, envir = parent.env(environment()))
-    # number of levels
-    nl <- ifelse(inherits(mf[[name]], 'factor'), nlevels(mf[[name]]), length(unique(mf[[name]])))
-    # type: factors = "cross"; continuous = "cov"
-    type <- switch(attr(mt, 'dataClasses')[name],
-                   ordered = 'cross',
-                   factor = 'cross',
-                   numeric = 'cov',
-                   'cross')
-    # nested effects
-    # TODO
-    return(list(pos=pos, levels=nl, type=type))
-  }
-  
-  # Parameters for all effects in the formula
-  pos = 2L
-  effects <- c(effects, lapply(attr(mt, 'term.labels'), eff.par.f))
-  names(effects)[-1] <- attr(mt, 'term.labels')
-  
-  # Genetic effect
-  # Both the genetic and spatial terms are "cross"
-  # For pedigree effects, there might be more levels than those
-  # present in the data. We should declare the levels present in the pedigree.
-  if(!is.null(genetic)) {
-    effects <- c(effects, 
-                 genetic = list(
-                   list(pos = pos,
-                        levels = nrow(as.data.frame(genetic$pedigree)),
-                        type = 'cross',
-                        model = genetic$model,
-                        file = genetic$tempfile,
-                        var = genetic$var.ini)))
-    pos = pos + 1
-  }
-  
-  # Spatial effect
-  # We only have spatial coordinates of the dataset elements
-  if(!is.null(spatial)) {
-    effects <- c(effects, 
-                 spatial = list(
-                   list(pos = pos,
-                        levels = nrow(mf),
-                        type = 'cross',
-                        model = 'user_file',
-                        file = spatial$tempfile,
-                        var = spatial$var.ini)))
-  }
-  return(effects)
-}
-
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%#
@@ -367,7 +300,7 @@ coef.remlf90 <- function(object, ...) {
 #' 
 #' @method extractAIC remlf90
 #' @export
-extractAIC.remlf90 <- function(object, scale, k,...) {
+extractAIC.remlf90 <- function(fit, scale, k,...) {
   
 }
   
@@ -387,13 +320,25 @@ logLik.remlf90 <- function (object, ...) {
   # But I am not sure if it is the right way.
   reml.out <- object$reml$output
   rank.idx <- grep('RANK', reml.out)
-  rank <- as.numeric(strsplit(reml.out[rank.idx], split=' +RANK += +')[[1]][2])
   npar.idx <- grep('parameters=', reml.out)
-  npar <- as.numeric(strsplit(reml.out[npar.idx], split=' # parameters= +')[[1]][2])
+  rank <- ifelse(identical(length(rank.idx), 1L),
+                 as.numeric(strsplit(reml.out[rank.idx],
+                                     split=' +RANK += +')[[1]][2]),
+                 'unknown')
+  npar <- ifelse(identical(length(npar.idx), 1L),
+                 as.numeric(strsplit(reml.out[npar.idx],
+                                     split=' # parameters= +')[[1]][2]),
+                 'unknown')
+  if(any(identical(rank, 'unknown') | identical(npar, 'unknown')))
+    warning(paste('Could not deduce the', 
+                  paste(c('rank', 'number of parameters')
+                        [which(c(rank, npar)=='unknown')],
+                        collapse = ' and '),
+                  'from REMLF90 output'))
   
   res <- object$residual
   N <- length(res)
-  rank <- object$fit$rank
+#   rank <- object$fit$rank
   
   if (is.null(w <- object$weights)) {
     w <- rep.int(1, N)
@@ -456,7 +401,10 @@ summary.remlf90 <- function(object, ...) {
   
   # Literal description of the model
   effects <- paste(names(ans$effects), sep=' and ')
-  title <- paste('Linear Mixed Model with', effects, ifelse(length(effects)==1, 'effect', 'effects'), 'fit by', paste(toupper(ans$method), 'REML', sep='-'))
+  title <- paste('Linear Mixed Model with', 
+                 paste(effects, collapse = ' and '), 
+                 ifelse(length(effects)==1, 'effect', 'effects'), 
+                 'fit by', paste(toupper(ans$method), 'REML', sep='-'))
   
   # Formula
   fml <- deparse(attr(object$mf, 'terms'))
@@ -464,17 +412,21 @@ summary.remlf90 <- function(object, ...) {
   # Coefficients
   # TODO: How to compute Standard errors (and therefore t scores and p-values)
   # TODO: How to avoid showing the unused levels
-  coef <- as.matrix(unlist(object$fixed))
-  colnames(coef) <- c('Estimate')
+  coef <- do.call(rbind, object$fixed)
+#   colnames(coef) <- c('Estimate')
   
   # Model fit measures
+  # AIC and BIC might fail if logLik fails to retrieve
+  # appropriate df or nobs attributes
   llik <- logLik(object)
-  AICframe <- data.frame(AIC = AIC(llik), BIC = BIC(llik),
+  AICframe <- data.frame(AIC = tryCatch(AIC(llik), 
+                                        error = function(e) 'unknown'), 
+                         BIC = tryCatch(BIC(llik),
+                                        error = function(e) 'unknown'),
                          logLik = as.vector(llik),
 #TODO                          deviance = dev[["ML"]],
 #                          REMLdev = dev[["REML"]],
                          row.names = "")
-  
   ans <- c(ans, 
            model.description = title, 
            formula = fml,

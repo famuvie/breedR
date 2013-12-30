@@ -127,7 +127,9 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
   
   if(type == 'spatial') {
     stopifnot('spatial' %in% names(x))
-    ggplot(as.data.frame(x), aes(icol, irow)) + geom_tile(aes(fill=sp_X))
+    ggplot(as.data.frame(x), aes(icol, irow)) + 
+      geom_tile(aes(fill=sp_X)) + 
+      scale_fill_gradient(low='green', high='red')
   }
   else {
     dat <- data.frame(label=rep(c('genotype', 'phenotype'), each=n),
