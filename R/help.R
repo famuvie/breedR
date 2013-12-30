@@ -36,9 +36,11 @@
 #' 
 #'   # Fit Mixed Model using REML
 #'   res.f90 <- remlf90(formula = phe_X ~ gen, 
-#'                      genetic = list(model = 'add_animal', var.ini = 10, pedigree = pedigree(m4)), 
-#'                      data = as.data.frame(m4),
-#'                      id = 'self')
+#'                      genetic = list(model = 'add_animal', 
+#'                                     var.ini = 10, 
+#'                                     pedigree = pedigree(m4),
+#'                                     id = 'self'),
+#'                      data = as.data.frame(m4))
 #'   
 #'   # Summary of results
 #'   summary(res.f90)

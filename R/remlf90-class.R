@@ -52,7 +52,7 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   # besides, it allows passing additional arguments to model.frame
   # like subset, na.action, etc.
   mc[[1]] <- quote(stats::model.frame)
-  mc$genetic <- mc$spatial <- mc$id <- NULL
+  mc$genetic <- mc$spatial <- mc$method <- NULL
   mf <- eval(mc, parent.frame())
   mt <- attr(mf, 'terms')
 #   mf <- model.frame(update(formula, ~.-1), data)
@@ -208,7 +208,9 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, id = 1:nrow(data)
   
   # Issue #2 In Linux, AIREMLF90 prints S.D. for R and G
   # while under Windows it outputs SE for R and G
-  sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
+  # Update: from version 1.109 (at least), Linux updated to SE as well
+#   sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
+  sd.label <- ifelse(TRUE, 'SE', 'S.D.')
   
   gen.var.idx <- grep('Genetic variance', reml.out) + 1
   stopifnot(length(gen.var.idx)==1)
