@@ -37,7 +37,10 @@ read.metagene <- function(fname) {
   } else {
     n.traits <- ifelse(with(pedigree, all(BV_Y==0) & all(Dom_Y==0) & all(phe_Y==0) & all(indx_Y==0) & all(indx_XY==0)), 1, 2)
   }
-  if(n.traits==1) pedigree <- pedigree[,-match(c('BV_Y', 'Dom_Y', 'phe_Y', 'indx_Y', 'indx_XY'), names(pedigree))]
+  if(n.traits==1) 
+    pedigree <- pedigree[,-match(c('BV_Y', 'Dom_Y', 'phe_Y',
+                                   'indx_Y', 'indx_XY'),
+                                 names(pedigree))]
   
   # Number of individuals
   n.ind = max(pedigree$self)
@@ -168,18 +171,13 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   return(N)
 }
 
-#' Pedigree (method masked from pedigreemm)
+#' Get the Pedigree from an object
 #' 
 #' Returns an object from the formal class 'pedigree'
 #' @export
-pedigree <- function(x, ...) UseMethod('pedigree')
-#' @export
-pedigree.metagene <- function(x, ...) {
+get_pedigree <- function(x, ...) UseMethod('get_pedigree')
+get_pedigree.metagene <- function(x, ...) {
   return(with(x$pedigree, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))
-}
-#' @export
-pedigree.default <- function(...) {
-  pedigreemm::pedigree(...)
 }
 
 #' Coerce to a data.frame
@@ -225,7 +223,9 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   
   # If it has a spatial structure, add coordinates as columns
   if('spatial' %in% names(x))
-    dat = data.frame(rbind(matrix(NA, sum(x$gen==0), 2), coordinates(x)), x$pedigree)
+    dat = data.frame(rbind(matrix(NA, sum(x$gen==0), 2), 
+                           coordinates(x)), 
+                     x$pedigree)
   else dat = x$pedigree
   
   return(dat)
