@@ -6,7 +6,7 @@
 #' This function is a wrapper for mvbutils::foodweb()
 funcall <- function(fun) {
   mvbutils::foodweb(where='package:breedR', prune = fun,
-                    border = TRUE, expand.xbox = 2,
+                    border = TRUE, expand.xbox = 1.2,
                     boxcolor = "#FC6512", textcolor = "black",
                     cex = 1, lwd=2)
 }

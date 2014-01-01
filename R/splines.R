@@ -17,10 +17,10 @@ determine.n.knots <- function(n, cutoff = 4, rate = 0.2) {
 
 #' Build splines model
 #' 
-#' Given the model frame and the spatial specifications,
+#' Given the coordinates of the observations, and the degree,
 #' this function puts into place a sensible number of spline knots
 #' and computes the incidence matrix B and the covariance matrix U
-build.splines.model <- function (mf, coord, degree = 3) {
+build.splines.model <- function (coord, degree = 3) {
   # Determine the number of (inner) knots for rows and columns
   # TODO: Let the user fix these numbers
   obs.loc <- lapply(as.data.frame(coord), function(x) sort(unique(x)))
