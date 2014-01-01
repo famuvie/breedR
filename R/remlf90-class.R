@@ -187,7 +187,9 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   # With globulus it is the intercept, while with m4 is the gen4.
   # For the moment, I build manually a full model matrix
   mm <- cbind(1, mm)
-  stopifnot(identical(sum(sapply(beta, identical, 0)), 1L))
+#   # Exactly one level should be zeroed
+#   # Update: Not true. Omitting this check.
+#   stopifnot(identical(sum(sapply(beta, identical, 0)), 1L))
   eta.genetic <- eta.spatial <- 0
   eta <- mm %*% beta + rowSums(do.call(cbind, ranef))
   

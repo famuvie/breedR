@@ -1,0 +1,10 @@
+\name{get_pedigree}
+\alias{get_pedigree}
+\title{Get the Pedigree from an object}
+\usage{
+  get_pedigree(x, ...)
+}
+\description{
+  Returns an object from the formal class 'pedigree'
+}
+

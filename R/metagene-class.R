@@ -3,7 +3,6 @@
 #%% Facundo Muñoz  %%#
 #%%%%%%%%%%%%%%%%%%%%#
 
-# require(pedigreemm)   # For returning the pedigree in the pedigree::pedigree-class
 # require(INLA)         # For simulating a spatial effect
 
 #' Metagene Data Input
@@ -18,36 +17,36 @@
 read.metagene <- function(fname) {
   file.path = fname
   file      = readLines(con=file.path)
-  pedigree.start <- grep('pedigree', file) + 1
-  pedigree <- read.table(file=file.path, quote="", skip=pedigree.start, col.names=scan(file=file.path, what=character(), skip=pedigree.start - 1, nlines=1, sep=','))
+  data_start.idx <- grep('pedigree', file) + 1
+  Data <- read.table(file=file.path, quote="", skip=data_start.idx, col.names=scan(file=file.path, what=character(), skip=data_start.idx - 1, nlines=1, sep=','))
   t.max = as.integer(strsplit(file[grep('Tmax:', file)], '^Tmax: *')[[1]][2])
   
   # generation as factor
   # functions like max() can operate on ordered factors
-  pedigree$gen <- factor(pedigree$gen, ordered=TRUE)
+  Data$gen <- factor(Data$gen, ordered=TRUE)
   
   # Number of traits (metagene handles either 1 or 2)
   # We try to guess the name of the file .001 where it reads the input parameters
-  # otherwise, we try to infer it from the pedigree
+  # otherwise, we try to infer it from the Data
 #   fname <- strsplit(file[grep('NAME_OF_THIS_RUN', file)], c(' +'))[[1]][2]
   file1.path <- gsub('002', '001', file.path)
   if(file.exists(file1.path)){
     file1 = readLines(con=file1.path)
     n.traits <- as.integer(strsplit(file1[grep('Total_#_traits:', file1)], c(' +'))[[1]][2])
   } else {
-    n.traits <- ifelse(with(pedigree, all(BV_Y==0) & all(Dom_Y==0) & all(phe_Y==0) & all(indx_Y==0) & all(indx_XY==0)), 1, 2)
+    n.traits <- ifelse(with(Data, all(BV_Y==0) & all(Dom_Y==0) & all(phe_Y==0) & all(indx_Y==0) & all(indx_XY==0)), 1, 2)
   }
   if(n.traits==1) 
-    pedigree <- pedigree[,-match(c('BV_Y', 'Dom_Y', 'phe_Y',
+    Data <- Data[,-match(c('BV_Y', 'Dom_Y', 'phe_Y',
                                    'indx_Y', 'indx_XY'),
-                                 names(pedigree))]
+                                 names(Data))]
   
   # Number of individuals
-  n.ind = max(pedigree$self)
+  n.ind = max(Data$self)
   
   # Build object
-  meta <- list(file.path=file.path, file=file, n.traits=n.traits, n.generations=t.max, n.individuals=n.ind, pedigree=pedigree)
-  attr(meta, 'pedigree.starting.line') <- pedigree.start
+  meta <- list(file.path=file.path, file=file, n.traits=n.traits, n.generations=t.max, n.individuals=n.ind, Data=Data)
+  attr(meta, 'data.starting.line') <- data_start.idx
   class(meta) <- 'metagene'  
   return(meta)
 }
@@ -84,7 +83,7 @@ summary.metagene <- function(object, ...) {
     phenotype <- phenotype[-which(names(phenotype)=='generation')]
   }
   
-  summeta <- list(file.path=object$file.path, file=object$file, n.traits=object$n.traits, n.generations=object$n.generations, n.individuals=object$n.individuals, pedigree=object$pedigree, breeding.values=breeding.values, phenotype=phenotype)
+  summeta <- list(file.path=object$file.path, file=object$file, n.traits=object$n.traits, n.generations=object$n.generations, n.individuals=object$n.individuals, Data=object$Data, breeding.values=breeding.values, phenotype=phenotype)
   class(summeta) <- 'summary.metagene'  
   return(summeta)
 }
@@ -175,16 +174,17 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
 #' 
 #' Returns an object from the formal class 'pedigree'
 #' @export
+#' @S3method get_pedigree metagene
 get_pedigree <- function(x, ...) UseMethod('get_pedigree')
 get_pedigree.metagene <- function(x, ...) {
-  return(with(x$pedigree, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))
+  return(with(x$Data, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))
 }
 
 #' Coerce to a data.frame
 #' 
 #' This function returns a \code{\link[pedigree]{pedigree}} object in a data frame
 #' 
-#' @method as.data.frame metagene
+#' @method as.data.frame pedigree
 #' @param x a \code{\link[pedigree]{pedigree}} object
 #' @param ... not used
 #' 
@@ -194,17 +194,6 @@ as.data.frame.pedigree <- function(x, ...) {
   y <- as(x, 'data.frame')
   z <- cbind(self=as.numeric(row.names(y)), y)
 }
-
-# # data (method masked from utils)
-# # Returns a dataframe
-# # this causes trouble. Better use the "[" method.
-# data <- function(x, ...) UseMethod('data')
-# data.metagene <- function(x) {
-#   return(x$pedigree)
-# }
-# data.default <- function(...) {
-#   utils::data(...)
-# }
 
 #' Coerce to a data.frame
 #' 
@@ -225,8 +214,8 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   if('spatial' %in% names(x))
     dat = data.frame(rbind(matrix(NA, sum(x$gen==0), 2), 
                            coordinates(x)), 
-                     x$pedigree)
-  else dat = x$pedigree
+                     x$Data)
+  else dat = x$Data
   
   return(dat)
 }
@@ -240,7 +229,7 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   # Decide wether we asked for an element of the list
   # or an element of the dataframe
   if(name %in% names(x)) x[[name]]
-  else x[['pedigree']][[name]]
+  else x[['Data']][[name]]
 }
 
 #' Write columns of the dataframe
@@ -251,7 +240,7 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   # Decide wether we asked for an element of the list
   # or an element of the dataframe
   if(name %in% names(x)) x[[name]] <- value
-  else x[['pedigree']][[name]] <- value
+  else x[['Data']][[name]] <- value
   x
 }
 
@@ -260,16 +249,17 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 #' @rdname Extract.metagene
 #' @export
 "[.metagene" <- function(x, ...) {
-  pedigree.subset <- "[.data.frame"(x$pedigree, ...)
+  Data.subset <- "[.data.frame"(x$Data, ...)
   # update items
   y <- x
-  y$pedigree <- pedigree.subset
+  y$Data <- Data.subset
   y$n.generations <- max(y$gen)
-  y$n.individuals <- nrow(pedigree.subset)
+  y$n.individuals <- nrow(Data.subset)
   # drop unused levels of factors
-  y.factors <- which(sapply(pedigree.subset, is.factor))
+  y.factors <- which(sapply(Data.subset, is.factor))
   for(var in y.factors) {
-    y$pedigree[[var]] <- factor(pedigree.subset[[var]], ordered=is.ordered(pedigree.subset[[var]]))
+    y$Data[[var]] <- factor(Data.subset[[var]], 
+                            ordered=is.ordered(Data.subset[[var]]))
   }
   return(y)
 }

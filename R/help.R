@@ -38,7 +38,7 @@
 #'   res.f90 <- remlf90(formula = phe_X ~ gen, 
 #'                      genetic = list(model = 'add_animal', 
 #'                                     var.ini = 10, 
-#'                                     pedigree = pedigree(m4),
+#'                                     pedigree = get_pedigree(m4),
 #'                                     id = 'self'),
 #'                      data = as.data.frame(m4))
 #'   

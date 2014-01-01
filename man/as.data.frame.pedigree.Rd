@@ -2,7 +2,7 @@
 \alias{as.data.frame.pedigree}
 \title{Coerce to a data.frame}
 \usage{
-  \method{as.data.frame}{metagene} (x, ...)
+  \method{as.data.frame}{pedigree} (x, ...)
 }
 \arguments{
   \item{x}{a \code{\link[pedigree]{pedigree}} object}
