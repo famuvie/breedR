@@ -41,7 +41,7 @@ qplot(BV_X, PBV, color = sex, data = dat) +
   geom_abline(int = 0, slope = 1, col = 'gray')
 
 # Linear correlation between true and fitted breeding values
-cor(dat$BV_X, PBV)  # 0.90 !!
+cor(dat$BV_X, PBV)  # 0.84 !!
 
 
 #### Spatial structure ####
@@ -50,18 +50,24 @@ cor(dat$BV_X, PBV)  # 0.90 !!
 plot(m1, 'spatial')
 
 # Estimated surface 
-# (not only in the observation locations, but in the whole region)
+# The splines interpolation smoothes out many details.
 qplot(irow, icol, fill = PSE, geom = 'tile', data = dat) + 
   scale_fill_gradient(low = 'green', high = 'red')
 
-# The splines interpolation smoothes out many details.
 # Globally, however, the predictions are around the true values:
-
 # Predicted Spatial effect vs. true spatial structure
-qplot(sp_X, PSE, color = icol, data = dat) +
+qplot(sp_X, PSE, data = dat) +
   geom_abline(int = 0, slope = 1, col = 'gray')
 
 # Do the differences have any spatial pattern?
 # They shouldn't:
 qplot(irow, icol, fill = sp_X - PSE, geom = 'tile', data = dat) + 
   scale_fill_gradient(low = 'green', high = 'red')
+
+# Notice that there is some shorter-range spatial pattern
+# It might be worth trying with more knots, but be careful!
+# it increases computation time dramatically!
+# From the summary, you can see that the previous model
+# was fitted with 6 x 6 knots.
+# Simply add something like n.knots = c(8, 8) to the list 
+# of spatial parameters.

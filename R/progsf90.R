@@ -147,7 +147,7 @@ build.effects <- function (mf, genetic, spatial) {
   # TODO: let the user determine the degree/order of the B-splines
   
   if(!is.null(spatial)) {
-    splines <- build.splines.model(spatial$coord, degree = 3)
+    splines <- build.splines.model(spatial$coord, spatial$n.knots, degree = 3)
     effects <- c(effects, 
                  spatial = list(
                    list(pos = pos - 1 + 1:ncol(splines$B),

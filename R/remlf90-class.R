@@ -275,7 +275,8 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
     eta = eta,
     mu = mu,
     residuals = y - mu,
-    spatial = spatial.pred,
+    spatial = list(model      = effects$spatial$splines[1:3],
+                   prediction = spatial.pred),
     var = varcomp,
     fit = fit,
     reml = reml
@@ -304,10 +305,10 @@ coef.remlf90 <- function(object, ...) {
 
 #' Extract the Akaike Information Criterion from a fitted model
 #' 
-#' @method extractAIC remlf90
+#' @S3method extractAIC remlf90
 #' @export
 extractAIC.remlf90 <- function(fit, scale, k,...) {
-  
+  return(fit$fit$AIC)
 }
   
 #' @method fitted remlf90
@@ -428,7 +429,7 @@ summary.remlf90 <- function(object, ...) {
   # appropriate df or nobs attributes
   llik <- logLik(object)
   AICframe <- data.frame(AIC = tryCatch(AIC(llik), 
-                                        error = function(e) 'unknown'), 
+                                        error = function(e) object$fit$AIC), 
                          BIC = tryCatch(BIC(llik),
                                         error = function(e) 'unknown'),
                          logLik = as.vector(llik),
@@ -460,6 +461,9 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
   if(!is.null(x$call$subset))
     cat(" Subset:", x$call$subset,"\n")
   print(x$model.fit, digits = digits)
+  
+  if(x$effects$spatial)
+    cat("\nNumber of row and column inner knots:", x$spatial$model$inner.knots, "\n")
   
   cat("\nVariance components:\n")
   print(x$var, quote = FALSE, digits = digits, ...)

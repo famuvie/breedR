@@ -20,11 +20,12 @@ determine.n.knots <- function(n, cutoff = 4, rate = 0.3) {
 #' Given the coordinates of the observations, and the degree,
 #' this function puts into place a sensible number of spline knots
 #' and computes the incidence matrix B and the covariance matrix U
-build.splines.model <- function (coord, degree = 3) {
+build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
   # Determine the number of (inner) knots for rows and columns
   # TODO: Let the user fix these numbers
   obs.loc <- lapply(as.data.frame(coord), function(x) sort(unique(x)))
-  n.knots <- determine.n.knots(sapply(obs.loc, length))
+  if(is.null(n.knots))
+    n.knots <- determine.n.knots(sapply(obs.loc, length))
   obs.step <- sapply(obs.loc, function(x) summary(diff(x)))['Median',]
   
   # Place the knots evenly spaced
@@ -83,5 +84,5 @@ build.splines.model <- function (coord, degree = 3) {
   plotting <- list(grid = plot.grid,
                    B = tensor(knots, plot.grid, degree + 1))
   
-  return(list(B = B, U = U.values, plotting = plotting))  
+  return(list(inner.knots = n.knots, B = B, U = U.values, plotting = plotting))
 }

@@ -156,11 +156,11 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 
 #### Interface functions ####
 
-#' Number of traits
+#' Extract the number of traits
 #' @export
-ntraits <- function(x) UseMethod('ntraits')
+get_ntraits <- function(x) UseMethod('get_ntraits')
 #' @export
-ntraits.metagene <- function(x) {
+get_ntraits.metagene <- function(x) {
   return(x$n.traits)
 }
 
