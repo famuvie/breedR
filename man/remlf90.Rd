@@ -39,7 +39,8 @@
   spatially structured effect.
 }
 \references{
-  \code{\link{http://nce.ads.uga.edu/wiki/doku.php}}
+  progsf90 wiki page:
+  \url{http://nce.ads.uga.edu/wiki/doku.php}
 
   E. P. Cappa and R. J. C. Cantet (2007). Bayesian
   estimation of a surface to account for a spatial trend

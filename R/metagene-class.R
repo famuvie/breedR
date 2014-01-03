@@ -83,7 +83,18 @@ summary.metagene <- function(object, ...) {
     phenotype <- phenotype[-which(names(phenotype)=='generation')]
   }
   
-  summeta <- list(file.path=object$file.path, file=object$file, n.traits=object$n.traits, n.generations=object$n.generations, n.individuals=object$n.individuals, Data=object$Data, breeding.values=breeding.values, phenotype=phenotype)
+  # Has spatial structure?
+  is.spatial <- exists('sp_X', where = as.environment(m4$Data))
+  
+  summeta <- list(file.path       = object$file.path,
+                  file            = object$file,
+                  n.traits        = object$n.traits,
+                  n.generations   = object$n.generations,
+                  n.individuals   = object$n.individuals,
+                  Data            = object$Data,
+                  breeding.values = breeding.values,
+                  phenotype       = phenotype,
+                  is.spatial      = is.spatial)
   class(summeta) <- 'summary.metagene'  
   return(summeta)
 }
@@ -91,9 +102,10 @@ summary.metagene <- function(object, ...) {
 #' @export
 print.summary.metagene <- function(x, ...) {
   cat('Metagene simulated dataset\n===========================\n')
-  cat('Number of individuals: ', format(x$n.individuals, width=4), '\n')
-  cat('Number of traits     : ', format(x$n.traits, width=4), '\n')
-  cat('Number of generations: ', format(x$n.generations, width=4), '\n')
+  cat('Number of individuals: ', format(x$n.individuals, width=4),  '\n')
+  cat('Number of traits     : ', format(x$n.traits, width=4),       '\n')
+  cat('Number of generations: ', format(x$n.generations, width=4),  '\n')
+  cat('Spatial structure    : ', ifelse(x$is.spatial, 'Yes', 'No'), '\n')
   cat('Selection strategy: (Warning: fixed info)\t
       diagonal; 10+10 descendants per mating; select best 80+80\n')
   cat('\nBreeding values: ##########################\n')

@@ -2,7 +2,7 @@
 \alias{determine.n.knots}
 \title{Determine a sensible number of knots}
 \usage{
-  determine.n.knots(n, cutoff = 4, rate = 0.2)
+  determine.n.knots(n, cutoff = 4, rate = 0.3)
 }
 \arguments{
   \item{n}{An integer vector of sample sizes}

@@ -25,7 +25,7 @@ Depends:
     methods,
     INLA,
     sp,
-Suggest: testthat, mvbutils
+Suggest: testthat
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
@@ -35,6 +35,5 @@ Collate:
     'remlf90-class.R'
     'data.R'
     'help.R'
-    'devutils.R'
     'progsf90.R'
     'splines.R'

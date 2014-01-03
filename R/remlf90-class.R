@@ -12,7 +12,7 @@
 #' The available models for the spatial effect are \code{Cappa07}. \code{Cappa07} uses a  two-dimensional tensor product of B-splines to represent the smooth spatially structured effect.
 #' @seealso \code{\link[pedigreemm]{pedigree}}
 #' @references
-#'    \code{\link{http://nce.ads.uga.edu/wiki/doku.php}}
+#'    progsf90 wiki page: \url{http://nce.ads.uga.edu/wiki/doku.php}
 #'    
 #'    E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to account for a spatial trend using penalized splines in an individual-tree mixed model. \emph{Canadian Journal of Forest Research} \strong{37}(12):2677-2688.
 #' @export
@@ -147,9 +147,11 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   # How to compute standard errors of splines predicted values?
   ranef <- list()
   if(!is.null(genetic))
-    ranef$genetic <- result$genetic[genetic$id, 'value']
+    ranef$genetic <- result$genetic$value[genetic$id]
   if(!is.null(spatial))
-    ranef$spatial <- as.vector(effects$spatial$splines$B %*% result$spatial$value)
+    ranef$spatial <- as.vector(effects$spatial$splines$B
+                               %*% 
+                               result$spatial$value)
   
   # Spatial Surface
   if (!is.null(spatial)) {
@@ -207,10 +209,6 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
 #   sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
   sd.label <- ifelse(TRUE, 'SE', 'S.D.')
   
-  gen.var.idx <- grep('Genetic variance', reml.out) + 1
-  stopifnot(length(gen.var.idx)==1)
-  gen.var <- as.numeric(reml.out[gen.var.idx])
-
   varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
   # There should be one variance for each random effect plus one resid. var.
   stopifnot(identical(length(varcomp.idx), length(random.effects.idx) + 1L))
@@ -391,6 +389,8 @@ print.remlf90 <- function (object, ...) {
   
 }
 
+#' @S3method ranef remlf90
+#' @export
 ranef.remlf90 <- function (object, ...) {
   object$ranef
 }

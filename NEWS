@@ -1,0 +1,14 @@
+breedR 0.1-1
+============
+
+* Simple simulation of spatially structured effects
+
+* Spatial module following Cappa and Cantet (2007) splines model
+
+
+breedR 0.1-0
+============
+
+* Basic wrapper to Mistalz's (AI)REMLF90
+
+* Convenient 'metagene' class to represent and manipulate simulated datasets
