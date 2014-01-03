@@ -299,10 +299,33 @@ b.values <- function(x, ...) {
 #### Simulate spatial structure ####
 
 #' Simulate a spatial structure
-sim.spatial <- function(meta, ...) UseMethod('sim.spatial')
+#' 
+#' Takes a metagene simulated dataset and distributes its individuals randomly 
+#' into a more or less square spatial region. Furthermore, it takes part of the 
+#' phenotypic noise and puts some spatial structure into it.
+#' 
+#' Founders are not put into place, as they don't have phenotypic values. 
+#' Therefore, they are returned without coordinates nor spatial values.
+#' 
+#' The variance of the spatial field is given as a proportion of the variance of
+#' the random noise that was added to the Breeding Values to produce the 
+#' phenotypes. The phenotypes are afterwards recalculated to preserve the 
+#' heritability.
+#' 
+#' The spatial unit is the distance between consecutive trees.
 #' @method sim.spatial metagene
+#' @param meta A metagene object
+#' @param variance A number between 0 and 1. The variance of the spatial field 
+#'   as a proportion of the non-inheritable pehnotype variance. See Details.
+#' @param range A number between 0 and 1. The range of the spatial field, as a 
+#'   proportion of the region size.
+#' @return Another metagene object with spatial structure given through an 
+#'   additional column \code{sp_X} with the spatially structured component of 
+#'   the phenotype, and a 'spatial' list element with coordinates and simulation
+#'   information
 #' @export
-sim.spatial.metagene <- function(meta, ...) {
+sim.spatial <- function(meta, variance, range, ...) UseMethod('sim.spatial')
+sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   #### Distribute the individuals (except founders) randomly in space
 #   meta <- meta[meta$gen!=0,]
   founders.idx <- which(meta$gen==0)
@@ -326,18 +349,17 @@ sim.spatial.metagene <- function(meta, ...) {
                        max.edge = floor(c(.05, .1)*nr))
   # plot(mesh)
   
-  # SPDE structure
-  # We give the spatial effect a variance of 30% of phenotype's variance 
-  # (the same as the heritability. 
-  # i.e. proportion between the genetic variance and phenotype's variance)
-  # But we reduce the phenotypic variance in the same amount, 
-  # to preserve the heritability
+  # SPDE structure The variance of the spatial effect is a proportion of the 
+  # phenotype's non-genetical variance (1-h) 
   BV.var <- var(meta$BV_X[meta$gen==1])
   ph.var <- var(meta$phe_X[meta$gen==1])
-  h = BV.var/ph.var     # 1-h: proportion of phenotypical variance due to environmental factors
+  h = BV.var/ph.var     # 1-h: proportion of phenotypical variance due to non-genetical factors
   
-  sigma0 = sqrt(BV.var)  ## field std.dev. (of the same order of magnitude than genetic variance)
-  range0 = 0.2*nr        ## field range (about 20% of the region size)
+  sigma0 = sqrt(variance * ph.var * (1-h))  ## field std.dev.
+#   # Empirical correction: I know that the simulated field will have some border effect
+#   # and that the variance in the area of interest will be lower.
+#   sigma0 = 1.2 + sigma0
+  range0 = range*nr        ## field range (a 'range' proportion of the region size)
   # Field parameters
   kappa0 = sqrt(8)/range0
   tau0 = 1/(sqrt(4*pi)*kappa0*sigma0)
@@ -377,9 +399,13 @@ sim.spatial.metagene <- function(meta, ...) {
 #   var(ss.vec)      # This should be similar  to BV.var
   
   #### Reduce variability from the phenotype and insert the spatial effect
+  # to preserve the heritability
   spatial.var <- var(ss.vec)
   meta$sp_X <- c(NA[founders.idx], ss.vec)
-  meta$phe_X[-founders.idx] <- (meta$BV_X[-founders.idx] + ss.vec) + sqrt((ph.var-BV.var-spatial.var)/(ph.var-BV.var))*(meta$phe_X - meta$BV_X)[-founders.idx]
+  meta$phe_X[-founders.idx] <- 
+    (meta$BV_X[-founders.idx] + ss.vec) + 
+    sqrt((ph.var-BV.var-spatial.var)/(ph.var-BV.var))*
+    (meta$phe_X - meta$BV_X)[-founders.idx]
   
   # # These two must be similar. i.e. kept total variance.
   # var(meta$phe_X)

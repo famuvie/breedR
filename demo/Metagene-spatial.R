@@ -37,7 +37,7 @@ qplot(phe_X, FO, color = sex, data = dat) +
   geom_abline(int=0, slope=1)
 
 # Predicted genetic values vs. true Breeding values by generation
-qplot(BV_X, PBV, facets = sex, data = dat) +
+qplot(BV_X, PBV, color = sex, data = dat) +
   geom_abline(int = 0, slope = 1, col = 'gray')
 
 # Linear correlation between true and fitted breeding values

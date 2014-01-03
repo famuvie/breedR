@@ -5,11 +5,11 @@
 #' @param n An integer vector of sample sizes
 #' @return An integer vector with the number of knots for each sample size
 #' @references Ruppert, D. (2002). Selecting the number of knots for penalized splines. \emph{Journal of Computational and Graphical Statistics} 11, 735–757.
-determine.n.knots <- function(n, cutoff = 4, rate = 0.2) {
+determine.n.knots <- function(n, cutoff = 4, rate = 0.3) {
   # # Inspired by hisemi::n.knots
   # as.integer(trunc(pmin(n, cutoff + pmax(0, n - cutoff)^rate)))
   # but taking into account that we will add three more knots at each side
-  if(any(n < 7)) stop('Too few data')
+  if(any(n < 7)) stop('Too few data for a bidimensional spatial model')
   nk <- trunc(pmin(n - 6, cutoff + pmax(0, n - 6 - cutoff)^rate))
   return(nk)
 }
