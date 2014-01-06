@@ -54,7 +54,6 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   mc[[1]] <- quote(stats::model.frame)
   mc$genetic <- mc$spatial <- mc$method <- NULL
   mf <- eval(mc, parent.frame())
-  mt <- attr(mf, 'terms')
 #   mf <- model.frame(update(formula, ~.-1), data)
   # Better add an intercept to progsf90
   
@@ -87,7 +86,6 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
     on.exit(unlink(tmpdir, recursive=TRUE))
   }
   parameter.file.path <- file.path(tmpdir, 'parameters')
-  data.file.path <- file.path(tmpdir, 'data')
   if(!is.null(genetic)) genetic$tempfile <- file.path(tmpdir, 'pedigree')
   if(!is.null(spatial)) spatial$tempfile <- file.path(tmpdir, 'spatial')
   
@@ -192,7 +190,6 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
 #   # Exactly one level should be zeroed
 #   # Update: Not true. Omitting this check.
 #   stopifnot(identical(sum(sapply(beta, identical, 0)), 1L))
-  eta.genetic <- eta.spatial <- 0
   eta <- mm %*% beta + rowSums(do.call(cbind, ranef))
   
   # Fitted Values
@@ -358,7 +355,6 @@ logLik.remlf90 <- function (object, ...) {
       w <- w[!excl]
     }
   }
-  N0 <- N
   ans = -object$fit[['-2logL']]/2
   attr(ans, 'df') <- npar
   attr(ans, 'nobs') <- N
@@ -451,7 +447,6 @@ summary.remlf90 <- function(object, ...) {
 print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
                                   correlation = TRUE, symbolic.cor = FALSE,
                                   signif.stars = getOption("show.signif.stars"), ...) {
-  llik <- x$fit$'-2logL'
   
   cat(x$model.description, '\n')
   if(!is.null(x$call$formula))

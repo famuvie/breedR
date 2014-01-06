@@ -14,8 +14,8 @@
 }
 \description{
   Read the output file (the one with the pedigree. Usually:
-  insim.002) of te Metagene program, and build an object of
-  class metagene.
+  insim.002) of the Metagene program, and build an object
+  of class metagene.
 }
 \references{
   \url{http://www.igv.fi.cnr.it/noveltree/}

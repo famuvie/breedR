@@ -7,18 +7,27 @@
 
 #' Metagene Data Input
 #' 
-#' Read the output file (the one with the pedigree. Usually: insim.002)
-#' of te Metagene program, and build an object of class metagene.
-#' @param fname file name of the second metagene output file (usually: insim.002)
-#' @return read.metagene returns the data in the file as an object of class \code{metagene}
+#' Read the output file (the one with the pedigree. Usually: insim.002) of the 
+#' Metagene program, and build an object of class metagene.
+#' @param fname file name of the second metagene output file (usually: 
+#'   insim.002)
+#' @return read.metagene returns the data in the file as an object of class 
+#'   \code{metagene}
 #' @references \url{http://www.igv.fi.cnr.it/noveltree/}
 #' @family metagene
 #' @export
 read.metagene <- function(fname) {
   file.path = fname
-  file      = readLines(con=file.path)
+  file      = readLines(con = file.path)
   data_start.idx <- grep('pedigree', file) + 1
-  Data <- read.table(file=file.path, quote="", skip=data_start.idx, col.names=scan(file=file.path, what=character(), skip=data_start.idx - 1, nlines=1, sep=','))
+  Data <- read.table(file      = file.path,
+                     quote     = "",
+                     skip      = data_start.idx,
+                     col.names = scan(file=file.path,
+                                    what=character(),
+                                    skip=data_start.idx - 1,
+                                    nlines=1,
+                                    sep=','))
   t.max = as.integer(strsplit(file[grep('Tmax:', file)], '^Tmax: *')[[1]][2])
   
   # generation as factor
@@ -26,15 +35,22 @@ read.metagene <- function(fname) {
   Data$gen <- factor(Data$gen, ordered=TRUE)
   
   # Number of traits (metagene handles either 1 or 2)
-  # We try to guess the name of the file .001 where it reads the input parameters
+  # Try to guess the name of the file .001 where it reads the input parameters
   # otherwise, we try to infer it from the Data
 #   fname <- strsplit(file[grep('NAME_OF_THIS_RUN', file)], c(' +'))[[1]][2]
   file1.path <- gsub('002', '001', file.path)
   if(file.exists(file1.path)){
     file1 = readLines(con=file1.path)
-    n.traits <- as.integer(strsplit(file1[grep('Total_#_traits:', file1)], c(' +'))[[1]][2])
+    n.traits <- as.integer(strsplit(file1[grep('Total_#_traits:', file1)],
+                                    c(' +'))[[1]][2])
   } else {
-    n.traits <- ifelse(with(Data, all(BV_Y==0) & all(Dom_Y==0) & all(phe_Y==0) & all(indx_Y==0) & all(indx_XY==0)), 1, 2)
+    n.traits <- ifelse(with(Data, 
+                            all(BV_Y==0) &
+                            all(Dom_Y==0) &
+                            all(phe_Y==0) &
+                            all(indx_Y==0) &
+                            all(indx_XY==0)),
+                       1, 2)
   }
   if(n.traits==1) 
     Data <- Data[,-match(c('BV_Y', 'Dom_Y', 'phe_Y',
@@ -45,7 +61,12 @@ read.metagene <- function(fname) {
   n.ind = max(Data$self)
   
   # Build object
-  meta <- list(file.path=file.path, file=file, n.traits=n.traits, n.generations=t.max, n.individuals=n.ind, Data=Data)
+  meta <- list(file.path     = file.path,
+               file          = file,
+               n.traits      = n.traits,
+               n.generations = t.max,
+               n.individuals = n.ind,
+               Data          = Data)
   attr(meta, 'data.starting.line') <- data_start.idx
   class(meta) <- 'metagene'  
   return(meta)
@@ -61,26 +82,48 @@ read.metagene <- function(fname) {
 #' @export
 summary.metagene <- function(object, ...) {
 #   attach(x)
-  xsummary <- function(x) c(summary(x), 'SD'=sd(x), 'Var'=var(x))[c(4, 7, 8, 1:3, 5:6)]
+  xsummary <- function(x) c(summary(x),
+                            'SD'=sd(x),
+                            'Var'=var(x))[c(4, 7, 8, 1:3, 5:6)]
   
   breeding.values <- list(
-    global = do.call(rbind, tapply(object$BV_X, rep(1, object$n.individuals), xsummary)),
-    generation = do.call(rbind, tapply(object$BV_X, object$gen, xsummary)),
-    sex = do.call(rbind, tapply(object$BV_X, object$sex, xsummary))
+    global = do.call(rbind,
+                     tapply(object$BV_X,
+                            rep(1, object$n.individuals),
+                            xsummary)),
+    generation = do.call(rbind,
+                         tapply(object$BV_X,
+                                object$gen,
+                                xsummary)),
+    sex = do.call(rbind,
+                  tapply(object$BV_X,
+                                object$sex,
+                                xsummary))
   )
 
   # Exclude founders except for generation-specific results
   object.noF <- object[object$gen!=0,]
   phenotype <- list(
-    'global (exc. founders)' = do.call(rbind, tapply(object.noF$phe_X, rep(1, object.noF$n.individuals), xsummary)),
-    generation = do.call(rbind, tapply(object$phe_X, object$gen, xsummary)),
-    'sex (exc. founders)' = do.call(rbind, tapply(object.noF$phe_X, object.noF$sex, xsummary))
+    'global (exc. founders)' = do.call(rbind,
+                                       tapply(object.noF$phe_X,
+                                              rep(1, object.noF$n.individuals),
+                                              xsummary)),
+    generation = do.call(rbind,
+                         tapply(object$phe_X,
+                                object$gen,
+                                xsummary)),
+    'sex (exc. founders)' = do.call(rbind,
+                                    tapply(object.noF$phe_X,
+                                           object.noF$sex,
+                                           xsummary))
   )
   
   # If only 1 generation, don't split by generation
   if(object$n.generations < 2) {
-    breeding.values <- breeding.values[-which(names(breeding.values)=='generation')]
-    phenotype <- phenotype[-which(names(phenotype)=='generation')]
+    breeding.values <-
+      breeding.values[-which(names(breeding.values)=='generation')]
+    phenotype <-
+      phenotype[-which(names(phenotype)=='generation')]
   }
   
   # Has spatial structure?
@@ -131,7 +174,8 @@ print.summary.metagene <- function(x, ...) {
 
 #' Plot method for metagene objects
 #' 
-#' Plots either genetic and phenotypic values, or the spatial component of the phenotype
+#' Plots either genetic and phenotypic values, or the spatial component of the
+#' phenotype
 #' @method plot metagene
 #' @export
 plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
@@ -150,7 +194,10 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
                       generation = rep(factor(x$gen), 2),
                       sex = rep(x$sex, 2),
                       value = c(x$BV_X, x$phe_X))
-    ggplot(dat, aes(x = value, fill = label)) + geom_density(alpha=.3) + facet_grid(generation~.) + labs(x = "Value by generation") 
+    ggplot(dat, aes(x = value, fill = label)) +
+      geom_density(alpha=.3) +
+      facet_grid(generation~.) +
+      labs(x = "Value by generation") 
   }
 }
 
@@ -194,40 +241,50 @@ get_pedigree.metagene <- function(x, ...) {
 
 #' Coerce to a data.frame
 #' 
-#' This function returns a \code{\link[pedigree]{pedigree}} object in a data frame
+#' This function returns a \code{\link[pedigree]{pedigree}} object in a data
+#' frame
 #' 
 #' @method as.data.frame pedigree
 #' @param x a \code{\link[pedigree]{pedigree}} object
 #' @param ... not used
-#' 
-#' @return returns a data frame with one row per individual, the first column being the identification code, and the other two columns are dad and mum codes respectively.
+#'   
+#' @return returns a data frame with one row per individual, the first column
+#'   being the identification code, and the other two columns are dad and mum
+#'   codes respectively.
 #' @export
 as.data.frame.pedigree <- function(x, ...) {
   y <- as(x, 'data.frame')
   z <- cbind(self=as.numeric(row.names(y)), y)
+  return(z)
 }
 
 #' Coerce to a data.frame
 #' 
-#' This function returns the data frame with the pedigree and phenotypes of the simulated individuals.
+#' This function returns the data frame with the pedigree and phenotypes of the
+#' simulated individuals.
 #' 
 #' @method as.data.frame metagene
 #' @param x a metagene object
 #' @param ... not used
-#' @param exclude.founders logical: should the data.frame contain the genetic values of the founders?
-#' 
-#' @return returns a data frame with one row per individual, with the spatial coordinates if applicable, the pedigree information, the generation, the true breeding value, the phenotype, the sex, the spatially structured component of the phenotype and other internal metagene variables.
+#' @param exclude.founders logical: should the data.frame contain the genetic
+#'   values of the founders?
+#'   
+#' @return returns a data frame with one row per individual, with the spatial
+#'   coordinates if applicable, the pedigree information, the generation, the
+#'   true breeding value, the phenotype, the sex, the spatially structured
+#'   component of the phenotype and other internal metagene variables.
 #' @export
 as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   # Exclude founders if appropriate
-  if(exclude.founders) x = x[x$gen!=0, ]
+  if(exclude.founders) y <- x[x$gen!=0, ]
+  else y <- x
   
   # If it has a spatial structure, add coordinates as columns
-  if('spatial' %in% names(x))
-    dat = data.frame(rbind(matrix(NA, sum(x$gen==0), 2), 
-                           coordinates(x)), 
-                     x$Data)
-  else dat = x$Data
+  if('spatial' %in% names(y))
+    dat = data.frame(rbind(matrix(NA, sum(y$gen==0), 2), 
+                           coordinates(y)), 
+                     y$Data)
+  else dat = y$Data
   
   return(dat)
 }
@@ -281,10 +338,11 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 b.values <- function(x, ...) {
   stopifnot(inherits(x, 'metagene'))
   dat <- data(x)[,c('self', 'gen', 'sex', 'BV_X')]
+  return(dat)
 }
 
 # # Fixed and random effects
-# # Metagene simulates genetic effects, which in turn induces a generation effect
+# # Metagene simulates genetic selection, which  induces a generation effect
 # # The variable sex is there, but there is no sex effect.
 # # Apart from that, you can model the effects however you like.
 # effects <- function(x) UseMethod('effects')
@@ -353,13 +411,14 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   # phenotype's non-genetical variance (1-h) 
   BV.var <- var(meta$BV_X[meta$gen==1])
   ph.var <- var(meta$phe_X[meta$gen==1])
-  h = BV.var/ph.var     # 1-h: proportion of phenotypical variance due to non-genetical factors
+  h = BV.var/ph.var     # 1-h: proportion of phenotypical variance 
+                        # due to non-genetical factors
   
   sigma0 = sqrt(variance * ph.var * (1-h))  ## field std.dev.
-#   # Empirical correction: I know that the simulated field will have some border effect
-#   # and that the variance in the area of interest will be lower.
+#   # Empirical correction: I know that the simulated field will have some
+#   # border effect and that the variance in the area of interest will be lower.
 #   sigma0 = 1.2 + sigma0
-  range0 = range*nr        ## field range (a 'range' proportion of the region size)
+  range0 = range*nr    ## field range (a 'range' proportion of the region size)
   # Field parameters
   kappa0 = sqrt(8)/range0
   tau0 = 1/(sqrt(4*pi)*kappa0*sigma0)
@@ -387,14 +446,15 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
 #        draw.edges=FALSE, draw.segments=TRUE, draw.vertices=FALSE)
 #   
 #   # Project into a 100x100 matrix (only inner area)
-#   proj.mat = inla.mesh.projector(mesh, xlim=c(1, nr), ylim=c(1,nc))    # This contains the A matrix in proj$proj$A
+#   proj.mat = inla.mesh.projector(mesh, xlim=c(1, nr), ylim=c(1,nc))    
+    # This contains the A matrix in proj$proj$A
 #   ss.matrix <- inla.mesh.project(proj.mat, field = x)
 #   image(ss.matrix)
   
   # Project into the observations locations
   proj.vec = inla.mesh.projector(mesh, loc=coordinates(SP))    
   ss.vec <- inla.mesh.project(proj.vec, field = x)
-#   str(ss.vec)       # Value of the simulated spatial field in the observation locations
+#   str(ss.vec)       # Value of the simulated spatial field in the obs locs
 #   summary(ss.vec)
 #   var(ss.vec)      # This should be similar  to BV.var
   
@@ -425,7 +485,8 @@ setOldClass('metagene')
 setMethod('coordinates', signature = 'metagene', 
           function(obj, ...) {
             if(!('spatial' %in% names(obj)))
-              stop("This metagene object has no spatial structure. Use sim.spatial().")
+              stop("This metagene object has no spatial structure. 
+                   Use sim.spatial().")
             coordinates(obj$spatial$spatial.points, ...)
           }
 )

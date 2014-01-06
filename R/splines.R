@@ -31,7 +31,6 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
   # Place the knots evenly spaced
   # inspired by mgcv::place.knots()
   # but adding a margin before and after the extreme observations
-  knot.step <- mapply(function(ol, os, nk) diff(range(ol) + c(-1, 1)*os/2)/(nk-1), obs.loc, obs.step, n.knots)
   knots.inner <- mapply(function(ol, os, nk) seq(head(ol, 1) - os/2, tail(ol, 1) + os/2, length = nk), obs.loc, obs.step, n.knots, SIMPLIFY = FALSE)
   
   # Add three additional knots before and after
