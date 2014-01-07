@@ -1,7 +1,7 @@
 Package: breedR
 Type: Package
 Title: Frequentist and Bayesian methods for breeders and quantitative genetists
-Version: 0.1-1
+Version: 0.1-2
 Date: 2013-11-12
 Encoding: UTF-8
 Authors@R: c(person("Facundo","Muñoz",

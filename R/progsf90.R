@@ -5,7 +5,7 @@
 #' of the progsf90 programs.
 progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   
-  # This function parses correctly all fixed effects and the spatial effect
+  # This function parses correctly all fixed effects and the spatial effect 
   # Possibly will have to change to include competition or other complex effects
   parse.effect <- function(x) {
     if(length(x$pos) > 1){
@@ -57,8 +57,10 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   
   #   dat <- cbind(sapply(names(effects), build.dat.single, mf),
   #                phenotype = mf[, attr(mt, 'response')])
-  dat <- do.call(cbind, c(list(phenotype = mf[, attr(attr(mf, 'terms'), 'response')]),
-                          sapply(names(effects), build.dat.single, mf)))
+  dat <- do.call(cbind, 
+                 c(list(phenotype = mf[, attr(attr(mf, 'terms'), 'response')]),
+                   sapply(names(effects), 
+                          build.dat.single, mf, simplify = FALSE)))
   
   # Additional Files
   build.file.single <- function(ef) {
@@ -96,6 +98,8 @@ build.effects <- function (mf, genetic, spatial) {
   # Position counter
   pos = ntraits + 1
   
+  effects <- list()
+  
   # Intercept term, if not precluded explicitly in the formula
   if(attr(mt, 'intercept')) {
     effects <- list('(Intercept)'=list(pos = pos, levels=1L, type='cross'))
@@ -103,6 +107,7 @@ build.effects <- function (mf, genetic, spatial) {
   }
   
   # Parameters of a single effect in the formula
+  # Increases pos by one each time
   eff.par.f <- function(name) {
     # position (in the data file)
     pos <- parent.env(environment())$pos
@@ -122,7 +127,9 @@ build.effects <- function (mf, genetic, spatial) {
   
   # Parameters for all effects in the formula
   effects <- c(effects, lapply(attr(mt, 'term.labels'), eff.par.f))
-  names(effects)[-1] <- attr(mt, 'term.labels')
+  ef_names <- attr(mt, 'term.labels')
+  names(effects)[pos-ntraits - length(ef_names):1] <- ef_names
+  
   
   # Genetic effect
   # Both the genetic and spatial terms are "cross"
@@ -183,7 +190,8 @@ write.progsf90 <- function (pf90, dir) {
            paste('OPTION', options)))
   
   
-  writeLines(parameter.file, con = file.path(dir, 'parameters'))
+  writeLines(as.character(parameter.file),
+             con = file.path(dir, 'parameters'))
   # file.show(parameter.file.path)
   
   # Data file

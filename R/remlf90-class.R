@@ -16,7 +16,11 @@
 #'    
 #'    E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to account for a spatial trend using penalized splines in an individual-tree mixed model. \emph{Canadian Journal of Forest Research} \strong{37}(12):2677-2688.
 #' @export
-remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'em')) {
+remlf90 <- function(formula, 
+                    genetic = NULL, 
+                    spatial = NULL, 
+                    data, 
+                    method = c('ai', 'em')) {
   
   ## Assumptions:
   ## Only 1 pedigree
@@ -45,12 +49,16 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   method <- tolower(method)
   method <- match.arg(method)
 
+  ## Remove intercept from formula
+  # progsf90 don't allow for custom model parameterizations
+  # and they don't use intercepts
+  mc$formula <- update(eval(mc$formula, parent.frame()), ~ . -1)
+  
   ## parse data and formula
-  # NOTE: This complicated way of calling a function accounts
-  # for the fact that the user possibly didn't pass a data argument
-  # and the formula must be evaluated in the calling environment (parent.frame())
-  # besides, it allows passing additional arguments to model.frame
-  # like subset, na.action, etc.
+  # NOTE: This complicated way of calling a function accounts for the fact that
+  # the user possibly didn't pass a data argument and the formula must be
+  # evaluated in the calling environment (parent.frame()) besides, it allows
+  # passing additional arguments to model.frame like subset, na.action, etc.
   mc[[1]] <- quote(stats::model.frame)
   mc$genetic <- mc$spatial <- mc$method <- NULL
   mf <- eval(mc, parent.frame())
@@ -76,25 +84,19 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   
   # Temporary files
   tmpdir <- tempdir()
-  # WORKAROUND: in Windows, tmpdir is too lengthy for AIREMLF90 
-  # This is somewhat dangerous: there might be permission issues
-  # Fixes Issue #1
-  if(.Platform$OS.type == 'windows') {
-    tmpdir = "C:\\Rtmp"
-    if(file.exists(tmpdir)) stop(paste(tmpdir, 'already exists'))
-    dir.create(tmpdir)
-    on.exit(unlink(tmpdir, recursive=TRUE))
-  }
   parameter.file.path <- file.path(tmpdir, 'parameters')
   if(!is.null(genetic)) genetic$tempfile <- file.path(tmpdir, 'pedigree')
   if(!is.null(spatial)) spatial$tempfile <- file.path(tmpdir, 'spatial')
   
  
-  # Build effects' parameters
+  # Build a list of parameters and information for each effect
   effects <- build.effects(mf, genetic, spatial)
   
   # Generate progsf90 parameters
-  # Initial variance for residuals  # FIXED ??
+  # TODO: Initial variance for residuals  # FIXED ??
+  # TODO: Memory efficiency. At this point there are three copies of the 
+  # dataset. One in data, one in mf (only needed variables)
+  # and yet one more in pf90. This is a potential problem with large datasets.
   pf90 <- progsf90(mf, effects, res.var.ini = 10)
   
   # Write progsf90 files
@@ -102,7 +104,7 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
 
 
   
-  # variance components with REML
+  # variance components and BLUPs with REML
   platform <- switch(.Platform$OS.type, 
                      unix = 'linux',
                      windows = 'windows',
@@ -113,8 +115,10 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   # Avoids Issue #1
   cdir <- setwd(tmpdir)
   reml.out <- switch(method,
-                     ai = system(shQuote(file.path(binary.path, 'airemlf90')), input = parameter.file.path, intern=TRUE),
-                     em = system(shQuote(file.path(binary.path, 'remlf90')), input = parameter.file.path, intern=TRUE)
+                     ai = system2(file.path(binary.path, 'airemlf90'), 
+                                 input = parameter.file.path, stdout=TRUE),
+                     em = system2(file.path(binary.path, 'remlf90'),
+                                 input = parameter.file.path, stdout = TRUE)
   )
   # Return to current directory
   setwd(cdir)
@@ -127,14 +131,16 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   sol.file <- read.table(file.path(tmpdir, 'solutions'), header=FALSE, skip=1)
   colnames(sol.file) <- c('trait', 'effect', 'level', 'value', 's.e.')
   
-  # One trait only
+  # Assuming one trait only
   result <- by(sol.file[,4:5], sol.file$effect, identity)
   names(result) <- names(effects)
 
   
   # Random and Fixed effects indices
   random.effects.idx <- which(names(effects)=='genetic' | names(effects)=='spatial') # For the moment, the only random effects are either genetic or spatial --- TODO
-  fixed.effects.idx <- (1:length(effects))[-random.effects.idx]
+  if( length(random.effects.idx) )
+    fixed.effects.idx <- (1:length(effects))[-random.effects.idx]  else
+    fixed.effects.idx <- (1:length(effects))
   
   # Fixed effects coefficients
   beta <- sol.file$value[sol.file$effect %in% fixed.effects.idx]
@@ -159,38 +165,23 @@ remlf90 <- function(formula, genetic=NULL, spatial=NULL, data, method=c('ai', 'e
   } else
     spatial.pred <- NULL
   
-  # INTERCEPT ISSUE
-  # PROGSF90 do not use an intercept when it has factor variables
-  # instead, they fit a parameter for every level of every factor.
-  # Therefore, we compute the model matrix with the intercept removed.
-  mm <- model.matrix(update(formula, ~ . -1), mf)
-  # Alternatively, we introduce an intercept term in the reml data
-  # But as a result, the random effects remain the same, and the
-  # fixed effects take the *last* level as the reference (effect=0)
-  # Watch out! Sometimes Misztal takes the intercept as reference
-  # I don't know the rule for this.
-#   mm <- model.matrix(formula, mf)
-  
-#   # Linear Predictor
-#   # ASSUMPTION: the model has no intercept
-#   # TODO: This can be computed more efficiently by using the model matrix
-#   # as soon as I can match the progsf90 parameterization with the 
-#   # standard parameterization in R
-#   eta.i <- function(levels) {
-#     sum(mapply(function(y, x) y[x], result, levels))
-#   }
-#   eta = apply(dat[,-(length(effects) + 1:ntraits)], 1, eta.i)
+  # Build up the model matrix with one dummy variable per level
+  # as progsf90 takes care of everything
+  # I need to provide each factor with an identity matrix
+  # as its 'contrasts' attribute
+  isF <- attr(attr(mf, 'terms'), 'dataClasses') == 'factor' |
+        attr(attr(mf, 'terms'), 'dataClasses') == 'ordered'
+  diagonal_contrasts <- function(x) {
+    ctr <- diag(nlevels(x))
+    colnames(ctr) <- levels(x)
+    attr(x, 'contrasts') <- ctr
+    x
+  }
+  mf[isF] <- lapply(mf[isF], diagonal_contrasts)
+  mm <- model.matrix(attr(mf, 'terms'), mf) 
 
-  # TODO: Misztal uses either the intercept or one of the levels
-  # of a factor as reference (so one of the elements in beta is zero)
-  # But I don't know which one it will be.
-  # With globulus it is the intercept, while with m4 is the gen4.
-  # For the moment, I build manually a full model matrix
-  mm <- cbind(1, mm)
-#   # Exactly one level should be zeroed
-#   # Update: Not true. Omitting this check.
-#   stopifnot(identical(sum(sapply(beta, identical, 0)), 1L))
-  eta <- mm %*% beta + rowSums(do.call(cbind, ranef))
+  eta <- mm %*% beta
+  if(length(ranef)) eta <- eta + rowSums(do.call(cbind, ranef))
   
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
