@@ -113,7 +113,7 @@ build.effects <- function (mf, genetic, spatial) {
     pos <- parent.env(environment())$pos
     assign('pos', pos + 1, envir = parent.env(environment()))
     # number of levels
-    nl <- ifelse(inherits(mf[[name]], 'factor'), nlevels(mf[[name]]), length(unique(mf[[name]])))
+    nl <- ifelse(inherits(mf[[name]], 'factor'), nlevels(mf[[name]]), 1)
     # type: factors = "cross"; continuous = "cov"
     type <- switch(attr(mt, 'dataClasses')[name],
                    ordered = 'cross',
