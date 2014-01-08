@@ -62,8 +62,17 @@ remlf90 <- function(formula,
   mc[[1]] <- quote(stats::model.frame)
   mc$genetic <- mc$spatial <- mc$method <- NULL
   mf <- eval(mc, parent.frame())
+  mt <- attr(mf, 'terms')
 #   mf <- model.frame(update(formula, ~.-1), data)
   # Better add an intercept to progsf90
+  
+  ## Strings as factors
+  str.idx <- which(attr(mt, 'dataClasses') == 'character')
+  if(length(str.idx)) {
+    mf[str.idx] <- lapply(mf[str.idx], as.factor)
+    attr(mt, 'dataClasses')[str.idx] <- 
+      attr(attr(mt, 'dataClasses'), 'terms')[str.idx] <- 'factor'
+  }
   
   # Genetic effect
   if(!is.null(genetic)) {
@@ -169,8 +178,8 @@ remlf90 <- function(formula,
   # as progsf90 takes care of everything
   # I need to provide each factor with an identity matrix
   # as its 'contrasts' attribute
-  isF <- attr(attr(mf, 'terms'), 'dataClasses') == 'factor' |
-        attr(attr(mf, 'terms'), 'dataClasses') == 'ordered'
+  isF <- attr(mt, 'dataClasses') == 'factor' |
+        attr(mt, 'dataClasses') == 'ordered'
   diagonal_contrasts <- function(x) {
     ctr <- diag(nlevels(x))
     colnames(ctr) <- levels(x)
@@ -178,7 +187,7 @@ remlf90 <- function(formula,
     x
   }
   mf[isF] <- lapply(mf[isF], diagonal_contrasts)
-  mm <- model.matrix(attr(mf, 'terms'), mf) 
+  mm <- model.matrix(mt, mf) 
 
   eta <- mm %*% beta
   if(length(ranef)) eta <- eta + rowSums(do.call(cbind, ranef))
@@ -239,7 +248,7 @@ remlf90 <- function(formula,
     )
   
   # Observed response
-  y = mf[[attr(attr(mf, 'terms'), 'response')]]
+  y <- model.response(mf, "numeric")
   
 #   # Response in the linear predictor scale
 #   # TODO: apply link
