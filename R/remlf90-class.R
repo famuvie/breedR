@@ -189,7 +189,7 @@ remlf90 <- function(formula,
   mf[isF] <- lapply(mf[isF], diagonal_contrasts)
   mm <- model.matrix(mt, mf) 
 
-  eta <- mm %*% beta
+  eta <- drop(mm %*% beta)
   if(length(ranef)) eta <- eta + rowSums(do.call(cbind, ranef))
   
   # Fitted Values

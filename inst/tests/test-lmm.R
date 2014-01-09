@@ -26,19 +26,55 @@ context("Linear Models")
 
 models <- list(y ~ f3,
                y ~ x,
-               y ~ o4)
+               y ~ o4,
+               y ~ x + f3,
+               y ~ x + o4,
+               y ~ f3 + o4,
+               y ~ x + f3 + o4)
 # Run REML and lm and save estimates and MLEs
 run_model <- function(m, data = dat, method) {
   res.reml <- remlf90(m, data = data, method = method)
   res.lm   <- lm(update(m, ~ . -1), data = data)
-  return(list(fixef(res.reml)[[1]]$value,
-              as.numeric(coefficients(res.lm))))
+  return(list(res.reml, res.lm))
 }
 
-# Compare progsf90 estimates MLEs from lm
-compare_lm <- function(m, data = dat, method) {
+# Compare progsf90 and lm results
+run_expectations <- function(m, data = dat, method) {
   res <- run_model(m, data, method)
-  expect_that(res[[1]], equals(res[[2]]))
+  
+  # Expectations will depend on the number of covariates included in the model
+  # For one single covariate, progsf90 estimates should match exactly the
+  # MLE estimates from lm() with the intercept removed.
+  # For more than one covariate, the model paremeterizations are different
+  # and I can't compare the coefficients directly. Rather, I compare the
+  # fitted values.
+
+  n.cov <- length(attr(terms(m), 'term.labels'))
+  
+  if( n.cov == 1) {
+    # equal fixed effects estimates
+    pf90.beta <- coef(res[[1]])[[1]]$value
+    lm.beta   <- coef(res[[2]])
+    expect_that(pf90.beta,
+                equals(lm.beta, check.attributes = FALSE))
+    
+    # equal standard errors (with more tolerance)
+    pf90.se <- coef(res[[1]])[[1]]$'s.e.'
+    lm.se   <- coef(summary(res[[2]]))[, 'Std. Error']
+    expect_that(pf90.se,
+                equals(lm.se, check.attributes = FALSE, tolerance = 1e-05))
+    
+    # (almost) equal residual variance estimates
+    pf90.sigmahat <- sqrt(as.numeric(res[[1]]$var[1, 1]))
+    lm.sigmahat   <- summary(res[[2]])$sigma
+    expect_that(pf90.sigmahat, equals(lm.sigmahat, tolerance = 1e-03))
+  } else {
+    
+    # equal fitted values
+    pf90.fitted <- fitted(res[[1]])
+    lm.fitted   <- fitted(res[[2]])
+    expect_that(pf90.fitted, equals(lm.fitted))
+  }
 }
 
 test_that("Character variables are treated as factors", {
@@ -49,16 +85,15 @@ test_that("Character variables are treated as factors", {
   expect_that(is.factor(res.f3_char$mf$f3), is_true())
 })
 
-test_that("remlf90 estimates mathes lm's", {
-  lapply(models, compare_lm, method = 'em')
+test_that("remlf90() estimates matches lm()'s", {
+  lapply(models, run_expectations, method = 'em')
 })
 
+test_that("airemlf90() estimates matches lm()'s", {
+  lapply(models, run_expectations, method = 'ai')
+})
 
 # Standard Errors
 # Notice that while the MLE estimates of beta are equal for continuous
-# variables, the standard errors given by reml and lm are quite different:
+# variables, the standard errors given by aireml and lm are quite different:
 # 9.54 and 0.1048 respectively
-
-test_that("airemlf90estimates mathes lm's", {
-  lapply(models, compare_lm, method = 'ai')
-})
