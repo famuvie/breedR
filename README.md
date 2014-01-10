@@ -12,19 +12,29 @@ This package provides frequentist and Bayesian statistical tools to build predic
 - Install [R](http://cran.r-project.org/ "CRAN")
   - (If you work under MS Windows platform, you need `RTools` in addition to the `base` distribution)
 - Create a [GitHub](https://github.com/join) account
-  - (If you don't have one, and want to provide feedback)
+  - (If you don't have one. Only needed to provide feedback)
 - Install the `devtools` R-package
   - `install.packages('devtools')`
 - Update to the latest development version
   - (Not estrictly necessary under Windows)
   - `devtools::install_github('devtools')`
 
+##### How to use
+- Install or update the `breedR` package
+  - `install_github('breedR', 'famuvie')`
+- Load the package
+  - `library(breedR)`
+- Check-out the basic example
+  - `example('breedR')`
+- Run some of the `demo(package='breedR')`
+  - e.g. `demo('Metagene-spatial')`
+
 ##### Test cycle
 - Load `devtools`
   - `library(devtools)`
-- Install or update the `breedR` package
-  - `install_github('breedR', 'famuvie')`
-- Check-out the basic example
-  - `example('breedR', 'breedR')`
 - Try it with your own data or with provided datasets
 - Report [issues](https://github.com/famuvie/breedR/issues "Issues page")
+
+##### Citing
+- If you use this package please cite it
+- `citation('breedR')`

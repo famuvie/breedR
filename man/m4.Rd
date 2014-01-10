@@ -1,12 +1,12 @@
 \docType{data}
 \name{m4}
 \alias{m4}
-\title{Metagene synthesized dataset}
+\title{Metagene synthesized dataset with four generations}
 \description{
   Simulated progeny of four generations under phenotypic
   selection and spatial arrangement. The dataset includes
   the true Breeding values, the environmental effect and
-  the observed phenotype for the 5600 individuals.
+  the observed phenotype for the 6560 individuals.
 }
 \details{
   The generation of founders (generation 0) consist in 80
@@ -35,6 +35,11 @@
   # Environmental component of the phenotype
   # (spatially structured)
   plot(m4, type = 'spatial')
+
+  # The phenotypes are noisy observations around the Breeding values
+  # with a standard deviation of about 10.
+  qplot(BV_X, phe_X-BV_X, facets=.~gen, data=dat) +
+    geom_abline(int=0, sl=0, col='gray')
 }
 \keyword{datasets}
 

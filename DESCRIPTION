@@ -4,10 +4,12 @@ Title: Frequentist and Bayesian methods for breeders and quantitative genetists
 Version: 0.1-2
 Date: 2013-11-12
 Encoding: UTF-8
-Authors@R: c(person("Facundo","Muñoz",
+Authors@R: c(person("Facundo", "Muñoz",
     role=c("aut", "cre"),
     email="facundo.munoz@orleans.inra.fr"),
-    person("Ignacy","Misztal", role="ctb"))
+    person("Leopoldo", "Sanchez", role="aut"),
+    person("Ignacy", "Misztal", role="ctb"),
+    person("Pablo", "Cappa", role="ctb"))
 Author: Facundo Muñoz with libraries by Ignacy Misztal
 Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
 Description: This package provides statistical tools to build predictive models

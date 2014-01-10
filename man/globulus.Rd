@@ -1,0 +1,29 @@
+\docType{data}
+\name{globulus}
+\alias{globulus}
+\title{Eucalyptus Globulus dataset}
+\format{A dataframe with 1021 individuals and the following 9 variables
+\itemize{
+  \item{\code{self}}{ id of the tree}
+  \item{\code{dad}}{  id of sire or 0 if unknown}
+  \item{\code{mum}}{  id of dam or 0 if unknown}
+  \item{\code{gen}}{  generation (there is only 1)}
+  \item{\code{gg}}{   genetic group}
+  \item{\code{bl}}{   block}
+  \item{\code{phe_X}}{observed phenotype}
+  \item{\code{x, y}}{ coordinates (in m)}
+}}
+\description{
+  Open-polinated field test with one generation of 1021
+  individuals.
+}
+\details{
+  The individuals are split into 14 genetic groups and
+  arranged in blocks. The plantation is gridded with a
+  separation of 3 m.
+}
+\examples{
+data(globulus)
+}
+\keyword{datasets}
+

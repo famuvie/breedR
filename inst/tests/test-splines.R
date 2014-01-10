@@ -14,7 +14,7 @@ test_that("determine.n.knots fails with few data points", {
 
 
 
-context("Splines model") 
+context("Splines infraestructure") 
 ########################
 
 test_that("build.splines.model gives a list with tree elements of correct sizes", {
@@ -48,10 +48,18 @@ context("Spatial model")
 data(m1)
 dat <- as.data.frame(m1)
 
-res.m1 <- remlf90(formula = phe_X ~ sex, 
-                  spatial = list(model = 'Cappa07', 
-                                 coord = coordinates(m1),
-                                 var.ini = 300,
-                                 n.knots = c(2, 2)), 
-                  data = dat,
-                  method = 'em')
+res <- try(
+  remlf90(formula = phe_X ~ sex, 
+          spatial = list(model = 'Cappa07', 
+                         coord = coordinates(m1),
+                         var.ini = 300,
+                         n.knots = c(2, 2)), 
+          data = dat,
+          method = 'em'),
+  silent = TRUE
+)
+
+
+test_that("The Cappa07 model runs with EM-REML without errors", {
+  expect_that(!inherits(res, "try-error"), is_true())
+})
