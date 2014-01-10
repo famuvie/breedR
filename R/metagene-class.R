@@ -127,7 +127,7 @@ summary.metagene <- function(object, ...) {
   }
   
   # Has spatial structure?
-  is.spatial <- exists('sp_X', where = as.environment(m4$Data))
+  is.spatial <- exists('sp_X', where = as.environment(object$Data))
   
   summeta <- list(file.path       = object$file.path,
                   file            = object$file,

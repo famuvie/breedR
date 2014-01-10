@@ -210,3 +210,168 @@ write.progsf90 <- function (pf90, dir) {
   
 }
 
+
+
+#' Parse results from a progsf90 'solutions' file
+parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
+  
+  # Parsing the results
+  sol.file <- read.table(solfile, header=FALSE, skip=1)
+  colnames(sol.file) <- c('trait', 'effect', 'level', 'value', 's.e.')
+  
+  # Assuming one trait only
+  result <- by(sol.file[,4:5], sol.file$effect, identity)
+  names(result) <- names(effects)
+  
+  # Identify factors in model terms
+  mt <- attr(mf, 'terms')
+  isF <- attr(mt, 'dataClasses') == 'factor' |
+    attr(mt, 'dataClasses') == 'ordered'
+  
+  # Flags for specific effects
+  isGenetic <- exists('genetic', as.environment(effects))
+  isSpatial <- exists('spatial', as.environment(effects))
+  
+  # write labels for factor levels in results
+  for( x in names(isF)[which(isF)])
+    rownames(result[[x]]) <- levels(mf[[x]])
+  
+  # Random and Fixed effects indices
+  random.effects.idx <- which(names(effects)=='genetic' | names(effects)=='spatial') # For the moment, the only random effects are either genetic or spatial --- TODO
+  if( length(random.effects.idx) )
+    fixed.effects.idx <- (1:length(effects))[-random.effects.idx]  else
+      fixed.effects.idx <- (1:length(effects))
+  
+  # Fixed effects coefficients
+  beta <- sol.file$value[sol.file$effect %in% fixed.effects.idx]
+  #   .getXlevels(mt, mf)
+  
+  # Random effects coefficients
+  # TODO: Return Standard Errors as well.
+  # How to compute standard errors of splines predicted values?
+  ranef <- list()
+  if(isGenetic)
+    ranef$genetic <- result$genetic$value[effects$genetic$idx]
+  if(isSpatial)
+    ranef$spatial <- as.vector(effects$spatial$splines$B
+                               %*% 
+                                 result$spatial$value)
+  
+  # Spatial Surface
+  if (isSpatial) {
+    spatial.pred <- cbind(effects$spatial$splines$plotting$grid,
+                          z = as.vector(effects$spatial$splines$plotting$B
+                                        %*% result$spatial$value))
+  } else
+    spatial.pred <- NULL
+  
+  # Build up the model matrix with one dummy variable per level
+  # as progsf90 takes care of everything
+  # I need to provide each factor with an identity matrix
+  # as its 'contrasts' attribute
+  diagonal_contrasts <- function(x) {
+    ctr <- diag(nlevels(x))
+    colnames(ctr) <- levels(x)
+    attr(x, 'contrasts') <- ctr
+    x
+  }
+  mf[isF] <- lapply(mf[isF], diagonal_contrasts)
+  mm <- model.matrix(mt, mf) 
+  
+  eta <- drop(mm %*% beta)
+  if(length(ranef)) eta <- eta + rowSums(do.call(cbind, ranef))
+  
+  # Fitted Values
+  # ASSUMPTION: Linear Model (not generalized)
+  # TODO: apply inverse link
+  mu = eta
+  
+  # Variance components
+  # ASSUMPTION: I always have a Genetic Variance component
+  
+  # Issue #2 In Linux, AIREMLF90 prints S.D. for R and G
+  # while under Windows it outputs SE for R and G
+  # Update: from version 1.109 (at least), Linux updated to SE as well
+  #   sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
+  sd.label <- ifelse(TRUE, 'SE', 'S.D.')
+  
+  varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
+  # There should be one variance for each random effect plus one resid. var.
+  stopifnot(identical(length(varcomp.idx), length(random.effects.idx) + 1L))
+  varcomp <- as.numeric(reml.out[varcomp.idx])
+  names(varcomp) <- c(names(effects)[random.effects.idx], 'residual')
+  varcomp <- cbind('Estimated variances' = varcomp)
+  
+  # REML does not print Standard Errors for variance components
+  if(method == 'ai'){
+    varsd.idx <- grep(paste(sd.label, 'for G|for R'), reml.out) + 1
+    # There should be one variance for each random effect plus one resid. var.
+    stopifnot(identical(length(varcomp.idx), length(random.effects.idx) + 1L))
+    varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
+  }
+  
+  # If spatial, report the observed spatial variance, rather than the
+  # estimated variance of the spline effects which is meaningless
+  if(isSpatial) { 
+    varcomp['spatial', 1] <- var(ranef$spatial)
+    if(method == 'ai') varcomp['spatial', 2] <- NA
+  }
+  
+  
+  # REML info
+  reml.ver <- sub('^\\s+([[:graph:]]* +ver\\. +[0-9.]*).*$', '\\1', 
+                  grep('REML', reml.out, value = TRUE))
+  last.round.idx <- tail(grep('In round', reml.out), 1)
+  last.round <- as.numeric(strsplit(strsplit(reml.out[last.round.idx],
+                                             split='In round')[[1]][2],
+                                    split='convergence=')[[1]])
+  reml <- list(
+    version = gsub('\\s+', ' ', reml.ver),
+    rounds = last.round[1],
+    convergence = last.round[2],
+    delta.conv = as.numeric(strsplit(reml.out[last.round.idx+1],
+                                     split='delta convergence=')[[1]][2]),
+    output = reml.out
+  )
+  # Fit info
+  last.fit <- as.numeric(strsplit(strsplit(reml.out[last.round.idx-1],
+                                           split='-2logL =')[[1]][2],
+                                  split=': AIC =')[[1]])
+  fit <- list(
+    '-2logL' = last.fit[1],
+    AIC = last.fit[2]
+  )
+
+  # Observed response
+  y <- model.response(mf, "numeric")
+  
+  #   # Response in the linear predictor scale
+  #   # TODO: apply link
+  #   y.scaled <- y
+  
+  # TODO: Add inbreeding coefficient for each tree (in the pedigree) (use pedigreemm::inbreeding())
+  #       Include the matrix A of additive relationships (as sparse. Use pedigreemm::getA)
+  #       Compute the heritability estimates and its standard error 
+  #       Compute covariances estimates for multiple traits (and their standard errors)
+  
+  ans <- list(
+    call = mcout,
+    method = method,
+    effects = list(pedigree = isGenetic,
+                   spatial  = isSpatial), # TODO competition, ...
+    mf = mf,
+    mm = mm,
+    y = y,
+    fixed = result[fixed.effects.idx],
+    ranef = ranef,
+    eta = eta,
+    mu = mu,
+    residuals = y - mu,
+    spatial = list(model      = effects$spatial$splines[1:3],
+                   prediction = spatial.pred),
+    var = varcomp,
+    fit = fit,
+    reml = reml
+  )
+  
+}
