@@ -1,6 +1,6 @@
 Package: breedR
 Type: Package
-Title: Frequentist and Bayesian methods for breeders and quantitative genetists
+Title: Statistical methods for forest genetic resources analysts
 Version: 0.1-2
 Date: 2013-11-12
 Encoding: UTF-8
@@ -25,7 +25,7 @@ Depends:
     ggplot2,
     pedigreemm,
     methods,
-    INLA,
+    splines,
     sp,
 Suggest: testthat
 LazyLoad: yes

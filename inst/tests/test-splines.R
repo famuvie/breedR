@@ -4,12 +4,12 @@ context("Number of knots")
 test_that("determine.n.knots works for atomic vectors", {
   test.length <- 100
   sample.sizes <- seq(from = 7, by = 19, length = test.length)
-  expect_that(length(determine.n.knots(sample.sizes)),
+  expect_that(length(breedR:::determine.n.knots(sample.sizes)),
               equals(test.length))
 })
 
 test_that("determine.n.knots fails with few data points", {
-  expect_that(determine.n.knots(6), throws_error('few data'))
+  expect_that(breedR:::determine.n.knots(6), throws_error('few data'))
 })
 
 
@@ -21,7 +21,7 @@ test_that("build.splines.model gives a list with tree elements of correct sizes"
   x.loc <- 1:100
   y.loc <- seq(1000, by = 5, length = 51)
   coord <- expand.grid(x.loc, y.loc)
-  result <- build.splines.model(coord)
+  result <- breedR:::build.splines.model(coord)
   n.knots <- ncol(result$B)
   
   expect_that(result, is_a('list'))
