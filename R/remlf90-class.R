@@ -1,24 +1,43 @@
 #' Inference with REMLF90
 #' 
 #' Fits a Linear Mixed Model by Restricted Maximum Likelihood
-#' @param formula an object of class \link{formula} (or one that can be coerced to that class): a symbolic description of the model to be fitted. The details of model specification are given under 'Details'.
-#' @param genetic if not \code{NULL}, a list with relevant parameters for an additive genetic effect; see 'Details'.
-#' @param spatial if not \code{NULL}, a list with relevant parameters for a spatial random effect; see 'Details'.
-#' @details 
-#' If either \code{genetic} and/or \code{param} are not \code{NULL}, the model residuals are assumed to have an additive genetic effects and a spatially structured random effect, respectively.
-#' The relevant parameters are \code{model} and \code{var.ini} in both cases, and \code{pedigree} in the case of a genetic effect.
 #' 
-#' The available models for the genetic effect are \code{add_animal}. \code{add_animal} stands for an additive animal model with a given pedigree.
-#' The available models for the spatial effect are \code{Cappa07}. \code{Cappa07} uses a  two-dimensional tensor product of B-splines to represent the smooth spatially structured effect.
+#' If either \code{genetic} and/or \code{param} are not \code{NULL}, the model
+#' residuals are assumed to have an additive genetic effects and a spatially
+#' structured random effect, respectively. The relevant parameters are
+#' \code{model} and \code{var.ini} in both cases, and \code{pedigree} in the
+#' case of a genetic effect.
+#' 
+#' The available models for the genetic effect are \code{add_animal}.
+#' \code{add_animal} stands for an additive animal model with a given pedigree.
+#' 
+#' The available models for the spatial effect are \code{Cappa07}.
+#' \code{Cappa07} uses a  two-dimensional tensor product of B-splines to
+#' represent the smooth spatially structured effect.
+#' @param fixed an object of class \link{formula} (or one that can be coerced to
+#'   that class): a symbolic description of the fixed effects of the model to be
+#'   fitted. The details of model specification are given under 'Details'.
+#' @param genetic if not \code{NULL}, a list with relevant parameters for an
+#'   additive genetic effect; see 'Details'.
+#' @param spatial if not \code{NULL}, a list with relevant parameters for a
+#'   spatial random effect; see 'Details'.
+#' @param random if not \code{NULL}, an object of class \link{formula} with the
+#'   unstructured random effects.
+#' @param data
+#' @param method
+#' @return An object of class 'remlf90'
 #' @seealso \code{\link[pedigreemm]{pedigree}}
-#' @references
-#'    progsf90 wiki page: \url{http://nce.ads.uga.edu/wiki/doku.php}
-#'    
-#'    E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to account for a spatial trend using penalized splines in an individual-tree mixed model. \emph{Canadian Journal of Forest Research} \strong{37}(12):2677-2688.
+#' @references progsf90 wiki page: \url{http://nce.ads.uga.edu/wiki/doku.php}
+#' 
+#' E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to
+#' account for a spatial trend using penalized splines in an individual-tree
+#' mixed model. \emph{Canadian Journal of Forest Research}
+#' \strong{37}(12):2677-2688.
 #' @export
-remlf90 <- function(formula, 
+remlf90 <- function(fixed, 
                     genetic = NULL, 
-                    spatial = NULL, 
+                    spatial = NULL,
+                    random  = NULL,
                     data, 
                     method = c('ai', 'em')) {
   
@@ -29,19 +48,28 @@ remlf90 <- function(formula,
   ## (not generalized) Linear Mixed Model
   ## There always is a genetic variance component
 
-  # TODO: Allow for removing the intercept in the formula
+  ## TODO: 
+  # Allow for summarized data (parameter weights)
+  # Allow for multiple responses
+  # Allow for generalized mixed models
+
+  ## Checks
+  if (missing(fixed) | missing(data)) { 
+    stop("Usage: remlf90(fixed, data, ...); see ?remlf90")
+  }
+  if (class(fixed) != "formula") { 
+	  stop("'fixed' should be a formula") 
+  }
+  if ( attr(terms(fixed), 'intercept') != 1L ) {
+	  stop("There is no response in the 'fixed' argument")
+  }
+  if (!is.null(random)) {
+	if (class(random) != "formula" | attr(terms(random), 'response') != 0L) {
+		stop("random should be a response-less formula")
+	}
+  }
   
-  # TODO: Allow for other (diagonal) random effects (notation??)
-  
-  # TODO: Allow for summarized data (parameter weights)
-  
-  # TODO: discriminate properly factor covariates (cross) 
-  # from numeric covariates (cov)
-  
-  # TODO: Allow for multiple responses
-  
-  # TODO: Allow for generalized mixed models
-  
+
   #  Call
   mc <- mcout <- match.call()
   
@@ -49,30 +77,15 @@ remlf90 <- function(formula,
   method <- tolower(method)
   method <- match.arg(method)
 
-  ## Remove intercept from formula
-  # progsf90 don't allow for custom model parameterizations
-  # and they don't use intercepts
-  mc$formula <- update(eval(mc$formula, parent.frame()), ~ . -1)
-  
-  ## parse data and formula
-  # NOTE: This complicated way of calling a function accounts for the fact that
-  # the user possibly didn't pass a data argument and the formula must be
-  # evaluated in the calling environment (parent.frame()) besides, it allows
-  # passing additional arguments to model.frame like subset, na.action, etc.
-  mc[[1]] <- quote(stats::model.frame)
-  mc$genetic <- mc$spatial <- mc$method <- NULL
-  mf <- eval(mc, parent.frame())
+  # Builds model frame by joining the fixed and random terms
+  # and remove the intercept.
+  # Add an additional 'term.types' attribute within 'terms'
+  # indicating whether the term is 'fixed' or 'random'
+	# progsf90 don't allow for custom model parameterizations
+	# and they don't use intercepts
+  mf <- build.mf(mc, remove.intercept = TRUE)
   mt <- attr(mf, 'terms')
-#   mf <- model.frame(update(formula, ~.-1), data)
-  # Better add an intercept to progsf90
-  
-  ## Strings as factors
-  str.idx <- which(attr(mt, 'dataClasses') == 'character')
-  if(length(str.idx)) {
-    mf[str.idx] <- lapply(mf[str.idx], as.factor)
-    attr(mt, 'dataClasses')[str.idx] <- 
-      attr(attr(mt, 'dataClasses'), 'terms')[str.idx] <- 'factor'
-  }
+
   
   # Genetic effect
   if(!is.null(genetic)) {
@@ -106,7 +119,7 @@ remlf90 <- function(formula,
   # TODO: Memory efficiency. At this point there are three copies of the 
   # dataset. One in data, one in mf (only needed variables)
   # and yet one more in pf90. This is a potential problem with large datasets.
-  pf90 <- progsf90(mf, effects, res.var.ini = 10)
+  pf90 <- progsf90(mf, effects, opt = c("sol se"), res.var.ini = 10)
   
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)

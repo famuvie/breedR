@@ -5,19 +5,29 @@
 #' of the progsf90 programs.
 progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   
-  # This function parses correctly all fixed effects and the spatial effect 
-  # Possibly will have to change to include competition or other complex effects
+  # Parses all fixed; random; spatial and genetic effects
+  # Possibly it will need changes to account for competition 
+  # or other complex effects.
+  # Builds the lines in the EFFECTS section
   parse.effect <- function(x) {
-    if(length(x$pos) > 1){
+    if(length(x$pos) > 1) {
+      # Effects that reflect into multiple lines (e.g. spatial)
       n.pos <- length(x$pos)
       paste(x$pos, c(rep(0, n.pos-1), n.pos), 'cov', tail(x$pos, 1) + 1:n.pos)
     }
-    else  paste(do.call(c, x[c('pos', 'levels', 'type')]), collapse=' ')
+    else {
+      # Simple effects
+      paste(do.call(c, x[c('pos', 'levels', 'type')]), collapse=' ')
+    }
   }
   
   # Build models for random effects
-  random.effects.idx <- which(names(effects)=='genetic' | names(effects)=='spatial') # For the moment, the only random effects are either genetic or spatial --- TODO
+  mt <- attr(mf, 'terms')
+  random.effects.idx <- c(which(attr(mt, 'term.types') == 'random'),
+                          which(names(effects) == 'genetic' | 
+                                  names(effects)=='spatial'))
   
+                          
   # Number of traits
   # (size of the response vector or matrix)
   ntraits <- ncol(as.matrix(model.response(mf)))
@@ -34,10 +44,12 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
               effects  = sapply(effects, function(x) unlist(parse.effect(x))),
               residvar = res.var.ini,
               rangroup = lapply(random.effects.idx, 
-                                function(x) list(pos = tail(effects[[x]]$pos, 1) - ntraits,
-                                                 type = effects[[x]]$model, 
-                                                 file = effects[[x]]$file, 
-                                                 cov  = effects[[x]]$var)),
+                                function(x) {
+                                  list(pos = tail(effects[[x]]$pos, 1)-ntraits,
+                                       type = effects[[x]]$model, 
+                                       file = effects[[x]]$file, 
+                                       cov  = effects[[x]]$var)
+                                }),
               options = opt
   )
   
@@ -68,7 +80,8 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
            pedigree = list(fname = ef$file,
                           file   = ef$ped),
            spatial  = list(fname = ef$file,
-                           file  = ef$splines$U))
+                           file  = ef$splines$U),
+           NULL)
   }
   files <- lapply(effects[random.effects.idx], build.file.single)
   
@@ -106,7 +119,7 @@ build.effects <- function (mf, genetic, spatial) {
     pos <- pos + 1
   }
   
-  # Parameters of a single effect in the formula
+  # Parameters for every single effect in the formula
   # Increases pos by one each time
   eff.par.f <- function(name) {
     # position (in the data file)
@@ -130,6 +143,15 @@ build.effects <- function (mf, genetic, spatial) {
   ef_names <- attr(mt, 'term.labels')
   names(effects)[pos-ntraits - length(ef_names):1] <- ef_names
   
+  # Unstructured random effects
+  # We need to specify 'model', 'file' and 'var'
+  rnd.idx <- which(attr(mt, 'term.types') == 'random')
+  for (term in rnd.idx) {
+    effects[[term]] <- c(effects[[term]], 
+                         list(model = 'diagonal',
+                              file  = '',
+                              var   = 1)) # TODO: Not fixed!!
+  }
   
   # Genetic effect
   # Both the genetic and spatial terms are "cross"
@@ -201,13 +223,13 @@ write.progsf90 <- function (pf90, dir) {
   # file.show(data.file.path)
 
   for(fl in pf90$files) {
+    if(!is.null(fl)) {
     # NAs are written as 0
     write.table(fl$file, file=file.path(dir, fl$fname),
                 row.names = FALSE, col.names = FALSE, na = "0")   
     # file.show(file.path(dir, fl$fname))
+    }
   }
-  
-  
 }
 
 
@@ -225,31 +247,44 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   
   # Identify factors in model terms
   mt <- attr(mf, 'terms')
-  isF <- attr(mt, 'dataClasses') == 'factor' |
-    attr(mt, 'dataClasses') == 'ordered'
+  isF <- sapply(attr(mt, 'dataClasses'), 
+                function(x) x %in% c('factor', 'ordered'))
   
   # Flags for specific effects
   isGenetic <- exists('genetic', as.environment(effects))
   isSpatial <- exists('spatial', as.environment(effects))
   
   # write labels for factor levels in results
-  for( x in names(isF)[which(isF)])
+  for( x in names(isF)[which(isF)] )
     rownames(result[[x]]) <- levels(mf[[x]])
   
-  # Random and Fixed effects indices
-  random.effects.idx <- which(names(effects)=='genetic' | names(effects)=='spatial') # For the moment, the only random effects are either genetic or spatial --- TODO
-  if( length(random.effects.idx) )
-    fixed.effects.idx <- (1:length(effects))[-random.effects.idx]  else
-      fixed.effects.idx <- (1:length(effects))
+  # Random and Fixed effects indices with respect to the 'effects' list
+  fixed.effects.idx <- sapply(effects, function(x) !exists('model', x))
+  diagonal.effects.idx <- sapply(effects, function(x) identical(x$model, 'diagonal'))
+  special.effects.idx <- !(fixed.effects.idx | diagonal.effects.idx)
+  random.effects.idx <- diagonal.effects.idx | special.effects.idx
+  #   special.effects.idx <- which(names(effects) == 'genetic' | 
+#                                   names(effects)=='spatial')
+#   random.effects.idx <- c(diagonal.effects.idx, special.effects.idx)
+#   if( length(random.effects.idx) )
+#     fixed.effects.idx <- (1:length(effects))[-random.effects.idx]  else
+#       fixed.effects.idx <- (1:length(effects))
+#   diagonal.effects.idx <- which(attr(mt, 'term.types') == 'random')
   
   # Fixed effects coefficients
-  beta <- sol.file$value[sol.file$effect %in% fixed.effects.idx]
+  beta <- sol.file$value[sol.file$effect %in% which(fixed.effects.idx)]
   #   .getXlevels(mt, mf)
+  
+  # Coefficients for model frame
+  mf_values <- sol.file$value[sol.file$effect <= 
+                                length(attr(mt, 'term.labels'))]
   
   # Random effects coefficients
   # TODO: Return Standard Errors as well.
   # How to compute standard errors of splines predicted values?
   ranef <- list()
+  if( sum(diagonal.effects.idx) )
+    ranef <- c(ranef, result[diagonal.effects.idx])
   if(isGenetic)
     ranef$genetic <- result$genetic$value[effects$genetic$idx]
   if(isSpatial)
@@ -265,7 +300,8 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   } else
     spatial.pred <- NULL
   
-  # Build up the model matrix with one dummy variable per level
+  # Build up the model matrix *for the fixed and random terms*
+  # with one dummy variable per level of factors
   # as progsf90 takes care of everything
   # I need to provide each factor with an identity matrix
   # as its 'contrasts' attribute
@@ -278,9 +314,21 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   mf[isF] <- lapply(mf[isF], diagonal_contrasts)
   mm <- model.matrix(mt, mf) 
   
-  eta <- drop(mm %*% beta)
-  if(length(ranef)) eta <- eta + rowSums(do.call(cbind, ranef))
+  # This includes fixed and unstructured random effects
+  eta <- drop(mm %*% mf_values)
   
+  # Extract the BLUP for a given random effect result
+  # unstructured random effects return a list with value and se
+  # while spatial and genetic return a vector of values
+  get_ranvalues <- function(x) {
+    if(is.list(x)) return(x$value)
+    else return(x)
+  }
+  # TODO: Only to spatial and genetic random effects!
+  ranvalues <- lapply(ranef[special.effects.idx], get_ranvalues)
+  if(length(ranvalues)) 
+    eta <- eta + rowSums(do.call(cbind, 
+                                 ranef[c('genetic', 'spatial')]))
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
   # TODO: apply inverse link
@@ -297,16 +345,16 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   
   varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
   # There should be one variance for each random effect plus one resid. var.
-  stopifnot(identical(length(varcomp.idx), length(random.effects.idx) + 1L))
+  stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
   varcomp <- as.numeric(reml.out[varcomp.idx])
-  names(varcomp) <- c(names(effects)[random.effects.idx], 'residual')
+  names(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
   varcomp <- cbind('Estimated variances' = varcomp)
   
   # REML does not print Standard Errors for variance components
   if(method == 'ai'){
     varsd.idx <- grep(paste(sd.label, 'for G|for R'), reml.out) + 1
     # There should be one variance for each random effect plus one resid. var.
-    stopifnot(identical(length(varcomp.idx), length(random.effects.idx) + 1L))
+    stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
     varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
   }
   
@@ -319,6 +367,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   
   
   # REML info
+  # TODO: 'delta convergence' only for AI-REML?
   reml.ver <- sub('^\\s+([[:graph:]]* +ver\\. +[0-9.]*).*$', '\\1', 
                   grep('REML', reml.out, value = TRUE))
   last.round.idx <- tail(grep('In round', reml.out), 1)
@@ -373,5 +422,54 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     fit = fit,
     reml = reml
   )
+  return(ans)
+}
+
+
+#' Build Model Frame
+#' 
+#' Merges fixed and random terms into a single call
+#' and returns the corresponding model frame
+#' optionally removing the intercept term
+build.mf <- function(call, remove.intercept) {
+	terms.list <- list()
+	
+  terms.list$int <- ifelse(remove.intercept, '0', '1')
+
+  fxd <- eval(call$fixed, parent.frame(2))
+  terms.list$fxd <- attr(terms(fxd), 'term.labels')
+
+  if(!is.null(call$random)) {
+    rnd <- eval(call$random, parent.frame(2))
+    terms.list$rnd <- attr(terms(rnd), 'term.labels')
+  }
+	
+	## Join fixed and random
+	lhs <- as.character(fxd[[2]])
+	rhs <- paste(do.call(c, terms.list), collapse = '+')  
+	fml <- as.formula(paste(lhs, rhs, sep = '~'), env = parent.frame(2))
+	
+  # Build Model Frame
+	mfcall <- call('model.frame', formula = fml, data = quote(data))
+	mf <- eval(mfcall, parent.frame())
+  mt <- attr(mf, 'terms')
   
+  # Add attribute indicating 'fixed' or 'random'
+  stopifnot(length(attr(mt, 'term.labels')) == 
+              length(terms.list$fxd) + length(terms.list$rnd))
+  label_var <- function(x, label) sapply(x, function(x) label)
+  tl <- c(label_var(terms.list$fxd, 'fixed'),
+          label_var(terms.list$rnd, 'random'))
+  attr(attr(mf, 'terms'), 'term.types') <- tl
+
+	
+	## Strings as factors
+	str.idx <- which(attr(mt, 'dataClasses') == 'character' | 
+	                   attr(mt, 'dataClasses') == 'other')
+	if(length(str.idx)) {
+	  mf[str.idx] <- lapply(mf[str.idx], as.factor)
+    attr(attr(mf, 'terms'), 'dataClasses')[str.idx] <- 'factor'
+	}
+	
+  return(mf)
 }

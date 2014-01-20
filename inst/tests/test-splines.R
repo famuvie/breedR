@@ -49,7 +49,7 @@ data(m1)
 dat <- as.data.frame(m1)
 
 res <- try(
-  remlf90(formula = phe_X ~ sex, 
+  remlf90(fixed = phe_X ~ sex, 
           spatial = list(model = 'Cappa07', 
                          coord = coordinates(m1),
                          var.ini = 300,

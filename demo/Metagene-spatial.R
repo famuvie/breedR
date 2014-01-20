@@ -14,7 +14,7 @@ plot(m1)
 
 dat <- as.data.frame(m1)
 
-res.f90 <- remlf90(formula = phe_X ~ sex, 
+res.f90 <- remlf90(fixed   = phe_X ~ sex, 
                    genetic = list(model = 'add_animal', 
                                   var.ini = 10, 
                                   pedigree = get_pedigree(m1),

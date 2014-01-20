@@ -2,14 +2,15 @@
 \alias{remlf90}
 \title{Inference with REMLF90}
 \usage{
-  remlf90(formula, genetic = NULL, spatial = NULL, data,
-    method = c("ai", "em"))
+  remlf90(fixed, genetic = NULL, spatial = NULL,
+    random = NULL, data, method = c("ai", "em"))
 }
 \arguments{
-  \item{formula}{an object of class \link{formula} (or one
+  \item{fixed}{an object of class \link{formula} (or one
   that can be coerced to that class): a symbolic
-  description of the model to be fitted. The details of
-  model specification are given under 'Details'.}
+  description of the fixed effects of the model to be
+  fitted. The details of model specification are given
+  under 'Details'.}
 
   \item{genetic}{if not \code{NULL}, a list with relevant
   parameters for an additive genetic effect; see
@@ -17,6 +18,16 @@
 
   \item{spatial}{if not \code{NULL}, a list with relevant
   parameters for a spatial random effect; see 'Details'.}
+
+  \item{random}{if not \code{NULL}, an object of class
+  \link{formula} with the unstructured random effects.}
+
+  \item{data}{}
+
+  \item{method}{}
+}
+\value{
+  An object of class 'remlf90'
 }
 \description{
   Fits a Linear Mixed Model by Restricted Maximum
@@ -32,8 +43,9 @@
 
   The available models for the genetic effect are
   \code{add_animal}. \code{add_animal} stands for an
-  additive animal model with a given pedigree. The
-  available models for the spatial effect are
+  additive animal model with a given pedigree.
+
+  The available models for the spatial effect are
   \code{Cappa07}. \code{Cappa07} uses a two-dimensional
   tensor product of B-splines to represent the smooth
   spatially structured effect.
