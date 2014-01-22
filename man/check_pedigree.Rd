@@ -1,0 +1,62 @@
+\name{check_pedigree}
+\alias{check_pedigree}
+\title{Check the rules for a well-formed pedigree}
+\usage{
+check_pedigree(ped)
+}
+\arguments{
+  \item{ped}{a 'pedigree'-class object, a dataframe, a
+  matrix, or anything that can be coerced into a 3-column,
+  numeric dataframe.}
+}
+\value{
+a named logical vector with the results of the checks
+}
+\description{
+This function performs sanity checks on a pedigree.
+}
+\details{
+Rules are: the pedigree must be full (i.e. all the codes in
+the pedigree must appear once in the first column); the
+codes of the offspring must follow their parent's codes;
+the identity codes must be sorted in ascending order and
+this order must be consecutive begining from 1.
+
+If any check fails, the pedigree must be recoded/reordered
+to be used in analysis. \code{build_pedigree(1:3, data =
+ped)} should fix it.
+}
+\examples{
+# A well-formed pedigree
+ped_ok <- data.frame(id   = 1:6,
+                     dam  = c(NA,NA,1,1,4,4),
+                     sire = c(NA,NA,2,2,3,5))
+check_pedigree(ped_ok)  # passes all checks
+
+# Sometimes founders are missing
+(ped_notfull <- ped_ok[-c(1:2),])
+check_pedigree(ped_notfull)  # fails full_ped
+
+# Sometimes codes of parents are greater than their offspring
+sw_23 <- c(1, 3, 2, 4:6)
+(ped_messed <- as.data.frame(sapply(ped_ok, function(x) sw_23[x]))[sw_23,])
+check_pedigree(ped_messed)        # fails offsp_follows
+
+# Sometimes the pedigree is unordered
+(ped_unordered <- ped_ok[sw_23, ])
+check_pedigree(ped_unordered)   # fails codes_sorted
+
+# Finally, sometimes codes are just not consecutive
+(ped_notconsec <- transform(ped_ok, id = c(1:5, 10)))
+check_pedigree(ped_notconsec)  # fails codes_consecutive
+
+# Everything is fixed with build_pedigree()
+check_pedigree(build_pedigree(1:3, data = ped_notfull))
+check_pedigree(build_pedigree(1:3, data = ped_messed))
+check_pedigree(build_pedigree(1:3, data = ped_unordered))
+check_pedigree(build_pedigree(1:3, data = ped_notconsec))
+}
+\seealso{
+\code{\link{build_pedigree}}
+}
+

@@ -2,9 +2,9 @@
 \alias{b.values}
 \title{Breeding values}
 \usage{
-  b.values(x, ...)
+b.values(x, ...)
 }
 \description{
-  Breeding values
+Breeding values
 }
 

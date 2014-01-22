@@ -2,15 +2,15 @@
 \alias{summary.metagene}
 \title{Summary method for metagene objects}
 \usage{
-  \method{summary}{metagene} (object, ...)
+\method{summary}{metagene}(object, ...)
 }
 \arguments{
   \item{x}{A metagene object}
 }
 \value{
-  Prints summary
+Prints summary
 }
 \description{
-  Prints a summary of a metagene objects.
+Prints a summary of a metagene objects.
 }
 
