@@ -51,7 +51,7 @@ build_pedigree <- function(x, self = x[[1]], sire = x[[2]], dam = x[[3]], data) 
     stop("The pedigree codes must be numeric")
   
   # Extract the relevant columns of the dataframe
-  ped <- data[c(self, sire, dam)]
+  ped <- as.data.frame(data)[c(self, sire, dam)]
   names(ped) <- c('self', 'sire', 'dam')
 
   missing_codes <- unique(c(ped$sire[! ped$sire %in% ped$self],
@@ -72,16 +72,22 @@ build_pedigree <- function(x, self = x[[1]], sire = x[[2]], dam = x[[3]], data) 
   ### Check pedigree rules
   checks <- check_pedigree(pedx)
   
-  # If any rule is not met, reorder and recode
+  # The pedigree should now be full and sorted
+  stopifnot(all(checks[c('full_ped', 'codes_sorted')]))
+  
+  # If any other rule is not met, reorder and recode
   # Build a map from position to code
   if( !all(checks) ) {
     ord <- pedigree::orderPed(pedx)
     map <- rep(NA, max(pedx[, 1]))
-    map[pedx[ord, 1]] <- 1:nrow(pedx)
+    map[pedx[order(ord), 1]] <- 1:nrow(pedx)
     pedx <- as.data.frame(sapply(pedx, function(x) map[x]))
     pedx <- pedx[order(pedx$self), ]
     warning("The pedigree has been recoded. Check attr(ped, 'map').")
   }
+  
+  # pedx should pass all checks
+  stopifnot(all(check_pedigree(pedx)))
 
   out <- pedigree(sire = pedx$sire, dam = pedx$dam, label = pedx$self)
   if( !all(checks)) attr(out, 'map') <- map
@@ -149,7 +155,7 @@ check_pedigree <- function(ped) {
   # The first column is assumed to be the individuals' codes
   # and the other two, the codes of both progenitors
   
-  # Parent codes appear in the first column
+  # Parent codes should appear in the first column
   # This removes 0 and NA's as codes
   parent_codes <- sort(unique(stack(ped[,2:3])$values[which(ped[,2:3] > 0)]))
   full_ped <- all(parent_codes %in% ped[, 1])

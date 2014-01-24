@@ -254,8 +254,9 @@ get_pedigree.metagene <- function(x, ...) {
 #' @export
 as.data.frame.pedigree <- function(x, ...) {
   y <- as(x, 'data.frame')
-  z <- cbind(self=as.numeric(row.names(y)), y)
-  return(z)
+  codes <- as.numeric(row.names(y))
+  z <- cbind(self=codes, sapply(y, function(x) codes[x]))
+  return(as.data.frame(z))
 }
 
 #' Coerce to a data.frame
