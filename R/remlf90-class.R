@@ -92,11 +92,12 @@ remlf90 <- function(fixed,
   # Genetic effect
   if(!is.null(genetic)) {
     genetic$model <- match.arg(genetic$model, choices = c('add_animal'))
-    if(!inherits(genetic$pedigree, 'pedigree')) stop("The argument genetic should contain a 'pedigree' object")
+#     if( !inherits(genetic$pedigree, 'pedigree') )
+#       stop("The argument genetic should contain a 'pedigree' object")
+    if( !all(check_pedigree(genetic$pedigree)) )
+      genetic$pedigree <- build_pedigree(1:3, data = genetic$pedigree)
+    
     if(length(genetic$id)==1) {
-      # TODO: Do it right. data need not be present.
-#       mc[[2]] <- ~ genetic$id
-#       genetic$id <- eval(mc, parent.frame())[[1]]
       genetic$id <- data[, genetic$id]
     }
   }
@@ -126,8 +127,6 @@ remlf90 <- function(fixed,
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)
 
-
-  
   # variance components and BLUPs with REML
   platform <- switch(.Platform$OS.type, 
                      unix = 'linux',

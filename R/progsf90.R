@@ -157,6 +157,13 @@ build.effects <- function (mf, genetic, spatial) {
   # Both the genetic and spatial terms are "cross"
   # For pedigree effects, there might be more levels than those
   # present in the data. We should declare the levels present in the pedigree.
+  # It is possible that the pedigree has been recoded/reordered
+  # In that case, we need to recode the data file id codes as well
+  if( !is.null(attr(genetic$pedigree, 'map')) )
+    idx <- attr(genetic$pedigree, 'map')[genetic$id]
+  else
+    idx <- genetic$id
+  
   if(!is.null(genetic)) {
     effects <- c(effects, 
                  genetic = list(
@@ -166,7 +173,7 @@ build.effects <- function (mf, genetic, spatial) {
                         model = genetic$model,
                         file = 'pedigree',
                         ped = as.data.frame(genetic$pedigree),
-                        idx = genetic$id,
+                        idx = idx,
                         var = genetic$var.ini)))
     pos = pos + 1
   }
