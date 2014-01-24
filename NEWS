@@ -1,13 +1,29 @@
-breedR 0.1-1
+breedR 0.3-2
 ============
+
+* Eucalyptus Globulus dataset and demo
+
+
+breedR 0.3
+==========
+
+* Pedigree checking, completing, sorting and recoding
+
+
+breedR 0.2
+==========
+
+* Unstructured Random effects
+
+* Pedigree checking, completing, sorting and recoding
 
 * Simple simulation of spatially structured effects
 
 * Spatial module following Cappa and Cantet (2007) splines model
 
 
-breedR 0.1-0
-============
+breedR 0.1
+==========
 
 * Basic wrapper to Mistalz's (AI)REMLF90
 

@@ -29,10 +29,13 @@ This package provides frequentist and Bayesian statistical tools to build predic
 ##### How to use
 - Load the package
   - `library(breedR)`
+- Check the changelog
+  - `news(package = 'breedR')`
 - Check-out the basic example
   - `example('breedR')`
 - Run some of the `demo(package='breedR')`
   - e.g. `demo('Metagene-spatial')`
+  - or,  `demo('globulus')`
 
 ##### Test cycle
 - Check the automated tests
