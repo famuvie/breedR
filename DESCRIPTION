@@ -27,7 +27,7 @@ Depends:
     pedigreemm,
     methods,
     splines,
-    sp,
+    sp
 Suggest: testthat
 LazyLoad: yes
 LazyData: yes

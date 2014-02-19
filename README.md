@@ -9,9 +9,9 @@ This package provides frequentist and Bayesian statistical tools to build predic
 #### Usage and collaboration
 
 ##### First time only
-- Install [R](http://cran.r-project.org/ "CRAN")
+- Install [R](http://cran.r-project.org/ "CRAN") from CRAN
 - If you work under MS Windows platform
-  - Install `RTools` from CRAN as well
+  - Install [`RTools`](http://cran.r-project.org/bin/windows/Rtools/) as well
 - Install the `devtools` R-package
   - `install.packages('devtools')`
 - Update to the latest development version
