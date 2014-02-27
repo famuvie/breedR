@@ -42,7 +42,7 @@ test_that("build.splines.model gives a list with tree elements of correct sizes"
 })
 
 
-context("Spatial model")
+context("Spatial splines model")
 ########################
 
 data(m1)

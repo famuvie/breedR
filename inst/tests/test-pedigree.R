@@ -70,6 +70,9 @@ res_shuffled <- try(
 )
 
 # Except the call, and the reml output everything must be the same
+# Update: also need to omit the shuffled random effects estimations
+# which should be the same, but reordered
 test_that('remlf90 handles recoded pedigrees correctly', {
-  expect_that(res_ok[-c(1,15)], equals(res_shuffled[-c(1,15)]))
+  omit.idx <- match(c('call', 'reml', 'ranef'), names(res_ok))
+  expect_that(res_ok[-omit.idx], equals(res_shuffled[-omit.idx]))
 })

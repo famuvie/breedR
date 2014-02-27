@@ -331,19 +331,24 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   if( sum(diagonal.effects.idx) )
     ranef <- c(ranef, result[diagonal.effects.idx])
   
-  genetic.pred <- spatial.pred <- NULL
+  genetic.fit <- spatial.fit <- genetic.pred <- spatial.pred <- NULL
   
   if(isGenetic){
     ranef$genetic <- result$genetic$value
-    genetic.pred <- result$genetic$value[effects$genetic$idx]
+    genetic.fit <- result$genetic$value[effects$genetic$idx]
   }
   # Spatial Surface
+  # Here, the random effects are the underlying model parameters,
+  # the fit is the predicted values for all the observations (which may include
+  # several in the same location), and the pred is the predicted value in a full
+  # rectangular grid, even if there were no observations there.
   if (isSpatial) {
     if( length(effects$spatial$pos) > 1 ){
       # Splines model
-      ranef$spatial <- as.vector(effects$spatial$sp$B
-                                 %*% 
-                                   result$spatial$value)
+      ranef$spatial <- result$spatial$value
+      spatial.fit <- as.vector(effects$spatial$sp$B
+                             %*% 
+                               result$spatial$value)
       spatial.pred <- cbind(effects$spatial$sp$plotting$grid,
                             z = as.vector(effects$spatial$sp$plotting$B
                                           %*% result$spatial$value))
@@ -351,7 +356,10 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       # Autoregressive model
       ranef$spatial <- result$spatial$value
       # In the ordering of the dataset
-      spatial.pred <- result$spatial$value[effects$spatial$sp$B]
+      spatial.fit <- result$spatial$value[effects$spatial$sp$B]
+#       spatial.pred <- cbind(effects$spatial$sp$plotting$grid,
+#                             z = as.vector(effects$spatial$sp$plotting$B
+#                                           %*% result$spatial$value))
     }
   }
   
@@ -385,7 +393,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   #   eta <- eta + rowSums(do.call(cbind, 
   #                                ranef[c('genetic', 'spatial')]))
   if(isGenetic | isSpatial)
-    eta <- eta + rowSums(cbind(genetic.pred, spatial.pred))
+    eta <- eta + rowSums(cbind(genetic.fit, spatial.fit))
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
   # TODO: apply inverse link
@@ -483,8 +491,9 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     eta = eta,
     mu = mu,
     residuals = y - mu,
-    genetic = list(prediction = genetic.pred),
+    genetic = list(fit        = genetic.fit),
     spatial = list(model      = effects$spatial$sp[1:3],
+                   fit        = spatial.fit,
                    prediction = spatial.pred),
     var = varcomp,
     fit = fit,
