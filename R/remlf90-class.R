@@ -104,7 +104,39 @@ remlf90 <- function(fixed,
   
   # Spatial effect
   if(!is.null(spatial)) {
-    spatial$model <- match.arg(spatial$model, choices = c('Cappa07'))
+    spatial$model <- match.arg(spatial$model,
+                               choices = c('Cappa07', 'AR'))
+    
+    # If AR model without rho specified
+    # we need to fit it with several fixed rho's
+    # and return the most likely
+    # TODO: It would be nice if we didn't need to recompute Q each time
+    if(spatial$model == 'AR') {
+      if( is.null(spatial$rho) ) spatial$rho <- c(NA, NA)
+      if( any(is.na(spatial$rho)) ) {
+        # Evaluation values for rho
+        rho.grid <- build.AR.rho.grid(spatial$rho)
+        
+        # Results conditional on rho
+        eval.rho <- function(rho, mc) {
+          mc$spatial$rho <- rho
+          eval(mc)
+        }
+        #         test <- eval.rho(mc, c(.5, .5))
+        ans.rho <- apply(rho.grid, eval.rho, mc)
+        
+        # Interpolate results
+        loglik.rho <- transform(rho.grid,
+                                loglik = sapply(ans.rho, logLik))
+        rho.idx <- which.max(loglik.rho$loglik)
+        ans <- ans.rho[[rho.idx]]
+        
+        # Include estimation information
+        ans$rho <- loglik.rho
+        
+        return(ans)
+      }
+    }
   }
   
   # Temporary files
