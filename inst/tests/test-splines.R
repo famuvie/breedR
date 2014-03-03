@@ -25,7 +25,7 @@ test_that("build.splines.model gives a list with tree elements of correct sizes"
   n.knots <- ncol(result$B)
   
   expect_that(result, is_a('list'))
-  expect_that(length(result), equals(4))
+  expect_that(length(result), equals(5))
   expect_that(nrow(result$B), equals(nrow(coord)))
   expect_that(prod(result$inner.knots + 2), equals(n.knots))
   # The matrix U should be in sparse format: row col value
