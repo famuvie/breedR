@@ -220,7 +220,7 @@ build.effects <- function (mf, genetic, spatial) {
     if(spatial$model == 'AR') {
       sp <- build.ar.model(spatial$coord, spatial$rho)
       effect.item <- list(pos    = pos,
-                          levels = length(unique(sp$B)),
+                          levels = max(sp$B),
                           type   = 'cross',
                           model  = 'user_file',
                           file   = 'spatial',
@@ -346,9 +346,10 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     if( length(effects$spatial$pos) > 1 ){
       # Splines model
       ranef$spatial <- result$spatial$value
-      spatial.fit <- as.vector(effects$spatial$sp$B
-                             %*% 
-                               result$spatial$value)
+      spatial.fit <- cbind(effects$spatial$sp$coord,
+                           z = as.vector(effects$spatial$sp$B
+                                         %*% 
+                                           result$spatial$value))
       spatial.pred <- cbind(effects$spatial$sp$plotting$grid,
                             z = as.vector(effects$spatial$sp$plotting$B
                                           %*% result$spatial$value))
@@ -356,13 +357,12 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       # Autoregressive model
       ranef$spatial <- result$spatial$value
       # In the ordering of the dataset
-      spatial.fit <- result$spatial$value[effects$spatial$sp$B]
-#       spatial.pred <- cbind(effects$spatial$sp$plotting$grid,
-#                             z = as.vector(effects$spatial$sp$plotting$B
-#                                           %*% result$spatial$value))
+      spatial.fit <- cbind(effects$spatial$sp$coord,
+                           z = result$spatial$value[effects$spatial$sp$B])
+      spatial.pred <- cbind(effects$spatial$sp$plotting$grid,
+                            z = result$spatial$value)
     }
   }
-  
   # Build up the model matrix *for the fixed and random terms*
   # with one dummy variable per level of factors
   # as progsf90 takes care of everything
