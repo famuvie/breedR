@@ -281,8 +281,35 @@ nobs.remlf90 <- function (object, ...) {
   nrow(as.matrix(object$y))
 }
 
-plot.remlf90 <- function (object, ...) {
+# Plotting the spatial effect in the observed locations
+# TODO: implement this as a plotting method for remlf90 objects
+
+#' Plot a model fit
+#' 
+#' Plots the predicted values of the spatial component of the observations' 
+#' phenotypes.
+#' 
+#' @param x A remlf90 object, or a matrix (-like) of coordinates
+#' @param y Optional. A numeric vector to be plotted.
+#' @param type Character. Plot type. 'spatial' is currently the only option.
+#' 
+#'     
+plot.remlf90 <- function (x, y = NULL, type = 'spatial', ...) {
+  require(ggplot2)
   
+  if( x$effects$spatial ) {
+    spdat <- x$spatial$fit
+    spdat$model <- x$call$spatial$model
+    p <- ggplot(spdat, aes(x, y)) +
+      coord_fixed() +
+      geom_tile(aes(fill = z)) +
+      scale_fill_gradient(low='green', high='red') +
+      facet_wrap(~ model)
+    p
+    #       layer <- paste('geom_tile(aes(fill =', x$call$spatial$model, '))')
+    #       eval(parse(text = paste('p +', layer)))
+  } else {
+  }
 }
 
 predict.remlf90 <- function (object, ...) {

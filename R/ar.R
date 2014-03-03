@@ -12,6 +12,8 @@ build.ar.model <- function (coord, rho) {
   # Check: is this a regular grid?
   # if regular, n_x \times n_y ~ n_obs
   # if irregular, n_x \times n_y ~ n_obs^2
+  # We assume it is regular if
+  # n_x \times n_y < n_obs + (n_obs^2 - n_obs)/4
   if(prod(pos.length) > nrow(coord)*(nrow(coord) + 3)/4) 
     stop('The AR model can only be fitted to regular grids.')
   
@@ -40,9 +42,16 @@ build.ar.model <- function (coord, rho) {
   }
   data.ordering <- matrix2vec(sapply(pos, as.integer))
   
-  plotting <- list()
   
-  return(list(B = data.ordering,
+  # Coordinates for the full grid
+  coord.1d <- function(nx, levels) {
+    as.numeric(factor(1:nx, labels = levels))
+  }
+  plot.grid <- expand.grid(mapply(coord.1d, pos.length, lapply(pos, levels)))
+  
+  plotting <- list(grid = plot.grid)
+  return(list(coord = coord,
+              B = data.ordering,
               U = cbind(Q@i + 1, Q@j + 1, Q@x),
               plotting = plotting))
 }
