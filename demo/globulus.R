@@ -40,6 +40,8 @@ res.spl  <- remlf90(fixed  = phe_X ~ gg,
 ### AR1 x AR1 ###
 # A further spatial approach with a separable First order Autoregressive
 # process on the rows and colums.
+# You can fix a given value for the autocorrelation parameters, 
+# or let the program try several combinations and select the most likely.
 res.ar  <- remlf90(fixed  = phe_X ~ gg,
                    genetic = list(model = 'add_animal', 
                                   var.ini = 10, 
@@ -47,7 +49,7 @@ res.ar  <- remlf90(fixed  = phe_X ~ gg,
                                   id = 'self'), 
                    spatial = list(model = 'AR', 
                                   coord = globulus[, c('x','y')],
-                                  rho = c(.8, .8), 
+                                  rho = c(.85, .8), 
                                   var.ini = 30), 
                    data = globulus,
                    method = 'em')
@@ -58,6 +60,7 @@ summary(res.spl)
 summary(res.ar)
   # Notice how the continuous spatial model takes longer but gathers more
   # variability by reducing the residual and genetic variances a bit.
+
 
 
 ### Comparison of spatial effects ###
@@ -112,5 +115,5 @@ pred.plots <- list(
                                                     model = 'AR1xAR1')) + 
     scale_fill_gradient(low='green', high='red', limits = scale.limits) +
     coord_fixed()  + facet_wrap( ~ model))
-
+require(gridExtra)
 grid.arrange(pred.plots[[1]], pred.plots[[2]], ncol = 2)

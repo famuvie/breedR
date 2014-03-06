@@ -20,7 +20,6 @@ compare.plots <- function(plots) {
   tmpdat <- transform(tmpdat,
                       .id = factor(.id, levels = unique(tmpdat$.id)))
   p <- p %+% tmpdat
-  browser()
   # Annotations
   extract.text.data <- function(plot) {
     # identify the geom_text layer

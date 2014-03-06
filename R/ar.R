@@ -63,12 +63,13 @@ build.ar.model <- function (coord, rho) {
 #' in order to estimate the most likely values.
 #' This functions provides an evaluation grid of values.
 build.AR.rho.grid <- function(rho) {
+  rho <- as.data.frame(rho)
   # If this function was called, at least one of the parameters is NA (unknown)
   stopifnot( length(rho) == 2)
   # We start with a very rough approximation
-  rho.values <- seq(-.5, .5, length = 2)
+  rho.values <- c(-8, -2, 2, 8)/10
   
-  set.values <- function(r) if(is.na(r)) rho.values else r
+  set.values <- function(r) if(all(is.na(r))) rho.values else r
   grid <- expand.grid(lapply(rho, set.values))
   names(grid) <- c('rho_r', 'rho_c')
   return(grid)

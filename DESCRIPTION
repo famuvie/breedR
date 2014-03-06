@@ -23,6 +23,7 @@ License: GPL-3 | file LICENSE
 Depends:
     R (>= 2.15),
     ggplot2,
+    gridExtra,
     pedigree,
     pedigreemm,
     methods,

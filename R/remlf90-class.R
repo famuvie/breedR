@@ -112,10 +112,15 @@ remlf90 <- function(fixed,
     # and return the most likely
     # TODO: It would be nice if we didn't need to recompute Q each time
     if(spatial$model == 'AR') {
-      if( is.null(spatial$rho) ) spatial$rho <- c(NA, NA)
+      if( is.null(spatial$rho) ) spatial$rho <- matrix(c(NA, NA), 1, 2)
       if( any(is.na(spatial$rho)) ) {
         # Evaluation values for rho
         rho.grid <- build.AR.rho.grid(spatial$rho)
+      } else {
+        rho.grid <- spatial$rho
+      }
+      
+      if( !is.null(nrow(spatial$rho)) ) {
         
         # Results conditional on rho
         eval.rho <- function(rho, mc) {
@@ -123,8 +128,7 @@ remlf90 <- function(fixed,
           eval(mc)
         }
         #         test <- eval.rho(mc, c(.5, .5))
-        ans.rho <- apply(rho.grid, eval.rho, mc)
-        
+        ans.rho <- apply(rho.grid, 1, eval.rho, mc)
         # Interpolate results
         loglik.rho <- transform(rho.grid,
                                 loglik = sapply(ans.rho, logLik))
