@@ -1,2 +1,3 @@
-Metagene-spatial   Analysis of a synthetic dataset with spatial structure
-globulus           Spatial analysis of the Eucalyptus Globulus dataset
+Metagene-spatial          Analysis of a synthetic dataset with spatial structure
+globulus                  Spatial analysis of the Eucalyptus Globulus dataset
+Spatial-autoregressive    Separable autoregressive process for grid-like spatial configurations
