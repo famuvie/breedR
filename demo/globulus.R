@@ -40,7 +40,7 @@ res.spl  <- remlf90(fixed  = phe_X ~ gg,
 ### AR1 x AR1 ###
 # A further spatial approach with a separable First order Autoregressive
 # process on the rows and colums.
-# You can fix a given value for the autocorrelation parameters, 
+# You can fix the values of the autocorrelation parameters, 
 # or let the program try several combinations and select the most likely.
 res.ar  <- remlf90(fixed  = phe_X ~ gg,
                    genetic = list(model = 'add_animal', 

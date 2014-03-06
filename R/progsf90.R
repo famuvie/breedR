@@ -205,7 +205,8 @@ build.effects <- function (mf, genetic, spatial) {
       sp <- build.splines.model(spatial$coord,
                                 spatial$n.knots,
                                 degree = 3)
-      effect.item <- list(pos    = pos - 1 + 1:ncol(sp$B),
+      effect.item <- list(name   = spatial$model,
+                          pos    = pos - 1 + 1:ncol(sp$B),
                           levels = 1,
                           type   = 'cov',
                           model  = 'user_file_i',
@@ -219,7 +220,8 @@ build.effects <- function (mf, genetic, spatial) {
     # on the rows and columns (regular grids only)
     if(spatial$model == 'AR') {
       sp <- build.ar.model(spatial$coord, spatial$rho)
-      effect.item <- list(pos    = pos,
+      effect.item <- list(name   = spatial$model,
+                          pos    = pos,
                           levels = max(sp$B),
                           type   = 'cross',
                           model  = 'user_file',
@@ -477,7 +479,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   #       Include the matrix A of additive relationships (as sparse. Use pedigreemm::getA)
   #       Compute the heritability estimates and its standard error 
   #       Compute covariances estimates for multiple traits (and their standard errors)
-  
   ans <- list(
     call = mcout,
     method = method,
@@ -492,7 +493,8 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     mu = mu,
     residuals = y - mu,
     genetic = list(fit        = genetic.fit),
-    spatial = list(model      = effects$spatial$sp[1:3],
+    spatial = list(name       = effects$spatial$name,
+                   model      = effects$spatial$sp[1:3],
                    fit        = spatial.fit,
                    prediction = spatial.pred),
     var = varcomp,

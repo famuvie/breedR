@@ -395,8 +395,16 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
     cat(" Subset:", x$call$subset,"\n")
   print(x$model.fit, digits = digits)
   
-  if(x$effects$spatial)
-    cat("\nNumber of row and column inner knots:", x$spatial$model$inner.knots, "\n")
+  if( x$effects$spatial ) {
+    switch(x$spatial$name,
+           AR = cat(paste("\nAutoregressive parameters for rows and columns: (",
+                    paste(x$spatial$model$param, collapse = ', '),
+                    ")\n", sep = '')),
+           Cappa07 = cat(paste("\nNumber of inner knots for rows and columns: (",
+                         paste(x$spatial$model$param, collapse =', '),
+                         ")\n", sep = ''))
+    )
+  }
   
   cat("\nVariance components:\n")
   print(x$var, quote = FALSE, digits = digits, ...)

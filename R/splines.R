@@ -109,7 +109,7 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
   plotting <- list(grid = plot.grid,
                    B = tensor(knots, plot.grid, degree + 1))
   
-  return(list(inner.knots = n.knots,
+  return(list(param       = unname(n.knots),
               coord       = coord,
               B           = B,
               U           = U.values,

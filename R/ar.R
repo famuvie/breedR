@@ -50,7 +50,8 @@ build.ar.model <- function (coord, rho) {
   plot.grid <- expand.grid(mapply(coord.1d, pos.length, lapply(pos, levels)))
   
   plotting <- list(grid = plot.grid)
-  return(list(coord = coord,
+  return(list(param = rho,
+              coord = coord,
               B = data.ordering,
               U = cbind(Q@i + 1, Q@j + 1, Q@x),
               plotting = plotting))
