@@ -395,7 +395,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   #   eta <- eta + rowSums(do.call(cbind, 
   #                                ranef[c('genetic', 'spatial')]))
   if(isGenetic | isSpatial)
-    eta <- eta + rowSums(cbind(genetic.fit, spatial.fit))
+    eta <- eta + rowSums(cbind(genetic.fit$z, spatial.fit$z))
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
   # TODO: apply inverse link
