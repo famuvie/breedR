@@ -46,9 +46,10 @@ build.ar.model <- function (coord, rho) {
   # Coordinates for the full grid
   coord.1d <- function(nx, levels) {
     as.numeric(factor(1:nx, labels = levels))
+    # Isn't this the same as 1:nx?
   }
-  plot.grid <- expand.grid(mapply(coord.1d, pos.length, lapply(pos, levels)))
-  
+  plot.grid <- expand.grid(mapply(coord.1d, pos.length, lapply(pos, levels),
+                                  SIMPLIFY = FALSE))
   plotting <- list(grid = plot.grid)
   return(list(param = rho,
               coord = coord,
