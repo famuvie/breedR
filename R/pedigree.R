@@ -54,9 +54,16 @@ build_pedigree <- function(x, self = x[[1]], sire = x[[2]], dam = x[[3]], data) 
   ped <- as.data.frame(data)[c(self, sire, dam)]
   names(ped) <- c('self', 'sire', 'dam')
 
+  # 0 is to be interpreted as unknown parent, not as an individual code
+  # recode it as NA
+  ped$sire[which(ped$sire == 0)] <- NA
+  ped$dam[which(ped$dam == 0)] <- NA
+  
+  # Codes of sires or dams not present as self
   missing_codes <- unique(c(ped$sire[! ped$sire %in% ped$self],
                             ped$dam[! ped$dam %in% ped$self]))
-  # 0 is interpreted as unknown parent, not as an individual to be added
+
+  # Except NA which is not an identified individual
   missing_codes <- missing_codes[missing_codes>0 & !is.na(missing_codes)]
   
   n.add <- length(missing_codes)

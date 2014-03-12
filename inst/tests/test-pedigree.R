@@ -17,6 +17,9 @@ map <- sample(10*mcode, size = mcode)
 
 # Generate a crazy pedigree that fails all checks
 ped_shuffled <- sapply(ped, function(x) map[x])
+# Introduce some unknown parents either with NA or with 0
+ped_shuffled[, 2:3][sample(2*nrow(ped), 200)] <- c(0, NA)
+
 test_that('The shuffled pedigree fails all checks', {
   expect_that(all(!check_pedigree(ped_shuffled)), is_true())
 })
