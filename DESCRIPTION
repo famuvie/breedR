@@ -1,7 +1,7 @@
 Package: breedR
 Type: Package
 Title: Statistical methods for forest genetic resources analysts
-Version: 0.3-4
+Version: 0.4-0
 Date: 2013-11-12
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
@@ -23,6 +23,7 @@ License: GPL-3 | file LICENSE
 Depends:
     R (>= 2.15),
     ggplot2,
+    gridExtra,
     pedigree,
     pedigreemm,
     methods,

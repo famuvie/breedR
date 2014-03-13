@@ -104,7 +104,43 @@ remlf90 <- function(fixed,
   
   # Spatial effect
   if(!is.null(spatial)) {
-    spatial$model <- match.arg(spatial$model, choices = c('Cappa07'))
+    spatial$model <- match.arg(spatial$model,
+                               choices = c('Cappa07', 'AR'))
+    
+    # If AR model without rho specified
+    # we need to fit it with several fixed rho's
+    # and return the most likely
+    # TODO: It would be nice if we didn't need to recompute Q each time
+    if(spatial$model == 'AR') {
+      if( is.null(spatial$rho) ) spatial$rho <- matrix(c(NA, NA), 1, 2)
+      if( any(is.na(spatial$rho)) ) {
+        # Evaluation values for rho
+        rho.grid <- build.AR.rho.grid(spatial$rho)
+      } else {
+        rho.grid <- spatial$rho
+      }
+      
+      if( !is.null(nrow(spatial$rho)) ) {
+        
+        # Results conditional on rho
+        eval.rho <- function(rho, mc) {
+          mc$spatial$rho <- rho
+          eval(mc)
+        }
+        #         test <- eval.rho(mc, c(.5, .5))
+        ans.rho <- apply(rho.grid, 1, eval.rho, mc)
+        # Interpolate results
+        loglik.rho <- transform(rho.grid,
+                                loglik = sapply(ans.rho, logLik))
+        rho.idx <- which.max(loglik.rho$loglik)
+        ans <- ans.rho[[rho.idx]]
+        
+        # Include estimation information
+        ans$rho <- loglik.rho
+        
+        return(ans)
+      }
+    }
   }
   
   # Temporary files
@@ -249,8 +285,35 @@ nobs.remlf90 <- function (object, ...) {
   nrow(as.matrix(object$y))
 }
 
-plot.remlf90 <- function (object, ...) {
+# Plotting the spatial effect in the observed locations
+# TODO: implement this as a plotting method for remlf90 objects
+
+#' Plot a model fit
+#' 
+#' Plots the predicted values of the spatial component of the observations' 
+#' phenotypes.
+#' 
+#' @param x A remlf90 object, or a matrix (-like) of coordinates
+#' @param y Optional. A numeric vector to be plotted.
+#' @param type Character. Plot type. 'spatial' is currently the only option.
+#' 
+#'     
+plot.remlf90 <- function (x, y = NULL, type = 'spatial', ...) {
+  require(ggplot2)
   
+  if( x$effects$spatial ) {
+    spdat <- x$spatial$fit
+    spdat$model <- x$call$spatial$model
+    p <- ggplot(spdat, aes(x, y)) +
+      coord_fixed() +
+      geom_tile(aes(fill = z)) +
+      scale_fill_gradient(low='green', high='red') +
+      facet_wrap(~ model)
+    p
+    #       layer <- paste('geom_tile(aes(fill =', x$call$spatial$model, '))')
+    #       eval(parse(text = paste('p +', layer)))
+  } else {
+  }
 }
 
 predict.remlf90 <- function (object, ...) {
@@ -332,8 +395,16 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
     cat(" Subset:", x$call$subset,"\n")
   print(x$model.fit, digits = digits)
   
-  if(x$effects$spatial)
-    cat("\nNumber of row and column inner knots:", x$spatial$model$inner.knots, "\n")
+  if( x$effects$spatial ) {
+    switch(x$spatial$name,
+           AR = cat(paste("\nAutoregressive parameters for rows and columns: (",
+                    paste(x$spatial$model$param, collapse = ', '),
+                    ")\n", sep = '')),
+           Cappa07 = cat(paste("\nNumber of inner knots for rows and columns: (",
+                         paste(x$spatial$model$param, collapse =', '),
+                         ")\n", sep = ''))
+    )
+  }
   
   cat("\nVariance components:\n")
   print(x$var, quote = FALSE, digits = digits, ...)

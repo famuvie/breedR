@@ -41,7 +41,8 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
               neffects = sum(sapply(effects, function(x) length(x$pos))),
               observations = 1:ntraits,
               weights  = weights,
-              effects  = sapply(effects, function(x) unlist(parse.effect(x))),
+              effects  = sapply(effects,
+                                function(x) unlist(parse.effect(x))),
               residvar = res.var.ini,
               rangroup = lapply(random.effects.idx, 
                                 function(x) {
@@ -58,12 +59,26 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   # after the trait(s) 
   build.dat.single <- function(name, mf) {
     n <- nrow(mf)
+    # Distinguish between the splines model and the AR model
+    process.spatial.dat <- function(x) {
+      if(length(x$pos) == 1) { # AR
+        x$sp$B
+      } else {
+        # For the splines, I need both the columns of B
+        # and further columns like
+        # 1  2  3  ...
+        # 1  2  3  ...
+        # ·  ·  ·  ...
+        # ·  ·  ·  ...
+        cbind(as.matrix(x$sp$B),
+              sapply(1:ncol(x$sp$B),
+                     function(y) rep(y, n)))
+      }
+    }
     switch(name,
            '(Intercept)' = rep(1L, n),
            genetic       = effects$genetic$idx,
-           spatial       = cbind(as.matrix(effects$spatial$splines$B),
-                                 sapply(1:ncol(effects$spatial$splines$B),
-                                        function(x) rep(x, n))),
+           spatial       = process.spatial.dat(effects$spatial),
            mf[[name]])
   }
   
@@ -80,7 +95,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
            pedigree = list(fname = ef$file,
                           file   = ef$ped),
            spatial  = list(fname = ef$file,
-                           file  = ef$splines$U),
+                           file  = ef$sp$U),
            NULL)
   }
   files <- lapply(effects[random.effects.idx], build.file.single)
@@ -181,18 +196,43 @@ build.effects <- function (mf, genetic, spatial) {
   # Spatial effect if applicable
   # We only have spatial coordinates of the dataset elements
   # TODO: let the user determine the degree/order of the B-splines
-  
+  # the functions build.*.model need to return a list with 
+  # an element B
   if(!is.null(spatial)) {
-    splines <- build.splines.model(spatial$coord, spatial$n.knots, degree = 3)
+    
+    # Splines model from Cappa & Cantet (2007)
+    if(spatial$model == 'Cappa07') {
+      sp <- build.splines.model(spatial$coord,
+                                spatial$n.knots,
+                                degree = 3)
+      effect.item <- list(name   = spatial$model,
+                          pos    = pos - 1 + 1:ncol(sp$B),
+                          levels = 1,
+                          type   = 'cov',
+                          model  = 'user_file_i',
+                          file   = 'spatial',
+                          var    = spatial$var.ini,
+                          sp     = sp)
+      
+    }
+
+    # Kronecker product of Autoregressive models
+    # on the rows and columns (regular grids only)
+    if(spatial$model == 'AR') {
+      sp <- build.ar.model(spatial$coord, spatial$rho)
+      effect.item <- list(name   = spatial$model,
+                          pos    = pos,
+                          levels = max(sp$B),
+                          type   = 'cross',
+                          model  = 'user_file',
+                          file   = 'spatial',
+                          var    = spatial$var.ini,
+                          sp     = sp)
+      
+    }
+    
     effects <- c(effects, 
-                 spatial = list(
-                   list(pos = pos - 1 + 1:ncol(splines$B),
-                        levels = 1,
-                        type = 'cov',
-                        model = 'user_file_i',
-                        file = 'spatial',
-                        var = spatial$var.ini,
-                        splines = splines)))
+                 spatial = list(effect.item))
   }
   return(effects)
 }
@@ -271,12 +311,12 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   special.effects.idx <- !(fixed.effects.idx | diagonal.effects.idx)
   random.effects.idx <- diagonal.effects.idx | special.effects.idx
   #   special.effects.idx <- which(names(effects) == 'genetic' | 
-#                                   names(effects)=='spatial')
-#   random.effects.idx <- c(diagonal.effects.idx, special.effects.idx)
-#   if( length(random.effects.idx) )
-#     fixed.effects.idx <- (1:length(effects))[-random.effects.idx]  else
-#       fixed.effects.idx <- (1:length(effects))
-#   diagonal.effects.idx <- which(attr(mt, 'term.types') == 'random')
+  #                                   names(effects)=='spatial')
+  #   random.effects.idx <- c(diagonal.effects.idx, special.effects.idx)
+  #   if( length(random.effects.idx) )
+  #     fixed.effects.idx <- (1:length(effects))[-random.effects.idx]  else
+  #       fixed.effects.idx <- (1:length(effects))
+  #   diagonal.effects.idx <- which(attr(mt, 'term.types') == 'random')
   
   # Fixed effects coefficients
   beta <- sol.file$value[sol.file$effect %in% which(fixed.effects.idx)]
@@ -292,21 +332,39 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   ranef <- list()
   if( sum(diagonal.effects.idx) )
     ranef <- c(ranef, result[diagonal.effects.idx])
-  if(isGenetic)
-    ranef$genetic <- result$genetic$value[effects$genetic$idx]
-  if(isSpatial)
-    ranef$spatial <- as.vector(effects$spatial$splines$B
-                               %*% 
-                                 result$spatial$value)
   
+  genetic.fit <- spatial.fit <- genetic.pred <- spatial.pred <- NULL
+  
+  if(isGenetic){
+    ranef$genetic <- result$genetic$value
+    genetic.fit <- result$genetic$value[effects$genetic$idx]
+  }
   # Spatial Surface
+  # Here, the random effects are the underlying model parameters,
+  # the fit is the predicted values for all the observations (which may include
+  # several in the same location), and the pred is the predicted value in a full
+  # rectangular grid, even if there were no observations there.
   if (isSpatial) {
-    spatial.pred <- cbind(effects$spatial$splines$plotting$grid,
-                          z = as.vector(effects$spatial$splines$plotting$B
-                                        %*% result$spatial$value))
-  } else
-    spatial.pred <- NULL
-  
+    if( length(effects$spatial$pos) > 1 ){
+      # Splines model
+      ranef$spatial <- result$spatial$value
+      spatial.fit <- data.frame(effects$spatial$sp$coord,
+                                z = as.vector(effects$spatial$sp$B
+                                              %*% 
+                                                result$spatial$value))
+      spatial.pred <- data.frame(effects$spatial$sp$plotting$grid,
+                                 z = as.vector(effects$spatial$sp$plotting$B
+                                               %*% result$spatial$value))
+    } else {
+      # Autoregressive model
+      ranef$spatial <- result$spatial$value
+      # In the ordering of the dataset
+      spatial.fit <- data.frame(effects$spatial$sp$coord,
+                                z = result$spatial$value[effects$spatial$sp$B])
+      spatial.pred <- data.frame(effects$spatial$sp$plotting$grid,
+                                 z = result$spatial$value)
+    }
+  }
   # Build up the model matrix *for the fixed and random terms*
   # with one dummy variable per level of factors
   # as progsf90 takes care of everything
@@ -324,55 +382,25 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   # This includes fixed and unstructured random effects
   eta <- drop(mm %*% mf_values)
   
-  # Extract the BLUP for a given random effect result
-  # unstructured random effects return a list with value and se
-  # while spatial and genetic return a vector of values
-  get_ranvalues <- function(x) {
-    if(is.list(x)) return(x$value)
-    else return(x)
-  }
-  # TODO: Only to spatial and genetic random effects!
-  ranvalues <- lapply(ranef[special.effects.idx], get_ranvalues)
-  if(length(ranvalues)) 
-    eta <- eta + rowSums(do.call(cbind, 
-                                 ranef[c('genetic', 'spatial')]))
+  #   # Extract the BLUP for a given random effect result
+  #   # unstructured random effects return a list with value and se
+  #   # while spatial and genetic return a vector of values
+  #   get_ranvalues <- function(x) {
+  #     if(is.list(x)) return(x$value)
+  #     else return(x)
+  #   }
+  #   gen.or.sp.idx <- names(ranef) %in% c('genetic', 'spatial')
+  #   ranvalues <- lapply(ranef[gen.or.sp.idx], get_ranvalues)
+  #   if(length(ranvalues)) 
+  #   eta <- eta + rowSums(do.call(cbind, 
+  #                                ranef[c('genetic', 'spatial')]))
+  if(isGenetic | isSpatial)
+    eta <- eta + rowSums(cbind(genetic.fit, spatial.fit$z))
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
   # TODO: apply inverse link
   mu = eta
-  
-  # Variance components
-  # ASSUMPTION: I always have a Genetic Variance component
-  
-  # Issue #2 In Linux, AIREMLF90 prints S.D. for R and G
-  # while under Windows it outputs SE for R and G
-  # Update: from version 1.109 (at least), Linux updated to SE as well
-  #   sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
-  sd.label <- ifelse(TRUE, 'SE', 'S.D.')
-  
-  varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
-  # There should be one variance for each random effect plus one resid. var.
-  stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
-  varcomp <- as.numeric(reml.out[varcomp.idx])
-  names(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
-  varcomp <- cbind('Estimated variances' = varcomp)
-  
-  # REML does not print Standard Errors for variance components
-  if(method == 'ai'){
-    varsd.idx <- grep(paste(sd.label, 'for G|for R'), reml.out) + 1
-    # There should be one variance for each random effect plus one resid. var.
-    stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
-    varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
-  }
-  
-  # If spatial, report the observed spatial variance, rather than the
-  # estimated variance of the spline effects which is meaningless
-  if(isSpatial) { 
-    varcomp['spatial', 1] <- var(ranef$spatial)
-    if(method == 'ai') varcomp['spatial', 2] <- NA
-  }
-  
-  
+
   # REML info
   # TODO: 'delta convergence' only for AI-REML?
   reml.ver <- sub('^\\s+([[:graph:]]* +ver\\. +[0-9.]*).*$', '\\1', 
@@ -381,6 +409,48 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   last.round <- as.numeric(strsplit(strsplit(reml.out[last.round.idx],
                                              split='In round')[[1]][2],
                                     split='convergence=')[[1]])
+  
+  # Maximum number of iterations
+  # (Hardcoded in REML and AIREML)
+  max.it <- 5000
+  
+  if( identical(last.round[1], max.it) ) {
+    warning('The algorithm did not converge')
+    varcomp <- cbind('Estimated variances' = rep(NA, sum(random.effects.idx) + 1L))
+    rownames(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
+  } else {
+    # Variance components
+    # ASSUMPTION: I always have a Genetic Variance component
+    
+    # Issue #2 In Linux, AIREMLF90 prints S.D. for R and G
+    # while under Windows it outputs SE for R and G
+    # Update: from version 1.109 (at least), Linux updated to SE as well
+    #   sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
+    sd.label <- ifelse(TRUE, 'SE', 'S.D.')
+    
+    varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
+    # There should be one variance for each random effect plus one resid. var.
+    stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
+    varcomp <- cbind('Estimated variances' = as.numeric(reml.out[varcomp.idx]))
+    rownames(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
+    
+    # REML does not print Standard Errors for variance components
+    if(method == 'ai'){
+      varsd.idx <- grep(paste(sd.label, 'for G|for R'), reml.out) + 1
+      # There should be one variance for each random effect plus one resid. var.
+      stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
+      varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
+    }
+    
+    # If spatial, report the observed spatial variance, rather than the
+    # estimated variance of the spline effects which is meaningless
+    # TODO: Return the true field variance multiplying matrices and whatever
+    if(isSpatial) { 
+      varcomp['spatial', 1] <- var(ranef$spatial)
+      if(method == 'ai') varcomp['spatial', 2] <- NA
+    }
+  }
+  
   reml <- list(
     version = gsub('\\s+', ' ', reml.ver),
     rounds = last.round[1],
@@ -409,7 +479,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   #       Include the matrix A of additive relationships (as sparse. Use pedigreemm::getA)
   #       Compute the heritability estimates and its standard error 
   #       Compute covariances estimates for multiple traits (and their standard errors)
-  
   ans <- list(
     call = mcout,
     method = method,
@@ -423,7 +492,10 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     eta = eta,
     mu = mu,
     residuals = y - mu,
-    spatial = list(model      = effects$spatial$splines[1:3],
+    genetic = list(fit        = genetic.fit),
+    spatial = list(name       = effects$spatial$name,
+                   model      = effects$spatial$sp[1:3],
+                   fit        = spatial.fit,
                    prediction = spatial.pred),
     var = varcomp,
     fit = fit,

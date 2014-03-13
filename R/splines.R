@@ -101,7 +101,7 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
   
   # grid and Incidence matrix for plotting purposes
                  
-  resolution = 101
+  resolution = 51
   plot.loc <- sapply(obs.loc, function(x) seq(head(x, 1), tail(x, 1), length=resolution))
   plot.grid <- expand.grid(plot.loc[, 1], plot.loc[, 2])
   if(!is.null(colnames(coord))) 
@@ -109,5 +109,9 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
   plotting <- list(grid = plot.grid,
                    B = tensor(knots, plot.grid, degree + 1))
   
-  return(list(inner.knots = n.knots, B = B, U = U.values, plotting = plotting))
+  return(list(param       = unname(n.knots),
+              coord       = coord,
+              B           = B,
+              U           = U.values,
+              plotting    = plotting))
 }

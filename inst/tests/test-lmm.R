@@ -145,7 +145,7 @@ run_lmm <- function(m, data = dat, method) {
   return(list(res.reml, res.lmm))
 }
 
-# Compare progsf90 and lm results
+# Compare progsf90 and lme4 results
 run_lmmexpectations <- function(m, data = dat, method) {
   res <- run_lmm(m, data, method)
   
@@ -191,7 +191,7 @@ run_lmmexpectations <- function(m, data = dat, method) {
 }
 
 # Run character conversion test for each method
-test_that("Character variables  in random effects are treated as factors", {
+test_that("Character variables in random effects are treated as factors", {
   res_em.f3_char <- remlf90(fixed = y ~ x, random = ~ f3,
                          data = within(dat, f3 <- as.character(f3)), 
                          method = 'em')

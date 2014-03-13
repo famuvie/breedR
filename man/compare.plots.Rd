@@ -1,0 +1,18 @@
+\name{compare.plots}
+\alias{compare.plots}
+\title{Compare two or more ggplots of the same kind}
+\usage{
+compare.plots(plots)
+}
+\arguments{
+  \item{plots}{List of ggplots with meaningful names
+
+  The names of the objects in the list will be used for
+  facet labels.}
+}
+\description{
+This function presents several ggplots of the same type
+side to side under the same scale, while keeping
+annotations.
+}
+
