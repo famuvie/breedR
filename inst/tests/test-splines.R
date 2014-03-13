@@ -48,12 +48,13 @@ context("Spatial model")
 data(m1)
 dat <- as.data.frame(m1)
 
+# Use a different number of knots for rows and columns
 res <- try(
   remlf90(fixed = phe_X ~ sex, 
           spatial = list(model = 'Cappa07', 
                          coord = coordinates(m1),
                          var.ini = 300,
-                         n.knots = c(2, 2)), 
+                         n.knots = c(2, 3)), 
           data = dat,
           method = 'em'),
   silent = TRUE

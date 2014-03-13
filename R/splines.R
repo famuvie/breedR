@@ -63,7 +63,7 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
   }
 
   
-  knots <- as.data.frame(mapply(add.knots, knots.inner, 3, obs.loc))
+  knots <- mapply(add.knots, knots.inner, 3, obs.loc)
   
   # Compute incidence matrix B of tensor product of B-spline bases
   # need at least 2*ord -1 knots (typically, 7)
@@ -81,7 +81,7 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
     B <- kronecker(b.x, ones.y)*kronecker(ones.x, b.y)
     return(B)
   }
-  
+
   B <- tensor(knots, coord, degree + 1)
   
   # Compute U matrix (Green & Silverman, 2003)
