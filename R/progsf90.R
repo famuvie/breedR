@@ -348,21 +348,21 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     if( length(effects$spatial$pos) > 1 ){
       # Splines model
       ranef$spatial <- result$spatial$value
-      spatial.fit <- cbind(effects$spatial$sp$coord,
-                           z = as.vector(effects$spatial$sp$B
-                                         %*% 
-                                           result$spatial$value))
-      spatial.pred <- cbind(effects$spatial$sp$plotting$grid,
-                            z = as.vector(effects$spatial$sp$plotting$B
-                                          %*% result$spatial$value))
+      spatial.fit <- data.frame(effects$spatial$sp$coord,
+                                z = as.vector(effects$spatial$sp$B
+                                              %*% 
+                                                result$spatial$value))
+      spatial.pred <- data.frame(effects$spatial$sp$plotting$grid,
+                                 z = as.vector(effects$spatial$sp$plotting$B
+                                               %*% result$spatial$value))
     } else {
       # Autoregressive model
       ranef$spatial <- result$spatial$value
       # In the ordering of the dataset
-      spatial.fit <- cbind(effects$spatial$sp$coord,
-                           z = result$spatial$value[effects$spatial$sp$B])
-      spatial.pred <- cbind(effects$spatial$sp$plotting$grid,
-                            z = result$spatial$value)
+      spatial.fit <- data.frame(effects$spatial$sp$coord,
+                                z = result$spatial$value[effects$spatial$sp$B])
+      spatial.pred <- data.frame(effects$spatial$sp$plotting$grid,
+                                 z = result$spatial$value)
     }
   }
   # Build up the model matrix *for the fixed and random terms*
@@ -395,7 +395,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   #   eta <- eta + rowSums(do.call(cbind, 
   #                                ranef[c('genetic', 'spatial')]))
   if(isGenetic | isSpatial)
-    eta <- eta + rowSums(cbind(genetic.fit$z, spatial.fit$z))
+    eta <- eta + rowSums(cbind(genetic.fit, spatial.fit$z))
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
   # TODO: apply inverse link

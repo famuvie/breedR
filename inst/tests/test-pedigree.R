@@ -66,7 +66,8 @@ res_shuffled <- try(
                          pedigree = ped_fix,
                          id = 'self'), 
           data = as.data.frame(m1_shuffled),
-          method = 'ai')
+          method = 'ai'),
+  silent = TRUE
 )
 
 # Except the call, and the reml output everything must be the same
