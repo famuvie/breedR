@@ -321,10 +321,14 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 #' @rdname Extract.metagene
 #' @export
 "[.metagene" <- function(x, ...) {
-  Data.subset <- "[.data.frame"(x$Data, ...)
+  founders.idx <- which(x$gen==0)
+  nothing = matrix(NA, max(founders.idx), 2,
+                         dimnames = list(NULL, c('x', 'y')))
+  coord <- rbind(nothing, coordinates(x))
+  Data.subset <- "[.data.frame"(cbind(coord, x$Data), ...)
   # update items
   y <- x
-  y$Data <- Data.subset
+  y$Data <- Data.subset[, -(1:2)]
   y$n.generations <- max(y$gen)
   y$n.individuals <- nrow(Data.subset)
   # drop unused levels of factors
@@ -333,6 +337,10 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
     y$Data[[var]] <- factor(Data.subset[[var]], 
                             ordered=is.ordered(Data.subset[[var]]))
   }
+  # Keep coordinates only for the subset
+  # (coordinates exclude founders)
+  coord <- Data.subset[!apply(is.na(Data.subset[, 1:2]), 1, all), 1:2]
+  y$spatial$spatial.points <- SpatialPoints(coord)
   return(y)
 }
 

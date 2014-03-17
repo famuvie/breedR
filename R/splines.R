@@ -63,7 +63,9 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
   }
 
   
-  knots <- mapply(add.knots, knots.inner, 3, obs.loc)
+  # Return row and column knots in a list
+  # as the numbers might be different
+  knots <- mapply(add.knots, knots.inner, 3, obs.loc, SIMPLIFY = FALSE)
   
   # Compute incidence matrix B of tensor product of B-spline bases
   # need at least 2*ord -1 knots (typically, 7)
