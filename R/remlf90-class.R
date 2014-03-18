@@ -125,6 +125,9 @@ remlf90 <- function(fixed,
         # Results conditional on rho
         eval.rho <- function(rho, mc) {
           mc$spatial$rho <- rho
+          ## Bloody function environments and scoping rules!
+          mc$spatial$coord <- spatial$coord
+          mc$data <- data
           eval(mc)
         }
         #         test <- eval.rho(mc, c(.5, .5))
