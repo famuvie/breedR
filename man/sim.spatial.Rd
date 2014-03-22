@@ -2,7 +2,8 @@
 \alias{sim.spatial}
 \title{Simulate a spatial structure}
 \usage{
-\method{sim.spatial}{metagene}(meta, variance, range, ...)
+  \method{sim.spatial}{metagene} (meta, variance, range,
+    ...)
 }
 \arguments{
   \item{meta}{A metagene object}
@@ -15,27 +16,30 @@
   spatial field, as a proportion of the region size.}
 }
 \value{
-Another metagene object with spatial structure given
-through an additional column \code{sp_X} with the spatially
-structured component of the phenotype, and a 'spatial' list
-element with coordinates and simulation information
+  Another metagene object with spatial structure given
+  through an additional column \code{sp_X} with the
+  spatially structured component of the phenotype, and a
+  'spatial' list element with coordinates and simulation
+  information
 }
 \description{
-Takes a metagene simulated dataset and distributes its
-individuals randomly into a more or less square spatial
-region. Furthermore, it takes part of the phenotypic noise
-and puts some spatial structure into it.
+  Takes a metagene simulated dataset and distributes its
+  individuals randomly into a more or less square spatial
+  region. Furthermore, it takes part of the phenotypic
+  noise and puts some spatial structure into it.
 }
 \details{
-Founders are not put into place, as they don't have
-phenotypic values. Therefore, they are returned without
-coordinates nor spatial values.
+  Founders are not put into place, as they don't have
+  phenotypic values. Therefore, they are returned without
+  coordinates nor spatial values.
 
-The variance of the spatial field is given as a proportion
-of the variance of the random noise that was added to the
-Breeding Values to produce the phenotypes. The phenotypes
-are afterwards recalculated to preserve the heritability.
+  The variance of the spatial field is given as a
+  proportion of the variance of the random noise that was
+  added to the Breeding Values to produce the phenotypes.
+  The phenotypes are afterwards recalculated to preserve
+  the heritability.
 
-The spatial unit is the distance between consecutive trees.
+  The spatial unit is the distance between consecutive
+  trees.
 }
 

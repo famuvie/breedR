@@ -2,7 +2,7 @@
 \alias{plot.remlf90}
 \title{Plot a model fit}
 \usage{
-plot.remlf90(x, y = NULL, type = "spatial", ...)
+  plot.remlf90(x, y = NULL, type = "spatial", ...)
 }
 \arguments{
   \item{x}{A remlf90 object, or a matrix (-like) of
@@ -14,7 +14,7 @@ plot.remlf90(x, y = NULL, type = "spatial", ...)
   the only option.}
 }
 \description{
-Plots the predicted values of the spatial component of the
-observations' phenotypes.
+  Plots the predicted values of the spatial component of
+  the observations' phenotypes.
 }
 

@@ -16,7 +16,6 @@ str(globulus)
 res.blk <- remlf90(fixed  = phe_X ~ gg,
                      random = ~ bl,
                      genetic = list(model = 'add_animal', 
-                                    var.ini = 10, 
                                     pedigree = globulus[,1:3],
                                     id = 'self'), 
                      data = globulus,
@@ -27,13 +26,11 @@ res.blk <- remlf90(fixed  = phe_X ~ gg,
 # continuous spatial effect instead of using discrete blocks.
 res.spl  <- remlf90(fixed  = phe_X ~ gg,
                      genetic = list(model = 'add_animal', 
-                                    var.ini = 10, 
                                     pedigree = globulus[,1:3],
                                     id = 'self'), 
                      spatial = list(model = 'Cappa07', 
                                     coord = globulus[, c('x','y')], 
-                                    knots = c(7, 7),
-                                    var.ini = 30), 
+                                    knots = c(7, 7)), 
                      data = globulus,
                      method = 'em')
 
@@ -44,13 +41,11 @@ res.spl  <- remlf90(fixed  = phe_X ~ gg,
 # or let the program try several combinations and select the most likely.
 res.ar  <- remlf90(fixed  = phe_X ~ gg,
                    genetic = list(model = 'add_animal', 
-                                  var.ini = 10, 
                                   pedigree = globulus[,1:3],
                                   id = 'self'), 
                    spatial = list(model = 'AR', 
                                   coord = globulus[, c('x','y')],
-                                  rho = c(.85, .8), 
-                                  var.ini = 30), 
+                                  rho = c(.85, .8)), 
                    data = globulus,
                    method = 'em')
 

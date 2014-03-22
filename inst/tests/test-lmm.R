@@ -146,7 +146,7 @@ run_lmm <- function(m, data = dat, method) {
 }
 
 # Compare progsf90 and lme4 results
-run_lmmexpectations <- function(m, data = dat, method) {
+run_lmmexpectations <- function(m, data = dat, method, tol = 1e-03) {
   res <- run_lmm(m, data, method)
   
   # progsf90 estimates should match exactly the
@@ -169,7 +169,7 @@ run_lmmexpectations <- function(m, data = dat, method) {
                   do.call(rbind, 
                           ranef(res[[2]])[ranef_order])[['(Intercept)']])
   expect_that(pf90.beta,
-              equals(lmm.beta, check.attributes = FALSE, tolerance = 1e-03))
+              equals(lmm.beta, check.attributes = FALSE, tolerance = tol))
   
   # equal variance components estimations
   # note that the order of the components might differ
@@ -180,13 +180,13 @@ run_lmmexpectations <- function(m, data = dat, method) {
   lmm.var  <- c(sapply(lmm.var, function(x) as.numeric(x))[varnames_order],
                 Residual = attr(lmm.var, 'sc')^2)
   expect_that(as.numeric(pf90.var),
-              equals(lmm.var, check.attributes = FALSE, tolerance = 1e-03))
+              equals(lmm.var, check.attributes = FALSE, tolerance = tol))
   
   # equal fitted values
   pf90.fitted <- fitted(res[[1]])
   lmm.fitted   <- fitted(res[[2]])
   expect_that(pf90.fitted, 
-              equals(lmm.fitted, check.attributes = FALSE, tolerance = 1e-05))
+              equals(lmm.fitted, check.attributes = FALSE, tolerance = tol))
   qplot(pf90.fitted, lmm.fitted) + geom_abline(int = 0, sl = 1)
 }
 

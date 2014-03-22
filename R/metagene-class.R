@@ -322,8 +322,7 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 #' @export
 "[.metagene" <- function(x, ...) {
   founders.idx <- which(x$gen==0)
-  nothing = matrix(NA, max(founders.idx), 2,
-                         dimnames = list(NULL, c('x', 'y')))
+  nothing = matrix(NA, max(founders.idx), 2)
   coord <- rbind(nothing, coordinates(x))
   Data.subset <- "[.data.frame"(cbind(coord, x$Data), ...)
   # update items

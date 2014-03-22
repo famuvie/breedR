@@ -1,36 +1,41 @@
 ## Export: breedR.setOption breedR.getOption
 
 #' Set and get global options for breedR
-#' @name breedR.option
-#' @aliases breedR.options breedR.setOption breedR.getOption
-#'   
-#'   Set and get global options for breedR. The options are stored in the 
-#'   variable \code{breedR.options} in the \code{.GlobalEnv}-environment. }
-#'   
+#' 
+#' Set and get global options for breedR. The options are stored in the variable
+#' \code{breedR.options} in the \code{.GlobalEnv}-environment.
+#' 
 #' @param ... Option and value,  like \code{option=value} or \code{option, 
 #'   value}; see the Examples.
 #' @param option The option to get. If \code{option = NULL} then 
 #'   \code{breedR.getOption} will display the current defaults, otherwise, 
 #'   \code{option} must be one of
 #'   
-#'   ar.eval: numeric vector of values in (-1, 1) where the 
+#'   \code{ar.eval}: numeric vector of values in (-1, 1) where the 
 #'   autoregressive parameters should be evaluated if not otherwise specified
 #'   
-#'   splines.nok: a function of the number of individuals in a row which
-#'   gives the number of knots (nok) to be used for a splines model, if not otherwise
-#'   specified
-#' 
+#'   \code{splines.nok}: a function of the number of individuals in a row which 
+#'   gives the number of knots (nok) to be used for a splines model, if not 
+#'   otherwise specified
+#'   
+#'   \code{default.initial.variance}: a default value for all variance
+#'   components
+#'   
+#' @name breedR.option
+#' @aliases breedR.options breedR.setOption breedR.getOption
 #' @examples
 #' ## Set default values for the autoregressive parameters
 #' breedR.setOption("ar.eval", 3*(-3:3)/10)
 #' ## alternative format
 #' breedR.setOption(ar.eval = 3*(-3:3)/10) 
 #' ## check it 
-#' breedR.getOption("ar.eval") }
+#' breedR.getOption("ar.eval")
+#' @export breedR.setOption breedR.getOption
 
 
 breedR.getOption <- function(option = c("ar.eval",
-                                        "splines.nok")) {
+                                        "splines.nok",
+                                        "default.initial.variance")) {
   if (missing(option))
     stop("argument is required.")
   
@@ -44,7 +49,8 @@ breedR.getOption <- function(option = c("ar.eval",
   
   default.opt = list(
     ar.eval     = c(-8, -2, 2, 8)/10,
-    splines.nok = quote(breedR:::determine.n.knots)
+    splines.nok = quote(breedR:::determine.n.knots),
+    default.initial.variance = 1
   )
   
   res = c()
@@ -62,13 +68,15 @@ breedR.getOption <- function(option = c("ar.eval",
 
 
 ## supports the following formats:
-##     breedR.setOption("keep", TRUE)
-##     breedR.setOption(keep=TRUE)
-##     breedR.setOption(keep=TRUE, num.threads=10)
+##     breedR.setOption("ar.eval", .5)
+##     breedR.setOption(ar.eval = .5)
+##     breedR.setOption(ar.eval = .5, default.initial.variance = 10)
+#' @rdname breedR.option
 breedR.setOption <- function(...) {
   
   breedR.setOption.core <-  function(option = c("ar.eval",
-                                                "splines.nok"),
+                                                "splines.nok",
+                                                "default.initial.variance"),
                                      value) {
     envir = breedR.get.breedREnv()
     
@@ -79,7 +87,7 @@ breedR.setOption <- function(...) {
       eval(parse(text = paste("breedR.options$", option, "=", shQuote(value), sep="")),
            envir = envir)
     } else {
-      eval(parse(text = paste("breedR.options$", option, "=", breedR.ifelse(is.null(value), "NULL", value), sep="")),
+      eval(parse(text = paste("breedR.options$", option, "=", ifelse(is.null(value), "NULL", value), sep="")),
            envir = envir)
     }
     return (invisible())

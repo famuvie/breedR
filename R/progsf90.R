@@ -112,7 +112,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
 #' as required by Misztal's progsf90 suite of programs
 #' @references
 #' \url{http://nce.ads.uga.edu/wiki/lib/exe/fetch.php?media=blupf90.pdf}
-build.effects <- function (mf, genetic, spatial) {
+build.effects <- function (mf, genetic, spatial, var.ini) {
   
   # Build up effects data (position, levels, type)
   
@@ -165,7 +165,7 @@ build.effects <- function (mf, genetic, spatial) {
     effects[[term]] <- c(effects[[term]], 
                          list(model = 'diagonal',
                               file  = '',
-                              var   = 1)) # TODO: Not fixed!!
+                              var   = var.ini[[names(effects)[term]]]))
   }
   
   # Genetic effect
@@ -518,10 +518,9 @@ build.mf <- function(call, remove.intercept) {
   fxd <- eval(call$fixed, parent.frame(2))
   terms.list$fxd <- attr(terms(fxd), 'term.labels')
 
-  if(!is.null(call$random)) {
-    rnd <- eval(call$random, parent.frame(2))
+	rnd <- eval(call$random, parent.frame(2))
+  if(!is.null(rnd))
     terms.list$rnd <- attr(terms(rnd), 'term.labels')
-  }
 	
 	## Join fixed and random
 	lhs <- as.character(fxd[[2]])

@@ -51,7 +51,6 @@ reslist <- c(lapply(datlist,
                     function(dat) try(remlf90(fixed = y ~ mu + z, 
                                               spatial = list(model = 'AR',
                                                              coord = dat[, 1:2],
-                                                             var.ini = 30,
                                                              rho = c(.9, .9)),
                                               data = transform(dat, mu = 1),
                                               method = 'ai'),
@@ -60,7 +59,6 @@ reslist <- c(lapply(datlist,
                     function(dat) try(remlf90(fixed = y ~ mu + z, 
                                               spatial = list(model = 'AR',
                                                              coord = dat[, 1:2],
-                                                             var.ini = 30,
                                                              rho = c(.9, .9)),
                                               data = transform(dat, mu = 1),
                                               method = 'em'),
@@ -95,12 +93,11 @@ for(i in 1:length(datlist))
 
 
 #### Context: selection of autoregressive parameters ####
-context("selection of autoregressive parameters")
+context("Selection of autoregressive parameters")
 
 res.unset <- try(remlf90(fixed = y ~ mu + z, 
                          spatial = list(model = 'AR',
-                                        coord = datlist[[1]][, 1:2],
-                                        var.ini = 30),
+                                        coord = datlist[[1]][, 1:2]),
                          data = transform(datlist[[1]], mu = 1),
                          method = 'em'),
                  silent = TRUE)
@@ -120,7 +117,6 @@ reslist.spec <- lapply(gridlist, function(g)
   try(remlf90(fixed = y ~ mu + z, 
               spatial = list(model = 'AR',
                              coord = datlist[[1]][, 1:2],
-                             var.ini = 30,
                              rho = g),
               data = transform(datlist[[1]], mu = 1),
               method = 'em'),

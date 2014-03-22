@@ -2,9 +2,9 @@
 \alias{coef.remlf90}
 \title{Extract fixed and random effects coefficients}
 \usage{
-\method{coef}{remlf90}(object, ...)
+  \method{coef}{remlf90} (object, ...)
 }
 \description{
-Extract fixed and random effects coefficients
+  Extract fixed and random effects coefficients
 }
 

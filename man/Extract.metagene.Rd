@@ -4,17 +4,17 @@
 \alias{[.metagene}
 \title{Extract columns directly from the dataframe}
 \usage{
-\method{$}{metagene}(x, name)
+  $.metagene(x, name)
 
-\method{$}{metagene}(x, name) <- value
+  $.metagene(x, name, value) <- value
 
-\method{[}{metagene}(x, ...)
+  [.metagene(x, ...)
 }
 \description{
-Extract columns directly from the dataframe
+  Extract columns directly from the dataframe
 
-Write columns of the dataframe
+  Write columns of the dataframe
 
-Subset data
+  Subset data
 }
 

@@ -14,15 +14,16 @@
   \item{\code{x, y}}{ coordinates (in m)}
 }}
 \description{
-Open-polinated field test with one generation of 1021
-individuals.
+  Open-polinated field test with one generation of 1021
+  individuals.
 }
 \details{
-The individuals are split into 14 genetic groups and
-arranged in blocks. The plantation is gridded with a
-separation of 3 m.
+  The individuals are split into 14 genetic groups and
+  arranged in blocks. The plantation is gridded with a
+  separation of 3 m.
 }
 \examples{
 data(globulus)
 }
+\keyword{datasets}
 

@@ -8,7 +8,6 @@ plot(m1)
 
 # Fit Mixed Model using EM-REML
 # The formula specifies fixed effects 
-# (random unstructured effects are not yet implemented)
 # the genetic and spatial effects are optional
 # ~~~ This takes a few minutes !!! ~~~
 
@@ -16,12 +15,10 @@ dat <- as.data.frame(m1)
 
 res.f90 <- remlf90(fixed   = phe_X ~ sex, 
                    genetic = list(model = 'add_animal', 
-                                  var.ini = 10, 
                                   pedigree = get_pedigree(m1),
                                   id = 'self'), 
                    spatial = list(model = 'Cappa07', 
-                                  coord = coordinates(m1), 
-                                  var.ini = 300), 
+                                  coord = coordinates(m1)), 
                    data = dat,
                    method = 'em')
 
@@ -29,8 +26,8 @@ res.f90 <- remlf90(fixed   = phe_X ~ sex,
 summary(res.f90)
 
 FO  <- fitted(res.f90)          # Fitted Observations
-PBV <- ranef(res.f90)$genetic   # Predicted Breeding Values
-PSE <- ranef(res.f90)$spatial   # Predicted Spatial Effect
+PBV <- res.f90$genetic$fit      # Predicted Breeding Values
+PSE <- res.f90$spatial$fit$z    # Predicted Spatial Effect
 
 # Fitted values vs. Observed phenotypes by generation
 qplot(phe_X, FO, color = sex, data = dat) +

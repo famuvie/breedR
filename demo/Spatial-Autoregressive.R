@@ -15,14 +15,11 @@ str(globulus)
 # will automatically fit several models with different combinations.
 res.ar  <- remlf90(fixed  = phe_X ~ gg,
                    genetic = list(model = 'add_animal', 
-                                  var.ini = 10, 
                                   pedigree = globulus[,1:3],
                                   id = 'self'), 
                    spatial = list(model = 'AR', 
-                                  coord = globulus[, c('x','y')],
-                                  var.ini = 30), 
-                   data = globulus,
-                   method = 'em')
+                                  coord = globulus[, c('x','y')]), 
+                   data = globulus)
 
 
 # You can visualize the log-likelihood of the models with 
@@ -34,15 +31,12 @@ rho.grid <- expand.grid(rho_r = seq(.7, .95, length = 4),
                         rho_c = seq(.7, .95, length = 4))
 res.ar  <- remlf90(fixed  = phe_X ~ gg,
                    genetic = list(model = 'add_animal', 
-                                  var.ini = 10, 
                                   pedigree = globulus[,1:3],
                                   id = 'self'), 
                    spatial = list(model = 'AR', 
                                   coord = globulus[, c('x','y')],
-                                  rho = rho.grid, 
-                                  var.ini = 30), 
-                   data = globulus,
-                   method = 'em')
+                                  rho = rho.grid), 
+                   data = globulus)
 
 
 # A summary shows the selected model with the most likely combination

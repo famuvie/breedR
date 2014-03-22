@@ -2,14 +2,6 @@ data(m1)
 dat <- as.data.frame(m1)
 ped <- get_pedigree(m1)
 
- res <-  remlf90(fixed = phe_X ~ sex, 
-          genetic = list(model = 'add_animal', 
-                         var.ini = 10, 
-                         pedigree = ped,
-                         id = 'self'), 
-          data = dat,
-          method = 'ai')
-
 #### Context: Animal Models ####
 context("Animal Models") 
 
@@ -20,7 +12,6 @@ run_model <- function(m, data = dat, method) {
   res.reml <- try(
     remlf90(fixed = m,
             genetic = list(model = 'add_animal', 
-                           var.ini = 10, 
                            pedigree = ped,
                            id = 'self'), 
             data = data,

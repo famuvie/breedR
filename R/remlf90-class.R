@@ -2,18 +2,30 @@
 #' 
 #' Fits a Linear Mixed Model by Restricted Maximum Likelihood
 #' 
-#' If either \code{genetic} and/or \code{param} are not \code{NULL}, the model 
-#' residuals are assumed to have an additive genetic effects and a spatially 
-#' structured random effect, respectively. The relevant parameters are 
-#' \code{model} and \code{var.ini} in both cases, and \code{pedigree} in the 
-#' case of a genetic effect.
+#' If either \code{genetic} or \code{spatial} are not \code{NULL}, the model 
+#' residuals are assumed to have an additive genetic effects or a spatially 
+#' structured random effect, respectively. In those cases, code{genetic} and 
+#' \code{spatial} must be lists with named relevant parameters.
+#' 
+#' Initial variance components can also be specified through an additional 
+#' argument \code{var.ini}. You can either use default initial values for the 
+#' variance components (see \code{?breedR.options}) or specify custom values for
+#' \emph{each} and \emph{all} variance components in the model. In this case, 
+#' \code{var.ini} must be a named list with one element for each term in 
+#' \code{random} with matching names, plus one last element named 
+#' \code{residual} for the initial residual variance. Furthermore if there are 
+#' \code{genetic} or \code{spatial} effects, they must as well include a numeric
+#' element \code{var.ini} with the initial variance component specification for 
+#' the corresponding effect.
 #' 
 #' The available models for the genetic effect are \code{add_animal}. 
 #' \code{add_animal} stands for an additive animal model with a given pedigree.
 #' 
-#' The available models for the spatial effect are \code{Cappa07}. 
-#' \code{Cappa07} uses a  two-dimensional tensor product of B-splines to 
-#' represent the smooth spatially structured effect.
+#' The available models for the spatial effect are \code{Cappa07} and
+#' \code{AR1}. \code{Cappa07} uses a  two-dimensional tensor product of
+#' B-splines to represent the smooth spatially structured effect. \code{AR1}
+#' uses a kronecker product of autoregressive models for the rows and columns.
+#' 
 #' @param fixed an object of class \link{formula} (or one that can be coerced to
 #'   that class): a symbolic description of the fixed effects of the model to be
 #'   fitted. The details of model specification are given under 'Details'.
@@ -26,7 +38,7 @@
 #' @param data a data frame with variables and observations
 #' @param method either 'ai' or 'em' for Average-Information or 
 #'   Expectation-Maximization REML respectively
-#' @return An object of class 'remlf90' that can be further questioned by
+#' @return An object of class 'remlf90' that can be further questioned by 
 #'   \code{\link{fixef}}, \code{\link{ranef}}, \code{\link{fitted}}, etc.
 #' @seealso \code{\link[pedigreemm]{pedigree}}
 #' @references progsf90 wiki page: \url{http://nce.ads.uga.edu/wiki/doku.php}
@@ -37,8 +49,9 @@
 #'   \strong{37}(12):2677-2688.
 #' @export
 remlf90 <- function(fixed, 
-                    random  = NULL,
-                    genetic = NULL, 
+                    random = NULL,
+                    var.ini = NULL,
+                    genetic = NULL,
                     spatial = NULL,
                     data, 
                     method = c('ai', 'em')) {
@@ -55,29 +68,81 @@ remlf90 <- function(fixed,
   # Allow for multiple responses
   # Allow for generalized mixed models
 
-  ## Checks
-  if (missing(fixed) | missing(data)) { 
-    stop("Usage: remlf90(fixed, data, ...); see ?remlf90")
-  }
-  if (class(fixed) != "formula") { 
-	  stop("'fixed' should be a formula") 
-  }
-  if ( attr(terms(fixed), 'intercept') != 1L ) {
-	  stop("There is no response in the 'fixed' argument")
-  }
-  if (!is.null(random)) {
-	if (class(random) != "formula" | attr(terms(random), 'response') != 0L) {
-		stop("random should be a response-less formula")
-	}
-  }
   
 
-  #  Call
+  ###  Call
   mc <- mcout <- match.call()
   
-  # Parse arguments
+  ### Checks
+  if ( missing(fixed) | missing(data) ) { 
+    stop("Usage: remlf90(fixed, data, ...); see ?remlf90\n")
+  }
+  if ( !inherits(fixed, "formula") ) { 
+    stop("'fixed' should be a formula\n") 
+  }
+  if ( attr(terms(fixed), 'intercept') != 1L ) {
+    stop("There is no response in the 'fixed' argument\n")
+  }
+  if ( !is.null(random) ) {
+    check.random = TRUE
+    if ( !inherits(random, "formula") )
+      check.random = FALSE
+    else if( attr(terms(random), 'response') != 0L )
+      check.random = FALSE
+    if( !check.random )
+      stop("random should be a response-less formula\n")
+  }
+  # Initial variances specification
+  # Either all initial variances specified, or no specification at all
+  random.terms <- switch( is.null(random) + 1,
+                          c(attr(terms(random), 'term.labels'), 'resid'),
+                          'resid')
+  check.var.ini <- function(eff) {
+    ans = FALSE
+    if( is.null(eff) ) ans = NA
+    else if( !is.null(eff$var.ini) ){
+      if( is.numeric(eff$var.ini) & eff$var.ini > 0 ) ans = TRUE
+      else stop(paste('var.ini must be > 0 in the',
+                      substitute(eff), 'effect.\n'))
+    }
+    ans
+  }
+  var.ini.checks <- c(random  = FALSE,
+                      genetic = check.var.ini(genetic),
+                      spatial = check.var.ini(spatial))
+  if( !missing(var.ini) ) {
+    if( !is.null(var.ini) ) {
+      if( identical(names(var.ini), random.terms) ) {
+        if( all(sapply(var.ini, is.numeric)) & all(var.ini > 0) )
+          var.ini.checks[1] = TRUE
+        else stop('Initial variances in var.ini must be > 0.\n')
+      } else stop('Some initial variances missing in var.ini.\n')
+    }
+  }
+  if( !any(all(var.ini.checks, na.rm = TRUE), all(!var.ini.checks, na.rm = TRUE)) )
+    stop('Some initial variances missing. Please check.')
+  # In the case of no specification, complete with defaults and Warn
+  if( all(!var.ini.checks, na.rm = TRUE) ) {
+    warning(paste('No specification of initial variances.\n',
+                  '\tUsing default value of',
+                  breedR.getOption('default.initial.variance'),
+                  'for all variance components.\n',
+                  '\tSee ?breedR.getOption.\n'))
+    var.ini <- as.list(rep(breedR.getOption('default.initial.variance'),
+                           length(random.terms)))
+    names(var.ini) <- random.terms
+    if( !is.na(var.ini.checks['genetic']) )
+      genetic$var.ini <- breedR.getOption('default.initial.variance')
+    if( !is.na(var.ini.checks['spatial']) )
+      spatial$var.ini <- breedR.getOption('default.initial.variance')
+  }
+  
+  
+  ### Parse arguments
   method <- tolower(method)
   method <- match.arg(method)
+  
+    
 
   # Builds model frame by joining the fixed and random terms
   # and remove the intercept.
@@ -92,8 +157,7 @@ remlf90 <- function(fixed,
   # Genetic effect
   if(!is.null(genetic)) {
     genetic$model <- match.arg(genetic$model, choices = c('add_animal'))
-#     if( !inherits(genetic$pedigree, 'pedigree') )
-#       stop("The argument genetic should contain a 'pedigree' object")
+
     if( !all(check_pedigree(genetic$pedigree)) )
       genetic$pedigree <- build_pedigree(1:3, data = genetic$pedigree)
     
@@ -154,14 +218,13 @@ remlf90 <- function(fixed,
   
  
   # Build a list of parameters and information for each effect
-  effects <- build.effects(mf, genetic, spatial)
+  effects <- build.effects(mf, genetic, spatial, var.ini)
   
   # Generate progsf90 parameters
-  # TODO: Initial variance for residuals  # FIXED ??
   # TODO: Memory efficiency. At this point there are three copies of the 
   # dataset. One in data, one in mf (only needed variables)
   # and yet one more in pf90. This is a potential problem with large datasets.
-  pf90 <- progsf90(mf, effects, opt = c("sol se"), res.var.ini = 10)
+  pf90 <- progsf90(mf, effects, opt = c("sol se"), res.var.ini = var.ini$resid)
   
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)
@@ -199,6 +262,7 @@ remlf90 <- function(fixed,
 #%%%%%%%%%%%%%%%%%%%%%%%%%#
 #### Internal methods  ####
 #%%%%%%%%%%%%%%%%%%%%%%%%%#
+
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%#

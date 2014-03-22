@@ -42,11 +42,9 @@ ped <- get_pedigree(m1)
 res_ok <- try(
   remlf90(fixed = phe_X ~ sex, 
           genetic = list(model = 'add_animal', 
-                         var.ini = 10, 
                          pedigree = ped,
                          id = 'self'), 
-          data = dat,
-          method = 'ai'),
+          data = dat),
   silent = TRUE
 )
 
@@ -65,11 +63,9 @@ ped_fix <- suppressWarnings(
 res_shuffled <- try(
   remlf90(fixed = phe_X ~ sex,
           genetic = list(model = 'add_animal', 
-                         var.ini = 10, 
                          pedigree = ped_fix,
                          id = 'self'), 
-          data = as.data.frame(m1_shuffled),
-          method = 'ai'),
+          data = as.data.frame(m1_shuffled)),
   silent = TRUE
 )
 

@@ -1,27 +1,13 @@
 \name{breedR.option}
-\alias{Set}
-\alias{The}
-\alias{\code{.GlobalEnv}-environment.}
-\alias{\code{breedR.options}}
-\alias{and}
-\alias{are}
-\alias{breedR.}
 \alias{breedR.getOption}
 \alias{breedR.option}
 \alias{breedR.options}
 \alias{breedR.setOption}
-\alias{for}
-\alias{get}
-\alias{global}
-\alias{in}
-\alias{options}
-\alias{stored}
-\alias{the}
-\alias{variable}
-\alias{}}
 \title{Set and get global options for breedR}
 \usage{
-breedR.getOption(option = c("ar.eval", "splines.nok"))
+  breedR.getOption(option = c("ar.eval", "splines.nok", "default.initial.variance"))
+
+  breedR.setOption(...)
 }
 \arguments{
   \item{...}{Option and value, like \code{option=value} or
@@ -31,16 +17,22 @@ breedR.getOption(option = c("ar.eval", "splines.nok"))
   then \code{breedR.getOption} will display the current
   defaults, otherwise, \code{option} must be one of
 
-  ar.eval: numeric vector of values in (-1, 1) where the
-  autoregressive parameters should be evaluated if not
+  \code{ar.eval}: numeric vector of values in (-1, 1) where
+  the autoregressive parameters should be evaluated if not
   otherwise specified
 
-  splines.nok: a function of the number of individuals in a
-  row which gives the number of knots (nok) to be used for
-  a splines model, if not otherwise specified}
+  \code{splines.nok}: a function of the number of
+  individuals in a row which gives the number of knots
+  (nok) to be used for a splines model, if not otherwise
+  specified
+
+  \code{default.initial.variance}: a default value for all
+  variance components}
 }
 \description{
-Set and get global options for breedR
+  Set and get global options for breedR. The options are
+  stored in the variable \code{breedR.options} in the
+  \code{.GlobalEnv}-environment.
 }
 \examples{
 ## Set default values for the autoregressive parameters
@@ -48,6 +40,6 @@ breedR.setOption("ar.eval", 3*(-3:3)/10)
 ## alternative format
 breedR.setOption(ar.eval = 3*(-3:3)/10)
 ## check it
-breedR.getOption("ar.eval") }
+breedR.getOption("ar.eval")
 }
 
