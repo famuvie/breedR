@@ -30,7 +30,7 @@ res.spl  <- remlf90(fixed  = phe_X ~ gg,
                                     id = 'self'), 
                      spatial = list(model = 'Cappa07', 
                                     coord = globulus[, c('x','y')], 
-                                    knots = c(7, 7)), 
+                                    n.knots = c(7, 7)), 
                      data = globulus,
                      method = 'em')
 

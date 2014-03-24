@@ -192,13 +192,14 @@ remlf90 <- function(fixed,
           ## Bloody function environments and scoping rules!
           mc$spatial$coord <- spatial$coord
           mc$data <- data
-          eval(mc)
+          suppressWarnings(eval(mc))   # Avoid multiple redundant warnings
+                                       # about initial variances.
         }
         #         test <- eval.rho(mc, c(.5, .5))
         ans.rho <- apply(rho.grid, 1, eval.rho, mc)
         # Interpolate results
         loglik.rho <- transform(rho.grid,
-                                loglik = sapply(ans.rho, logLik))
+                                loglik = suppressWarnings(sapply(ans.rho, logLik)))
         rho.idx <- which.max(loglik.rho$loglik)
         ans <- ans.rho[[rho.idx]]
         
@@ -286,16 +287,26 @@ extractAIC.remlf90 <- function(fit, scale, k,...) {
   return(fit$fit$AIC)
 }
   
-#' @method fitted remlf90
+#' Extract Model Fitted Values
+#'
+#' @S3method fitted remlf90
 #' @export
 fitted.remlf90 <- function (object, ...) {
   object$mu
 }
   
+#' Extract fixed-effects estimates
+#'
+#' @S3method fixef remlf90
+#' @export
 fixef.remlf90 <- function (object, ...) {
       object$fixed
 }
 
+#' Extract Log-Likelihood
+#' 
+#' @S3method logLik remlf90
+#' @export
 logLik.remlf90 <- function (object, ...) {
   # TODO: Revise this, N parameters, df, N obs.
   # I set up things such that the AIC gives what REMLF90 says
@@ -340,14 +351,20 @@ logLik.remlf90 <- function (object, ...) {
   ans
 }
 
+#' @S3method model.frame remlf90
+#' @export
 model.frame.remlf90 <- function (object, ...) {
   object$mf
 }
 
-model.matrtix.remlf90 <- function (object, ...) {
+#' @S3method model.matrix remlf90
+#' @export
+model.matrix.remlf90 <- function (object, ...) {
   object$mm
 }
 
+#' @S3method nobs remlf90
+#' @export
 nobs.remlf90 <- function (object, ...) {
   nrow(as.matrix(object$y))
 }
@@ -364,7 +381,8 @@ nobs.remlf90 <- function (object, ...) {
 #' @param y Optional. A numeric vector to be plotted.
 #' @param type Character. Plot type. 'spatial' is currently the only option.
 #' 
-#'     
+#' @S3method plot remlf90
+#' @export
 plot.remlf90 <- function (x, y = NULL, type = 'spatial', ...) {
   require(ggplot2)
   
@@ -397,6 +415,8 @@ ranef.remlf90 <- function (object, ...) {
   object$ranef
 }
 
+#' @S3method residuals remlf90
+#' @export
 residuals.remlf90 <- function (object, ...) {
   # TODO: to be used when na.action is included in remlf90
   #   naresid(object$na.action, res)
@@ -405,6 +425,7 @@ residuals.remlf90 <- function (object, ...) {
   object$residuals
 }
 
+#' @S3method summary remlf90
 #' @export
 summary.remlf90 <- function(object, ...) {
   ans <- object
