@@ -2,9 +2,9 @@
 \alias{ngenerations}
 \title{Number of generations}
 \usage{
-  ngenerations(x)
+ngenerations(x)
 }
 \description{
-  Number of generations
+Number of generations
 }
 

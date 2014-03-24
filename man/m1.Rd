@@ -3,23 +3,23 @@
 \alias{m1}
 \title{A small Metagene synthesized dataset}
 \description{
-  Simulated progeny of one single generation under
-  phenotypic selection and spatial arrangement. The dataset
-  includes the true Breeding values, the environmental
-  effect and the observed phenotype for 1760 individuals.
+Simulated progeny of one single generation under phenotypic
+selection and spatial arrangement. The dataset includes the
+true Breeding values, the environmental effect and the
+observed phenotype for 1760 individuals.
 }
 \details{
-  The generation of founders (generation 0) consist in 80
-  independent couples, each of which produces 20
-  descendants (10 of each sex).
+The generation of founders (generation 0) consist in 80
+independent couples, each of which produces 20 descendants
+(10 of each sex).
 
-  The full dataset contains data for the \eqn{2\times 80 +
-  1600 = 1760}{2*80 + 1600 = 1760} simulated individuals.
-  However, the Metagene program does not simulate
-  phenotypes for the founders.
+The full dataset contains data for the \eqn{2\times 80 +
+1600 = 1760}{2*80 + 1600 = 1760} simulated individuals.
+However, the Metagene program does not simulate phenotypes
+for the founders.
 
-  The 1600 descendants were arranged at random in a
-  \eqn{40\times 40}{40 x 40} spatial grid
+The 1600 descendants were arranged at random in a
+\eqn{40\times 40}{40 x 40} spatial grid
 }
 \examples{
 # Load, summarize and visualize data
@@ -36,5 +36,4 @@
   qplot(BV_X, phe_X-BV_X, colour = dad, data = as.data.frame(m1)) +
     geom_abline(int=0, sl=0, col='gray')
 }
-\keyword{datasets}
 

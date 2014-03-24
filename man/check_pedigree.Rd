@@ -2,7 +2,7 @@
 \alias{check_pedigree}
 \title{Check the rules for a well-formed pedigree}
 \usage{
-  check_pedigree(ped)
+check_pedigree(ped)
 }
 \arguments{
   \item{ped}{a 'pedigree'-class object, a dataframe, a
@@ -10,21 +10,21 @@
   numeric dataframe.}
 }
 \value{
-  a named logical vector with the results of the checks
+a named logical vector with the results of the checks
 }
 \description{
-  This function performs sanity checks on a pedigree.
+This function performs sanity checks on a pedigree.
 }
 \details{
-  Rules are: the pedigree must be full (i.e. all the codes
-  in the pedigree must appear once in the first column);
-  the codes of the offspring must follow their parent's
-  codes; the identity codes must be sorted in ascending
-  order and this order must be consecutive begining from 1.
+Rules are: the pedigree must be full (i.e. all the codes in
+the pedigree must appear once in the first column); the
+codes of the offspring must follow their parent's codes;
+the identity codes must be sorted in ascending order and
+this order must be consecutive begining from 1.
 
-  If any check fails, the pedigree must be
-  recoded/reordered to be used in analysis.
-  \code{build_pedigree(1:3, data = ped)} should fix it.
+If any check fails, the pedigree must be recoded/reordered
+to be used in analysis. \code{build_pedigree(1:3, data =
+ped)} should fix it.
 }
 \examples{
 # A well-formed pedigree
@@ -57,6 +57,6 @@ check_pedigree(build_pedigree(1:3, data = ped_unordered))
 check_pedigree(build_pedigree(1:3, data = ped_notconsec))
 }
 \seealso{
-  \code{\link{build_pedigree}}
+\code{\link{build_pedigree}}
 }
 

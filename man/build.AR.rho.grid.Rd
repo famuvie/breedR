@@ -2,13 +2,13 @@
 \alias{build.AR.rho.grid}
 \title{Build an evaluation grid for the autoregressive parameters of rows and columns}
 \usage{
-  build.AR.rho.grid(rho)
+build.AR.rho.grid(rho)
 }
 \description{
-  One or both autoregressive parameters may be unknown. In
-  that case we need to fit the model with several values of
-  rho_r and rho_c, in order to estimate the most likely
-  values. This functions provides an evaluation grid of
-  values.
+One or both autoregressive parameters may be unknown. In
+that case we need to fit the model with several values of
+rho_r and rho_c, in order to estimate the most likely
+values. This functions provides an evaluation grid of
+values.
 }
 

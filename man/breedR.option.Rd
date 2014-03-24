@@ -5,9 +5,10 @@
 \alias{breedR.setOption}
 \title{Set and get global options for breedR}
 \usage{
-  breedR.getOption(option = c("ar.eval", "splines.nok", "default.initial.variance"))
+breedR.getOption(option = c("ar.eval", "splines.nok",
+  "default.initial.variance"))
 
-  breedR.setOption(...)
+breedR.setOption(...)
 }
 \arguments{
   \item{...}{Option and value, like \code{option=value} or
@@ -30,9 +31,9 @@
   variance components}
 }
 \description{
-  Set and get global options for breedR. The options are
-  stored in the variable \code{breedR.options} in the
-  \code{.GlobalEnv}-environment.
+Set and get global options for breedR. The options are
+stored in the variable \code{breedR.options} in the
+\code{.GlobalEnv}-environment.
 }
 \examples{
 ## Set default values for the autoregressive parameters

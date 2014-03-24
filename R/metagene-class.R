@@ -331,15 +331,17 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   y$n.generations <- max(y$gen)
   y$n.individuals <- nrow(Data.subset)
   # drop unused levels of factors
-  y.factors <- which(sapply(Data.subset, is.factor))
+  y.factors <- which(sapply(y$Data, is.factor))
   for(var in y.factors) {
-    y$Data[[var]] <- factor(Data.subset[[var]], 
-                            ordered=is.ordered(Data.subset[[var]]))
+    y$Data[[var]] <- factor(y$Data[[var]], 
+                            ordered=is.ordered(y$Data[[var]]))
   }
   # Keep coordinates only for the subset
   # (coordinates exclude founders)
   coord <- Data.subset[!apply(is.na(Data.subset[, 1:2]), 1, all), 1:2]
-  y$spatial$spatial.points <- SpatialPoints(coord)
+  if(nrow(coord) > 0)
+    y$spatial$spatial.points <- SpatialPoints(coord)
+  else y$spatial$spatial.points <- list(NULL)
   return(y)
 }
 
