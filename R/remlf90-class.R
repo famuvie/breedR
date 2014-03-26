@@ -386,7 +386,7 @@ nobs.remlf90 <- function (object, ...) {
 plot.remlf90 <- function (x, y = NULL, type = 'spatial', ...) {
   require(ggplot2)
   
-  if( x$effects$spatial ) {
+  if( x$components$spatial ) {
     spdat <- x$spatial$fit
     spdat$model <- x$call$spatial$model
     p <- ggplot(spdat, aes(x, y)) +
@@ -431,7 +431,7 @@ summary.remlf90 <- function(object, ...) {
   ans <- object
   
   # Literal description of the model
-  effects <- paste(names(ans$effects), sep=' and ')
+  effects <- paste(names(ans$components), sep=' and ')
   title <- paste('Linear Mixed Model with', 
                  paste(effects, collapse = ' and '), 
                  ifelse(length(effects)==1, 'effect', 'effects'), 
@@ -483,7 +483,7 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
     cat(" Subset:", x$call$subset,"\n")
   print(x$model.fit, digits = digits)
   
-  if( x$effects$spatial ) {
+  if( x$components$spatial ) {
     switch(x$spatial$name,
            AR = cat(paste("\nAutoregressive parameters for rows and columns: (",
                     paste(x$spatial$model$param, collapse = ', '),
@@ -496,8 +496,6 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
   
   cat("\nVariance components:\n")
   print(x$var, quote = FALSE, digits = digits, ...)
-  if(x$effects$spatial)
-    cat(" * spatial: is variance of BLUPs\n")
   
   cat('\nFixed effects:\n')
   printCoefmat(x$coefficients)

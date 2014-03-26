@@ -414,6 +414,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   # (Hardcoded in REML and AIREML)
   max.it <- 5000
   
+  # Variance components
   if( identical(last.round[1], max.it) ) {
     warning('The algorithm did not converge')
     varcomp <- cbind('Estimated variances' = rep(NA, sum(random.effects.idx) + 1L))
@@ -434,21 +435,29 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     varcomp <- cbind('Estimated variances' = as.numeric(reml.out[varcomp.idx]))
     rownames(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
     
-    # REML does not print Standard Errors for variance components
+    # EM-REML does not print Standard Errors for variance components
     if(method == 'ai'){
       varsd.idx <- grep(paste(sd.label, 'for G|for R'), reml.out) + 1
       # There should be one variance for each random effect plus one resid. var.
       stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
       varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
     }
+
+    # Update: we step back from this decision. We report the estimated variance
+    # parameter of the spatial effect, even if it is not additive.
+    # It might be used for comparison of the same model fitted to different data.
+    #     # If spatial, report the observed spatial variance, rather than the
+    #     # estimated variance of the spline effects which is meaningless
+    #     # TODO: Return the true field variance multiplying matrices and whatever
+    #     if(isSpatial) { 
+    #       varcomp['spatial', 1] <- var(ranef$spatial)
+    #       if(method == 'ai') varcomp['spatial', 2] <- NA
+    #     }
     
-    # If spatial, report the observed spatial variance, rather than the
-    # estimated variance of the spline effects which is meaningless
-    # TODO: Return the true field variance multiplying matrices and whatever
-    if(isSpatial) { 
-      varcomp['spatial', 1] <- var(ranef$spatial)
-      if(method == 'ai') varcomp['spatial', 2] <- NA
-    }
+    # For additive variance decomposition, we return as well the covariance matrices
+    # of each component.
+    # V(y) = \sigma_u^2 Z A Z' + \sigma_v^2 B U B' + \sigma_e^2 I
+    # This is not giving me anything additive ???
   }
   
   reml <- list(
@@ -482,8 +491,9 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   ans <- list(
     call = mcout,
     method = method,
-    effects = list(pedigree = isGenetic,
-                   spatial  = isSpatial), # TODO competition, ...
+    components = list(pedigree = isGenetic,
+                      spatial  = isSpatial), # TODO competition, ...
+    effects = effects,
     mf = mf,
     mm = mm,
     y = y,
