@@ -384,12 +384,12 @@ nobs.remlf90 <- function (object, ...) {
 #' @S3method plot remlf90
 #' @export
 plot.remlf90 <- function (x, y = NULL, type = 'spatial', ...) {
-  require(ggplot2)
   
   if( x$components$spatial ) {
     spdat <- x$spatial$fit
     spdat$model <- x$call$spatial$model
-    p <- ggplot(spdat, aes(x, y)) +
+    names(spdat)[1:2] <- c('x', 'y')
+    p <- ggplot2::ggplot(spdat, aes(x, y)) +
       coord_fixed() +
       geom_tile(aes(fill = z)) +
       scale_fill_gradient(low='green', high='red') +
@@ -414,6 +414,48 @@ print.remlf90 <- function (object, ...) {
 ranef.remlf90 <- function (object, ...) {
   object$ranef
 }
+
+
+#' Covariance matrix of a fitted remlf90 object
+#' 
+#' Returns the variance-covariance matrix of the specified random effect.
+#' For the moment, only the spatial effect is of interest.
+#' 
+#' @param effect the structured random effect of interest
+#' 
+#' @S3method vcov remlf90
+#' @export
+vcov.remlf90 <- function (object, effect = 'spatial') {
+  
+  effect <- match.arg(effect)
+  if( !exists(effect, envir = as.environment(object$effects)) )
+    stop(paste('There is no', effect, 'effect in this object.\n'))
+  
+  # Underlying covariance matrix
+  Usp <- object$effects[[effect]]$sp$U
+  dimU <- c(max(Usp[, 1]), max(Usp[, 2]))
+  stopifnot(identical(dimU[1], dimU[2]))
+  
+  U <- spMatrix(dimU[1], dimU[2], i = Usp[, 1], j = Usp[, 2], x = Usp[, 3])
+  
+  # Incidence matrix
+  # It can be a vector if it is an identity reordered (e.g. AR case)
+  Bsp <- as.matrix(object$effects[[effect]]$sp$B)
+  
+  if( ncol(Bsp) == 1 ) {
+    dimB = nrow(Bsp)
+    B <- spMatrix(dimB, dimB, i = 1:dimB, j = Bsp[, 1], x = rep(1, dimB))
+  } else {
+    B <- Matrix(Bsp, sparse = TRUE)
+  }
+
+  # Scaling parameter
+  sigma2 <- object$var[effect, 1]
+  
+  V <- sigma2 * B %*% U %*% Matrix::t(B)
+  return(V)
+}
+
 
 #' @S3method residuals remlf90
 #' @export
