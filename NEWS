@@ -1,10 +1,15 @@
+breedR 0.5
+==========
+
+* Customizable initial variance components
+
+* breedR.option infrastructure
+
+
 breedR 0.4
 ==========
 
 * AR1xAR1 spatial model
-
-breedR 0.3-2
-============
 
 * Eucalyptus Globulus dataset and demo
 

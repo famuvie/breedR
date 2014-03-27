@@ -82,10 +82,17 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
            mf[[name]])
   }
   
-  #   dat <- cbind(sapply(names(effects), build.dat.single, mf),
-  #                phenotype = mf[, attr(mt, 'response')])
+  # Phenotype. Account for missing values.
+  # Encode NA as 0 for Misztal's programs. Make sure there are no "real" zeroes.
+  Y <- mf[, attr(attr(mf, 'terms'), 'response')]
+  if( any(is.na(Y)) ) {
+    if( 0. %in% Y )
+      stop("Can't include missing values while some real observations are 0.\n")
+    Y[which(is.na(Y))] <- 0
+  }
+  
   dat <- do.call(cbind, 
-                 c(list(phenotype = mf[, attr(attr(mf, 'terms'), 'response')]),
+                 c(list(phenotype = Y),
                    sapply(names(effects), 
                           build.dat.single, mf, simplify = FALSE)))
   
@@ -538,7 +545,11 @@ build.mf <- function(call, remove.intercept) {
 	fml <- as.formula(paste(lhs, rhs, sep = '~'), env = parent.frame(2))
 	
   # Build Model Frame
-	mfcall <- call('model.frame', formula = fml, data = quote(data))
+  # Use na.pass to allow missing observations which will be handled later
+	mfcall <- call('model.frame',
+                 formula = fml,
+                 data = quote(data),
+                 na.action = na.pass)
 	mf <- eval(mfcall, parent.frame())
   mt <- attr(mf, 'terms')
   
