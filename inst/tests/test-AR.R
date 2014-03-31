@@ -70,21 +70,27 @@ reslist <- c(lapply(datlist,
 # dat <- datlist[[1]]
 # require(plyr)
 check.result <- function(res, dat, debug.plot = FALSE) {
-  # Mean Square Error for the spatial effect
-  if(debug.plot) {
-    print(qplot(as.vector(dat$true.s), fixef(res)$mu$value + res$spatial$fit$z) +
-      geom_abline(int = 0, sl = 1))
-  }
-  mse <- mean((as.vector(dat$true.s) - fixef(res)$mu$value + res$spatial$fit$z)^2)
-  test_that("MSE of the spatial effect estimation is reasonable", {
-    expect_that(mse, is_less_than(1))
+  test_that("AR model runs OK", {
+    expect_true(!inherits(res, 'try-error'))
   })
   
-  # Estimate of the linear coefficient
-  beta.e <- beta - fixef(res)$z$value
-  test_that("The linear coefficient is estimated within 3 se", {
-    expect_that(abs(beta.e), is_less_than(3*fixef(res)$z$s.e.))
-  })
+  if( !inherits(res, 'try-error') ){
+    # Mean Square Error for the spatial effect
+    if(debug.plot) {
+      print(qplot(as.vector(dat$true.s), fixef(res)$mu$value + res$spatial$fit$z) +
+              geom_abline(int = 0, sl = 1))
+    }
+    mse <- mean((as.vector(dat$true.s) - fixef(res)$mu$value + res$spatial$fit$z)^2)
+    test_that("MSE of the spatial effect estimation is reasonable", {
+      expect_that(mse, is_less_than(1))
+    })
+    
+    # Estimate of the linear coefficient
+    beta.e <- beta - fixef(res)$z$value
+    test_that("The linear coefficient is estimated within 3 se", {
+      expect_that(abs(beta.e), is_less_than(3*fixef(res)$z$s.e.))
+    })
+  }
 }
 
 for(i in 1:length(datlist)) 
