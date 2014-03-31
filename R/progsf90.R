@@ -226,10 +226,15 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     # Kronecker product of Autoregressive models
     # on the rows and columns (regular grids only)
     if(spatial$model == 'AR') {
-      sp <- build.ar.model(spatial$coord, spatial$rho)
+      if(is.null(spatial$autofill)) spatial$autofill = TRUE
+      sp <- build.ar.model(spatial$coord, spatial$rho, spatial$autofill)
+      # The number of levels of the effect must be the size
+      # of the covariance matrix U. The Incidence matrix
+      # need not contain an observation of the last level.
+      stopifnot(identical(max(sp$U[, 1]), max(sp$U[, 2])))
       effect.item <- list(name   = spatial$model,
                           pos    = pos,
-                          levels = max(sp$B),
+                          levels = max(sp$U[,1]),
                           type   = 'cross',
                           model  = 'user_file',
                           file   = 'spatial',
