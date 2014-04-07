@@ -12,7 +12,7 @@ build.testbed <- function(corner = c(0, 0), size, treesep = c(1, 1), beta){
   set.seed(2)
   noise.mat = matrix(rnorm(n, sd = 0.3), size[1], size[2])
   ## make simulated data
-  y.mat = s.mat + beta * z.mat + noise.mat
+  y.mat = beta * z.mat + s.mat + noise.mat
   ## build final dataset  
   dat <- data.frame(i = rep(seq(corner[1], by = treesep[1], length = size[1]),
                             times = size[2]),
@@ -26,19 +26,19 @@ build.testbed <- function(corner = c(0, 0), size, treesep = c(1, 1), beta){
 
 beta = 0.5
 datlist <- list(# small square regular grid
-  build.testbed(corner = c(0, 0),
-                size = c(5, 5),
-                treesep = c(1, 1),
-                beta = beta),
+  small.sq.reg = build.testbed(corner = c(0, 0),
+                               size = c(5, 5),
+                               treesep = c(1, 1),
+                               beta = beta),
   # small rectangular grid with different spacings and coordinates
-  build.testbed(corner = c(134, 77),
-                size = c(5, 7),
-                treesep = c(3, 4),
-                beta = beta))
+  small.rect.irr = build.testbed(corner = c(134, 77),
+                                 size = c(5, 7),
+                                 treesep = c(3, 4),
+                                 beta = beta))
 
 # triangular configuration
 datlist <- c(datlist,
-             list(datlist[[1]][which(as.vector(tril(matrix(TRUE, 5, 5)))),]))
+             triang = list(datlist[[1]][which(as.vector(tril(matrix(TRUE, 5, 5)))),]))
 
 
 
@@ -47,65 +47,65 @@ context("AR models with diffferent arrangements of trees")
 
 
 # Fit models both with EM and AI-REML
-reslist <- c(lapply(datlist,
-                    function(dat) try(remlf90(fixed = y ~ mu + z, 
-                                              spatial = list(model = 'AR',
-                                                             coord = dat[, 1:2],
-                                                             rho = c(.9, .9)),
-                                              data = transform(dat, mu = 1),
-                                              method = 'ai'),
-                                      silent = TRUE)),
-             lapply(datlist,
-                    function(dat) try(remlf90(fixed = y ~ mu + z, 
-                                              spatial = list(model = 'AR',
-                                                             coord = dat[, 1:2],
-                                                             rho = c(.9, .9)),
-                                              data = transform(dat, mu = 1),
-                                              method = 'em'),
-                                      silent = TRUE)))
+run.model <- function(dat, method) {
+  res = try(suppressWarnings(remlf90(fixed = y ~ 1 + z, 
+                                     spatial = list(model = 'AR',
+                                                    coord = dat[, 1:2],
+                                                    rho = c(.9, .9)),
+                                     data = dat,
+                                     method = method),
+                             silent = TRUE))
+  return(list(dat = dat,
+              method = method,
+              res = res))
+}
+
+reslist <- c(llply(datlist, run.model, method = 'em'),
+             llply(datlist, run.model, method = 'ai'))
              
 # Check results
 # summary(reslist[[1]])
 # res <- reslist[[1]]
 # dat <- datlist[[1]]
 # require(plyr)
-check.result <- function(res, dat, debug.plot = FALSE) {
-  test_that("AR model runs OK", {
-    expect_true(!inherits(res, 'try-error'))
+check.result <- function(m, datlabel, debug.plot = FALSE) {
+  test_that(paste("AR model runs OK with dataset", datlabel, "and method", m$method), {
+    expect_true(!inherits(m$res, 'try-error'))
   })
   
-  if( !inherits(res, 'try-error') ){
+  if( !inherits(m$res, 'try-error') ){
     # Mean Square Error for the spatial effect
     if(debug.plot) {
-      print(qplot(as.vector(dat$true.s), fixef(res)$mu$value + res$spatial$fit$z) +
+      print(qplot(as.vector(m$dat$true.s), fixef(m$res)$Intercept$value + m$res$spatial$fit$z) +
               geom_abline(int = 0, sl = 1))
     }
-    mse <- mean((as.vector(dat$true.s) - fixef(res)$mu$value + res$spatial$fit$z)^2)
-    test_that("MSE of the spatial effect estimation is reasonable", {
+    mse <- mean((as.vector(m$dat$true.s) - fixef(m$res)$Intercept$value + m$res$spatial$fit$z)^2)
+    test_that(paste("MSE of the spatial effect estimation is reasonable for dataset",
+                    datlabel, "and method", m$method), {
       expect_that(mse, is_less_than(1))
     })
     
     # Estimate of the linear coefficient
-    beta.e <- beta - fixef(res)$z$value
-    test_that("The linear coefficient is estimated within 3 se", {
-      expect_that(abs(beta.e), is_less_than(3*fixef(res)$z$s.e.))
+    beta.e <- beta - fixef(m$res)$z$value
+    test_that(paste("The linear coefficient is estimated within 3 se for dataset",
+              datlabel, "and method", m$method), {
+      expect_that(abs(beta.e), is_less_than(3*fixef(m$res)$z$s.e.))
     })
   }
 }
 
-for(i in 1:length(datlist)) 
-  check.result(reslist[[i]], datlist[[i]], debug.plot = FALSE)
+for(i in 1:length(reslist)) 
+  check.result(reslist[[i]], names(reslist)[i], debug.plot = FALSE)
 
 
 
 #### Context: selection of autoregressive parameters ####
 context("Selection of autoregressive parameters")
 
-res.unset <- try(remlf90(fixed = y ~ mu + z, 
+res.unset <- try(remlf90(fixed = y ~ z, 
                          spatial = list(model = 'AR',
                                         coord = datlist[[1]][, 1:2]),
-                         data = transform(datlist[[1]], mu = 1),
-                         method = 'em'),
+                         data = datlist[[1]]),
                  silent = TRUE)
 
 test_that("if rho unset, remlf90 tries a grid of combinations", {
@@ -120,12 +120,11 @@ gridlist <- list(expand.grid(seq(80, 90, 5), c(87, 93))/100,
                  expand.grid(seq(80, 90, 5), NA)/100,
                  expand.grid(NA, c(87, 93))/100)
 reslist.spec <- lapply(gridlist, function(g)
-  try(remlf90(fixed = y ~ mu + z, 
+  try(remlf90(fixed = y ~ z, 
               spatial = list(model = 'AR',
                              coord = datlist[[1]][, 1:2],
                              rho = g),
-              data = transform(datlist[[1]], mu = 1),
-              method = 'em'),
+              data = datlist[[1]]),
       silent = TRUE))
 
 test_that("the user can specify a full or partial grid of combinations", {

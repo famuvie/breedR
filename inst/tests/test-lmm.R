@@ -30,13 +30,13 @@ sigma2_o4 <- var(o4.val)
 #### Context: Linear Models ####
 context("Linear Models") 
 
-lm_models <- list(y ~ f3,
-                  y ~ x,
-                  y ~ o4,
-                  y ~ x + f3,
-                  y ~ x + o4,
-                  y ~ f3 + o4,
-                  y ~ x + f3 + o4)
+lm_models <- list(y ~ 0 + f3,
+                  y ~ 0 + x,
+                  y ~ 0 + o4,
+                  y ~ 0 + x + f3,
+                  y ~ 0 + x + o4,
+                  y ~ 0 + f3 + o4,
+                  y ~ 0 + x + f3 + o4)
 # Run REML and lm and save estimates and MLEs
 run_model <- function(m, data = dat, method) {
   res.reml <- remlf90(m, data = data, method = method)

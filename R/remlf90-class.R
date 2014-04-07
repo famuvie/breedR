@@ -80,7 +80,7 @@ remlf90 <- function(fixed,
   if ( !inherits(fixed, "formula") ) { 
     stop("'fixed' should be a formula\n") 
   }
-  if ( attr(terms(fixed), 'intercept') != 1L ) {
+  if ( attr(terms(fixed), 'response') != 1L ) {
     stop("There is no response in the 'fixed' argument\n")
   }
   if ( !is.null(random) ) {
@@ -145,12 +145,12 @@ remlf90 <- function(fixed,
     
 
   # Builds model frame by joining the fixed and random terms
-  # and remove the intercept.
+  # and translating the intercept (if appropriate) to a fake covariate
   # Add an additional 'term.types' attribute within 'terms'
   # indicating whether the term is 'fixed' or 'random'
 	# progsf90 don't allow for custom model parameterizations
 	# and they don't use intercepts
-  mf <- build.mf(mc, remove.intercept = TRUE)
+  mf <- build.mf(mc)
   mt <- attr(mf, 'terms')
 
   

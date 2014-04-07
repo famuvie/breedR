@@ -532,14 +532,32 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
 #' Merges fixed and random terms into a single call
 #' and returns the corresponding model frame
 #' optionally removing the intercept term
-build.mf <- function(call, remove.intercept) {
+build.mf <- function(call) {
 	terms.list <- list()
 	
-  terms.list$int <- ifelse(remove.intercept, '0', '1')
+  # Don't use the model.frame intercept
+  # Make sure there is something for the rhs
+  terms.list$int <- 0
 
   fxd <- eval(call$fixed, parent.frame(2))
-  terms.list$fxd <- attr(terms(fxd), 'term.labels')
-
+  tfxd <- terms(fxd)
+  
+	# Add an intercept manually only if the user requested it
+  # *and* there are no other *categorical* fixed effects
+  tempmf <- eval(call('model.frame',
+                      formula = fxd,
+                      data = quote(data)),
+                 parent.frame())
+  tempt <- terms(tempmf)
+  tempc <- attr(tempt, 'dataClasses')[attr(tempt, 'term.labels')]
+  any.cat <- any(tempc %in% c('factor', 'ordered'))
+	
+  if( attr(tfxd, 'intercept') == 1L & !any.cat ) {
+	  fxd <- update(fxd, " ~ Intercept + .")
+	}
+	terms.list$fxd <- attr(terms(fxd), 'term.labels')
+	
+	
 	rnd <- eval(call$random, parent.frame(2))
   if(!is.null(rnd))
     terms.list$rnd <- attr(terms(rnd), 'term.labels')
@@ -553,10 +571,11 @@ build.mf <- function(call, remove.intercept) {
   # Use na.pass to allow missing observations which will be handled later
 	mfcall <- call('model.frame',
                  formula = fml,
-                 data = quote(data),
+                 data = quote(transform(data, Intercept = 1)),
                  na.action = na.pass)
 	mf <- eval(mfcall, parent.frame())
   mt <- attr(mf, 'terms')
+  
   
   # Add attribute indicating 'fixed' or 'random'
   stopifnot(length(attr(mt, 'term.labels')) == 
@@ -574,6 +593,5 @@ build.mf <- function(call, remove.intercept) {
 	  mf[str.idx] <- lapply(mf[str.idx], as.factor)
     attr(attr(mf, 'terms'), 'dataClasses')[str.idx] <- 'factor'
 	}
-	
   return(mf)
 }

@@ -18,12 +18,12 @@ res.blk <- remlf90(fixed  = phe_X ~ gg,
                      genetic = list(model = 'add_animal', 
                                     pedigree = globulus[,1:3],
                                     id = 'self'), 
-                     data = globulus,
-                     method = 'em')
+                     data = globulus)
 
 ### Splines ###
 # Alternativelly, account for the environmental variation with a
 # continuous spatial effect instead of using discrete blocks.
+# We use 'em' method as AI-REML doesn't mix well with splines.
 res.spl  <- remlf90(fixed  = phe_X ~ gg,
                      genetic = list(model = 'add_animal', 
                                     pedigree = globulus[,1:3],
@@ -46,8 +46,7 @@ res.ar  <- remlf90(fixed  = phe_X ~ gg,
                    spatial = list(model = 'AR', 
                                   coord = globulus[, c('x','y')],
                                   rho = c(.85, .8)), 
-                   data = globulus,
-                   method = 'em')
+                   data = globulus)
 
 # Summaries
 summary(res.blk)
