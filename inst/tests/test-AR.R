@@ -53,8 +53,8 @@ run.model <- function(dat, method) {
                                                     coord = dat[, 1:2],
                                                     rho = c(.9, .9)),
                                      data = dat,
-                                     method = method),
-                             silent = TRUE))
+                                     method = method)),
+                             silent = TRUE)
   return(list(dat = dat,
               method = method,
               res = res))

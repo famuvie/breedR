@@ -35,16 +35,3 @@ LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
 BugReports: https://github.com/famuvie/breedR
-Collate:
-    'ar.R'
-    'breedREnv.R'
-    'data.R'
-    'gghacks.R'
-    'help.R'
-    'metagene-class.R'
-    'options.R'
-    'pedigree.R'
-    'progsf90.R'
-    'remlf90-class.R'
-    'splines.R'
-    'utils.R'

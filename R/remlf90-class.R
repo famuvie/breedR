@@ -21,10 +21,18 @@
 #' The available models for the genetic effect are \code{add_animal}. 
 #' \code{add_animal} stands for an additive animal model with a given pedigree.
 #' 
-#' The available models for the spatial effect are \code{Cappa07} and
-#' \code{AR1}. \code{Cappa07} uses a  two-dimensional tensor product of
-#' B-splines to represent the smooth spatially structured effect. \code{AR1}
+#' The available models for the spatial effect are \code{Cappa07} and 
+#' \code{AR1}. \code{Cappa07} uses a  two-dimensional tensor product of 
+#' B-splines to represent the smooth spatially structured effect. \code{AR1} 
 #' uses a kronecker product of autoregressive models for the rows and columns.
+#' 
+#' An intercept is automatically introduced in the model provided the user 
+#' doesn't explicitly prevents it by using \code{0} or \code{-1} in the 
+#' \code{fixed} formula (as conventional in \code{R}), \emph{and} there are no 
+#' other categorical covariates in \code{fixed}. The latter condition is 
+#' actually a limitation of (ai)remlf90 backends, which would in any case return
+#' an estimate for each level of the categorical covariates while returning 0
+#' for the intercept. It does not allow alternative parameterizations.
 #' 
 #' @param fixed an object of class \link{formula} (or one that can be coerced to
 #'   that class): a symbolic description of the fixed effects of the model to be
@@ -54,7 +62,8 @@ remlf90 <- function(fixed,
                     genetic = NULL,
                     spatial = NULL,
                     data, 
-                    method = c('ai', 'em')) {
+                    method = c('ai', 'em'),
+                    debug = FALSE) {
   
   ## Assumptions:
   ## Only 1 pedigree
@@ -236,28 +245,35 @@ remlf90 <- function(fixed,
                      windows = 'windows',
                      mac = 'mac')
   binary.path <- system.file('bin', platform, package='breedR')
-  
+
   # Change to temporal directory to avoid specification of long paths
   # Avoids Issue #1
   cdir <- setwd(tmpdir)
   reml.out <- switch(method,
                      ai = system2(file.path(binary.path, 'airemlf90'), 
-                                 input = parameter.file.path, stdout=TRUE),
+                                 input  = parameter.file.path,
+                                 stdout = ifelse(debug, '', TRUE)),
                      em = system2(file.path(binary.path, 'remlf90'),
-                                 input = parameter.file.path, stdout = TRUE)
+                                 input  = parameter.file.path,
+                                 stdout = ifelse(debug, '', TRUE))
   )
   # Return to current directory
   setwd(cdir)
   
+  if( !debug ) {
+    # Error catching
+    stopifnot(is.null(attr(reml.out, 'status')))
+    
+    # Parse solutions
+    ans <- parse_results(file.path(tmpdir, 'solutions'), effects, mf, reml.out, method, mcout)
+    
+    class(ans) <- c('remlf90')  # Update to merMod in newest version of lme4 (?)
+  } else {
+    file.show(parameter.file.path)
+    ans = NULL
+  }
   
-  # Error catching
-  stopifnot(is.null(attr(reml.out, 'status')))
-
-  # Parse solutions
-  ans <- parse_results(file.path(tmpdir, 'solutions'), effects, mf, reml.out, method, mcout)
-  
-  class(ans) <- c('remlf90')  # Update to merMod in newest version of lme4 (?)
-  ans
+  return(ans)
 }
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%#

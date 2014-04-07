@@ -2,7 +2,7 @@
 \alias{build.mf}
 \title{Build Model Frame}
 \usage{
-build.mf(call, remove.intercept)
+build.mf(call)
 }
 \description{
 Merges fixed and random terms into a single call and

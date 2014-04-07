@@ -3,7 +3,7 @@
 \title{Inference with REMLF90}
 \usage{
 remlf90(fixed, random = NULL, var.ini = NULL, genetic = NULL,
-  spatial = NULL, data, method = c("ai", "em"))
+  spatial = NULL, data, method = c("ai", "em"), debug = FALSE)
 }
 \arguments{
   \item{fixed}{an object of class \link{formula} (or one
@@ -67,6 +67,16 @@ two-dimensional tensor product of B-splines to represent
 the smooth spatially structured effect. \code{AR1} uses a
 kronecker product of autoregressive models for the rows and
 columns.
+
+An intercept is automatically introduced in the model
+provided the user doesn't explicitly prevents it by using
+\code{0} or \code{-1} in the \code{fixed} formula (as
+conventional in \code{R}), \emph{and} there are no other
+categorical covariates in \code{fixed}. The latter
+condition is actually a limitation of (ai)remlf90 backends,
+which would in any case return an estimate for each level
+of the categorical covariates while returning 0 for the
+intercept. It does not allow alternative parameterizations.
 }
 \references{
 progsf90 wiki page:
