@@ -3,6 +3,9 @@
 #' Given the coordinates of the observations, ...
 build.ar.model <- function (coord, rho, autofill) {
   
+  # Original coordinates
+  coord0 <- as.data.frame(sapply(coord, as.numeric))
+  
   # Sorted coordinates of rows and columns where there are
   # at least one observation (or missing)
   pos <- lapply(coord, function(x) sort(unique(as.numeric(x))))
@@ -66,7 +69,7 @@ build.ar.model <- function (coord, rho, autofill) {
   plot.grid <- expand.grid(pos)
   plotting <- list(grid = plot.grid)
   return(list(param = rho,
-              coord = as.data.frame(sapply(coord, as.numeric)),
+              coord = coord0,
               B = data.ordering,
               U = cbind(Q@i + 1, Q@j + 1, Q@x),
               plotting = plotting))

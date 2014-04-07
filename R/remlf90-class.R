@@ -31,8 +31,14 @@
 #' \code{fixed} formula (as conventional in \code{R}), \emph{and} there are no 
 #' other categorical covariates in \code{fixed}. The latter condition is 
 #' actually a limitation of (ai)remlf90 backends, which would in any case return
-#' an estimate for each level of the categorical covariates while returning 0
+#' an estimate for each level of the categorical covariates while returning 0 
 #' for the intercept. It does not allow alternative parameterizations.
+#' 
+#' AI-REML is usually faster than EM-REML, and it provides more results. Namely,
+#' standard errors of the variance components estimates, and covariances as 
+#' well. On the other hand, is less robust than EM-REML and it usually gives 
+#' extreme results when used with the splines spatial model (as in \code{spatial
+#' = list(model ='Cappa07')}).
 #' 
 #' @param fixed an object of class \link{formula} (or one that can be coerced to
 #'   that class): a symbolic description of the fixed effects of the model to be

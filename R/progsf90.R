@@ -227,7 +227,9 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     # on the rows and columns (regular grids only)
     if(spatial$model == 'AR') {
       if(is.null(spatial$autofill)) spatial$autofill = TRUE
-      sp <- build.ar.model(spatial$coord, spatial$rho, spatial$autofill)
+      sp <- build.ar.model(spatial$coord,
+                           spatial$rho,
+                           spatial$autofill)
       # The number of levels of the effect must be the size
       # of the covariance matrix U. The Incidence matrix
       # need not contain an observation of the last level.

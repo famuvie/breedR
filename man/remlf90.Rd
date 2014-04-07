@@ -77,6 +77,13 @@ condition is actually a limitation of (ai)remlf90 backends,
 which would in any case return an estimate for each level
 of the categorical covariates while returning 0 for the
 intercept. It does not allow alternative parameterizations.
+
+AI-REML is usually faster than EM-REML, and it provides
+more results. Namely, standard errors of the variance
+components estimates, and covariances as well. On the other
+hand, is less robust than EM-REML and it usually gives
+extreme results when used with the splines spatial model
+(as in \code{spatial = list(model ='Cappa07')}).
 }
 \references{
 progsf90 wiki page:
