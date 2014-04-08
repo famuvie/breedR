@@ -43,47 +43,117 @@ effect, respectively. In those cases, code{genetic} and
 \code{spatial} must be lists with named relevant
 parameters.
 
-Initial variance components can also be specified through
-an additional argument \code{var.ini}. You can either use
-default initial values for the variance components (see
-\code{?breedR.options}) or specify custom values for
-\emph{each} and \emph{all} variance components in the
-model. In this case, \code{var.ini} must be a named list
-with one element for each term in \code{random} with
-matching names, plus one last element named \code{residual}
-for the initial residual variance. Furthermore if there are
-\code{genetic} or \code{spatial} effects, they must as well
-include a numeric element \code{var.ini} with the initial
-variance component specification for the corresponding
-effect.
+\subsection{Initial variances}{ Initial variance components
+can also be specified through an additional argument
+\code{var.ini}. You can either use default initial values
+for the variance components (see \code{?breedR.options}) or
+specify custom values for \emph{each} and \emph{all}
+variance components in the model. In this case,
+\code{var.ini} must be a named list with one element for
+each term in \code{random} with matching names, plus one
+last element named \code{residual} for the initial residual
+variance. Furthermore if there are \code{genetic} or
+\code{spatial} effects, they must as well include a numeric
+element \code{var.ini} with the initial variance component
+specification for the corresponding effect. }
 
-The available models for the genetic effect are
-\code{add_animal}. \code{add_animal} stands for an additive
-animal model with a given pedigree.
+\subsection{Genetic effect}{ The available models for the
+genetic effect are \code{add_animal}. \code{add_animal}
+stands for an additive animal model with a given pedigree.
+}
 
-The available models for the spatial effect are
-\code{Cappa07} and \code{AR1}. \code{Cappa07} uses a
-two-dimensional tensor product of B-splines to represent
-the smooth spatially structured effect. \code{AR1} uses a
-kronecker product of autoregressive models for the rows and
-columns.
+\subsection{Spatial effects}{ The available models for the
+spatial effect are \code{Cappa07} and \code{AR1}.
+\code{Cappa07} uses a two-dimensional tensor product of
+B-splines to represent the smooth spatially structured
+effect. \code{AR1} uses a kronecker product of
+autoregressive models for the rows and columns.
 
-An intercept is automatically introduced in the model
-provided the user doesn't explicitly prevents it by using
-\code{0} or \code{-1} in the \code{fixed} formula (as
-conventional in \code{R}), \emph{and} there are no other
-categorical covariates in \code{fixed}. The latter
-condition is actually a limitation of (ai)remlf90 backends,
-which would in any case return an estimate for each level
-of the categorical covariates while returning 0 for the
-intercept. It does not allow alternative parameterizations.
+In both cases, the minimum necessary components in the list
+are \itemize{ \item \code{model} a string, either
+\code{Cappa07} or \code{AR} \item \code{coord} a matrix,
+list or data.frame with two columns for the rows and
+columns respectively. }
 
-AI-REML is usually faster than EM-REML, and it provides
-more results. Namely, standard errors of the variance
-components estimates, and covariances as well. On the other
-hand, is less robust than EM-REML and it usually gives
-extreme results when used with the splines spatial model
-(as in \code{spatial = list(model ='Cappa07')}).
+Optional common components are \itemize{ \item
+\code{var.ini} a positive initial value for the variance
+component }
+
+Finally, optional model-dependent components are \itemize{
+\item For model \code{Cappa07} \itemize{ \item
+\code{n.knots} a vector of two integers with the number of
+\emph{internal} knots for the rows and columns of the
+spline design } \item For model \code{AR} \itemize{ \item
+\code{rho} a vector of two numbers strictly between -1 and
+1 with the autoregressive parameters for the rows and
+columns respectively.  Alternatively, a matrix or
+data.frame with two columns where every row contain a
+combination of autoregressive parameters to be tried.  } }
+
+The \emph{internal} knots cover the region with
+observations at regular intervals (in each dimension). For
+the splines design, three additional knots are
+automatically added before the first internal knot, and
+other tree after the last one, in each dimension. As a
+result, if \code{n.knots = c(n1, n2)}, then the final
+number of parameters of the splines model is \eqn{(n1 +
+2)(n2 + 2)}.
+
+If \code{n.knots} is omitted, a sensible number of knots
+for each dimension is computed based on the number of
+observations in the experiment. See the internal function
+\code{\link{breedR:::determine.n.knots}}. This is the
+default function that computes the default number of knots,
+but you can provide an alternative default function through
+\code{\link{breedR.setOption}}.
+
+Due to limitations of the REML backend, we can only fit
+models with \emph{fixed} autoregressive parameters.
+\code{remlf90()} will fit as many models as rows in
+\code{rho}, and return the results of the most likely. It
+will also return the list of log-likelihoods for each tried
+combination of autoregressive parameters, in the component
+\code{rho} of the \code{reml} object. This is useful for
+visualization, and further refinement of the search for
+appropriate parameters.
+
+If any of the values in either column of \code{rho} is
+\code{NA}, then a default set of values for the
+corresponding dimension will be set. See
+\code{breedR.getOption('ar.eval')}, for the current
+defaults. You can set your own defaults with
+\code{\link{breedR.setOption}}. Each will be combined with
+every other value in the other column.
+
+Omitting the specification of \code{rho} is equivalent to
+\code{rho = c(NA, NA)}. }
+
+\subsection{Intercept}{ An intercept is automatically
+introduced in the model provided the user doesn't
+explicitly prevents it by using \code{0} or \code{-1} in
+the \code{fixed} formula (as conventional in \code{R}),
+\emph{and} there are no other categorical covariates in
+\code{fixed}. The latter condition is actually a limitation
+of (ai)remlf90 backends, which would in any case return an
+estimate for each level of the categorical covariates while
+returning 0 for the intercept. It does not allow
+alternative parameterizations. }
+
+\subsection{Inference method}{ AI-REML is usually faster
+than EM-REML, and it provides more results. Namely,
+standard errors of the variance components estimates, and
+covariances as well. On the other hand, is less robust than
+EM-REML and it usually gives extreme results when used with
+the splines spatial model (as in \code{spatial = list(model
+='Cappa07', ...)}).
+
+Even when an effect accounts for no variance at all,
+EM-REML will always estimate a positive variance which will
+be determined by the starting value. If AI-REML does not
+converge but EM-REML does with the same dataset and model,
+re-run EM-REML with a small starting value for the effect.
+If the estimate does not change, it is likely that there is
+no variance. }
 }
 \references{
 progsf90 wiki page:

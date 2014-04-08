@@ -7,7 +7,7 @@
 #' 
 #' @param ... Option and value,  like \code{option=value} or \code{option, 
 #'   value}; see the Examples.
-#' @param option The option to get. If \code{option = NULL} then 
+#' @param option The option to get. If missing or \code{NULL}, then 
 #'   \code{breedR.getOption} will display the current defaults, otherwise, 
 #'   \code{option} must be one of
 #'   
@@ -36,8 +36,15 @@
 breedR.getOption <- function(option = c("ar.eval",
                                         "splines.nok",
                                         "default.initial.variance")) {
-  if (missing(option))
-    stop("argument is required.")
+  default.opt = list(
+    ar.eval     = c(-8, -2, 2, 8)/10,
+    splines.nok = quote(breedR:::determine.n.knots),
+    default.initial.variance = 1
+  )
+  
+  if (missing(option) | is.null(option))
+    return(default.opt)
+#     stop("argument is required.")
   
   envir = breedR.get.breedREnv()
   
@@ -46,12 +53,6 @@ breedR.getOption <- function(option = c("ar.eval",
     opt = get("breedR.options", envir = envir)
   else
     opt = list()
-  
-  default.opt = list(
-    ar.eval     = c(-8, -2, 2, 8)/10,
-    splines.nok = quote(breedR:::determine.n.knots),
-    default.initial.variance = 1
-  )
   
   res = c()
   for (i in 1:length(option)) {

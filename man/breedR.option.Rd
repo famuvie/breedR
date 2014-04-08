@@ -14,9 +14,10 @@ breedR.setOption(...)
   \item{...}{Option and value, like \code{option=value} or
   \code{option, value}; see the Examples.}
 
-  \item{option}{The option to get. If \code{option = NULL}
-  then \code{breedR.getOption} will display the current
-  defaults, otherwise, \code{option} must be one of
+  \item{option}{The option to get. If missing or
+  \code{NULL}, then \code{breedR.getOption} will display
+  the current defaults, otherwise, \code{option} must be
+  one of
 
   \code{ar.eval}: numeric vector of values in (-1, 1) where
   the autoregressive parameters should be evaluated if not
