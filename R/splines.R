@@ -20,14 +20,19 @@ determine.n.knots <- function(n, cutoff = 4, rate = 0.3) {
 #' Given the coordinates of the observations, and the degree,
 #' this function puts into place a sensible number of spline knots
 #' and computes the incidence matrix B and the covariance matrix U
-build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
+build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree = 3) {
 
+  
+  # lattice of spatial locations
+  # possibly with automatic filling of empty rows or columns
+  obs.loc <- loc_grid(coord, autofill)
+  
   # Determine the number of (inner) knots for rows and columns
   # or use the number provided by the user
-  obs.loc <- lapply(as.data.frame(coord), function(x) sort(unique(x)))
   if(is.null(n.knots))
     n.knots <- determine.n.knots(sapply(obs.loc, length))
 
+  # Spacing between rows/columns
   obs.step <- sapply(obs.loc, function(x) summary(diff(x)))['Median',]
   
   # Place the knots evenly spaced
@@ -39,6 +44,7 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
     return(x)
   }
   
+  # Coordinates of inner knots for rows/columns
   knots.inner <- mapply(place.knots,
                         obs.loc, obs.step, n.knots,
                         SIMPLIFY = FALSE)
@@ -50,9 +56,9 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
     if( length(x.inner) > 1) {
       spacing  <- mean(diff(x.inner))
       extremes <- range(x.inner)
-#     } else if( length(x.inner) == 1) {
-#       spacing  <- diff(range(coord))/2
-#       extremes <- rep(x.inner, 2)
+  #     } else if( length(x.inner) == 1) {
+  #       spacing  <- diff(range(coord))/2
+  #       extremes <- rep(x.inner, 2)
     } else {
       stop('At least two inner knots are needed for each dimension')
     }
@@ -103,11 +109,12 @@ build.splines.model <- function (coord, n.knots = NULL, degree = 3) {
   
   # grid and Incidence matrix for plotting purposes
                  
-  resolution = 51
-  plot.loc <- sapply(obs.loc, function(x) seq(head(x, 1), tail(x, 1), length=resolution))
-  plot.grid <- expand.grid(plot.loc[, 1], plot.loc[, 2])
-  if(!is.null(colnames(coord))) 
-    colnames(plot.grid) <- colnames(coord)
+  #   resolution = 51
+  #   plot.loc <- sapply(obs.loc, function(x) seq(head(x, 1), tail(x, 1), length=resolution))
+  #   plot.grid <- expand.grid(plot.loc[, 1], plot.loc[, 2])
+  plot.grid <- expand.grid(obs.loc)
+  #   if(!is.null(colnames(coord))) 
+  #     colnames(plot.grid) <- colnames(coord)
   plotting <- list(grid = plot.grid,
                    B = tensor(knots, plot.grid, degree + 1))
   

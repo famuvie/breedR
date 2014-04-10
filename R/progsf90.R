@@ -207,10 +207,15 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
   # an element B
   if(!is.null(spatial)) {
     
+    if( is.null(spatial$autofill) ) {
+      spatial$autofill = TRUE
+    }
+    
     # Splines model from Cappa & Cantet (2007)
     if(spatial$model == 'Cappa07') {
       sp <- build.splines.model(spatial$coord,
                                 spatial$n.knots,
+                                spatial$autofill,
                                 degree = 3)
       effect.item <- list(name   = spatial$model,
                           pos    = pos - 1 + 1:ncol(sp$B),
@@ -226,7 +231,6 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     # Kronecker product of Autoregressive models
     # on the rows and columns (regular grids only)
     if(spatial$model == 'AR') {
-      if(is.null(spatial$autofill)) spatial$autofill = TRUE
       sp <- build.ar.model(spatial$coord,
                            spatial$rho,
                            spatial$autofill)

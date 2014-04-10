@@ -5,18 +5,10 @@ build.ar.model <- function (coord, rho, autofill) {
   
   # Original coordinates
   coord0 <- as.data.frame(sapply(coord, as.numeric))
-  
-  # Sorted coordinates of rows and columns where there are
-  # at least one observation (or missing)
-  pos <- lapply(coord, function(x) sort(unique(as.numeric(x))))
-  
-  if( autofill ) {
-    # Check wether there are full rows or columns missing
-    pos <- mapply(fill_holes, pos, c('rows', 'columns'),
-                  SIMPLIFY = FALSE)
-  }
-  # Otherwise, the positions are taken in order as if the 
-  # spacing was regular
+    
+  # lattice of spatial locations
+  # possibly with automatic filling of empty rows or columns
+  pos <- loc_grid(coord, autofill)
   
   # The coordinates as factors allows to find easily the number of 
   # different x and y positions, and the ordering
@@ -92,50 +84,5 @@ build.AR.rho.grid <- function(rho) {
   grid <- expand.grid(lapply(rho, set.values))
   names(grid) <- c('rho_r', 'rho_c')
   return(grid)
-}
-
-#' Fill a hole in a given position
-fill_hole <- function(x, idx, n, sep, label) {
-  filling <- x[idx] + sep*(1:n)
-  if( !all.equal(x[idx + 1], x[idx] + sep*(n+1)) )
-    stop(paste('There is a hole in the', label,
-               'which is not a multiple of the',
-               'separation between individuals.\n',
-               'Please introduce missing observations',
-               'as needed and use autofill = FALSE\n'))
-  return(c(head(x, idx), filling, tail(x, -idx)))
-}
-
-
-#' Find and fill all the holes in a vector
-fill_holes <- function(x, label) {
-  
-  # Distance between lines of individuals
-  dif <- diff(x)
-  
-  # Check whether there is a "regular spacing"
-  # defined as the spacing between at least 80% of the individuals
-  if( diff(quantile(dif, probs = c(.1, .9))) != 0 )
-    stop("This does not seem to be a regular grid.\n",
-         "The spacing between", label, "should be the same for",
-         "at least the 80% of the cases.\n",
-         "You can override this check with autofill = FALSE.\n")
-  
-  # Otherwise, the grid spacing can be defined as the median sepparation
-  sep <- median(dif)
-  
-  # Check whether there are some "holes"
-  if( min(dif) != max(dif) ) {
-    holes <- which(dif > sep)
-    # The hole can be either larger or shorter than the standard sep
-    hole_sizes <- dif[holes] - 1
-    
-    for( i in 1:length(holes) ) {
-      x <- fill_hole(x, holes[i], hole_sizes[i] , sep, label)
-      holes[i+1] <- holes[i+1] + hole_sizes[i]
-    }
-  }
-  
-  return(x)
 }
 
