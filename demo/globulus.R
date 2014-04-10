@@ -97,17 +97,15 @@ compare.plots(list(Block = p.bl,
 
 ### Prediction in unobserved locations ###
 
-# Unfortunately, we can't compare.plots() two tiles with different resolutions.
-# We need to manually set up a common scale and grid.arrange() the plots
-scale.limits <- range(c(res.spl$spatial$prediction$z, res.ar$spatial$prediction$z))
-pred.plots <- list(
-  qplot(x, y, fill=z, geom='tile', data = transform(res.spl$spatial$prediction,
-                                                    model = 'Splines')) + 
-    scale_fill_gradient(low='green', high='red', limits = scale.limits) +
-    coord_fixed() + theme(legend.position = "none") + facet_wrap( ~ model),
-  qplot(x, y, fill=z, geom='tile', data = transform(res.ar$spatial$prediction,
-                                                    model = 'AR1xAR1')) + 
-    scale_fill_gradient(low='green', high='red', limits = scale.limits) +
-    coord_fixed()  + facet_wrap( ~ model))
-require(gridExtra)
-grid.arrange(pred.plots[[1]], pred.plots[[2]], ncol = 2)
+# In this case we need to manually build the plots.
+# We can find the full spatial grid in the spatial$prediction component
+compare.plots(list(Splines = qplot(x, y, fill=z, geom='tile',
+                                   data = res.spl$spatial$prediction) + 
+                     scale_fill_gradient(low='green', high='red') +
+                     coord_fixed() +
+                     facet_wrap( ~ model),
+                   AR1xAR1 = qplot(x, y, fill=z, geom='tile',
+                                   data = res.ar$spatial$prediction) + 
+                     scale_fill_gradient(low='green', high='red') +
+                     coord_fixed() +
+                     facet_wrap( ~ model)))
