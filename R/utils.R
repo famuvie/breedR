@@ -15,8 +15,7 @@ lme4_fml <- function(fix, rnd, rm_int = TRUE) {
 }
 
 
-breedR.is.element <- function(name, alist)
-{
+breedR.is.element <- function(name, alist) {
   ## return TRUE if element with name NAME is a member of LIST and
   ## the value is non null and not NA.
   if (any(names(alist) == name)) {
@@ -31,11 +30,24 @@ breedR.is.element <- function(name, alist)
   }
 }
 
-breedR.get.element <-  function(name, alist)
-{
+breedR.get.element <-  function(name, alist) {
   if (breedR.is.element(name, alist)) {
     return (alist[[which(names(alist) == name)]])
   } else {
     return (NULL)
   }
+}
+
+
+#' Fit some model
+breedR.result <- function() {
+  res  <- suppressWarnings(remlf90(fixed  = phe_X ~ gg,
+                                   genetic = list(model = 'add_animal', 
+                                                  pedigree = globulus[,1:3],
+                                                  id = 'self'), 
+                                   spatial = list(model = 'AR', 
+                                                  coord = globulus[, c('x','y')],
+                                                  rho = c(.85, .8)), 
+                                   data = globulus))
+  return(res)
 }
