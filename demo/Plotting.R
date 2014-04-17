@@ -11,7 +11,7 @@ res  <- remlf90(fixed  = phe_X ~ gg,
                                rho = c(.8, .9)), 
                 data = globulus)
 
-# Visualize the phenotype, model fit, spatial component orresiduals, 
+# Visualize the phenotype, model fit, spatial component or residuals, 
 (p.phe <- plot(res, type = 'phenotype'))
 (p.fit <- plot(res, type = 'fitted'))
 plot(res, type = 'spatial')
@@ -35,7 +35,7 @@ variogram(res)
 variogram(res, plot = 'heat')
 
 # In all cases, the variogram values can be recovered
-# and exploted at user's will
+# and exploited at user's will
 vgm <- variogram(res)
 str(vgm, 1)
 with(vgm$isotropic, plot(distance, variogram, type = 'l'))

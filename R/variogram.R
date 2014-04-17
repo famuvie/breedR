@@ -85,8 +85,8 @@ variogram <- function(x, R, plot = c('all', 'isotropic', 'anisotropic', 'perspec
   dat.mhalf[sapply(ind, as.numeric)] <- dat.halfheat$z
   
   #   jet.colors <- colorRampPalette( c("blue", "green") )
-  col.f <- colorRampPalette( c(breedR.getOption('colours.seq')[1],
-                               breedR.getOption('colours.seq')[2]) )
+  col.f <- colorRampPalette( c(breedR.getOption('col.seq')[1],
+                               breedR.getOption('col.seq')[2]) )
   nbcol = 100
   colours <- col.f(nbcol)
   facetcol <- cut(dat.halfheat$z, nbcol)
@@ -134,6 +134,7 @@ print.breedR.variogram <- function(x) {
     p.iso <-   ggplot(x$isotropic,
                       aes(distance, variogram)) +
       geom_point() +
+      geom_line() +
       stat_smooth(se = FALSE, method = 'auto')
   }
 
