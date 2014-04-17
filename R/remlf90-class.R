@@ -343,7 +343,7 @@ remlf90 <- function(fixed,
     # Parse solutions
     ans <- parse_results(file.path(tmpdir, 'solutions'), effects, mf, reml.out, method, mcout)
     
-    class(ans) <- c('remlf90')  # Update to merMod in newest version of lme4 (?)
+    class(ans) <- c('breedR', 'remlf90')  # Update to merMod in newest version of lme4 (?)
   } else {
     file.show(parameter.file.path)
     ans = NULL
@@ -461,6 +461,18 @@ nobs.remlf90 <- function (object, ...) {
   nrow(as.matrix(object$y))
 }
 
+
+# sp::coordinates() is an S4 function
+# Register the S3 class 'breedR' as an S4 class
+setOldClass('breedR')
+setMethod('coordinates', signature = 'breedR', 
+          function(obj, ...) {
+            if( !obj$components$spatial ) 
+              stop("This breedR object has no spatial structure.\n")
+            return(obj$effects$spatial$sp$coord)
+          }
+)
+
 # Plotting the spatial effect in the observed locations
 # TODO: implement this as a plotting method for remlf90 objects
 
@@ -475,31 +487,72 @@ nobs.remlf90 <- function (object, ...) {
 #' 
 #' @S3method plot remlf90
 #' @export
-plot.remlf90 <- function (x, y = NULL, type = 'spatial', ...) {
+plot.remlf90 <- function (x, y = NULL, type = c('phenotype', 'fitted', 'spatial', 'residuals')) {
   
-  if( x$components$spatial ) {
-    spdat <- x$spatial$fit
-    spdat$model <- x$call$spatial$model
-    names(spdat)[1:2] <- c('x', 'y')
-    p <- ggplot2::ggplot(spdat, aes(x, y)) +
-      coord_fixed() +
-      geom_tile(aes(fill = z)) +
-      scale_fill_gradient(low='green', high='red') +
-      facet_wrap(~ model)
-    p
-    #       layer <- paste('geom_tile(aes(fill =', x$call$spatial$model, '))')
-    #       eval(parse(text = paste('p +', layer)))
-  } else {
+  type = match.arg(type)
+  
+  # Argument y is used only in specific cases of spatial
+  if(type != 'spatial' & !is.null(y))
+    warning("Argument 'y' ignored.\n")
+  
+  coord <- coordinates(x)
+  names(coord) <- c('x', 'y')
+  
+  if(type == 'phenotype') {
+    
+    mf <- x$mf
+    mt <- attr(mf, 'terms')
+    resp.idx <- attr(mt, 'response')
+    if( resp.idx == 0L ) stop('There is no response in the model frame')
+    resp <- with(mf, eval(attr(mt, 'variables'))[[resp.idx]])
+    
+    p <- spatial.plot(data.frame(coord, z = resp), scale = 'seq')
   }
+  
+
+  if(type == 'fitted') {
+    
+    p <- spatial.plot(data.frame(coordinates(x), z = fitted(x)), scale = 'seq')
+  }
+  
+  
+  if(type == 'spatial'){
+    if( x$components$spatial & is.null(y) ) {
+      spdat <- data.frame(coord,
+                          z = x$spatial$fit$z,
+                          model = x$call$spatial$model)
+      
+      
+      p <- spatial.plot(spdat, scale = 'div') + facet_wrap(~ model)
+      #       layer <- paste('geom_tile(aes(fill =', x$call$spatial$model, '))')
+      #       eval(parse(text = paste('p +', layer)))
+    } else if( !is.null(y) ) {
+      # Is there a block effect?
+      # how to find out the relevant variable?
+      # TODO: may be an additional argument to pass the block variable name?
+      # Or use the free argument y?
+      
+      y <- as.vector(y)
+      if( !is.numeric(y) | length(y) != nrow(coord) )
+        stop(paste("'y' must be a vector of length", nrow(coord), ".\n"))
+      
+      p <- spatial.plot(data.frame(coord, z = y), scale = 'div')
+    } else stop('This model has no spatial effect')
+  }
+  
+  if(type == 'residuals') {
+    p <- spatial.plot(data.frame(coord, z = residuals(x)), scale = 'div')
+  }
+  p
 }
 
-predict.remlf90 <- function (object, ...) {
-  
-}
-
-print.remlf90 <- function (object, ...) {
-  
-}
+# predict.remlf90 <- function (object, ...) {
+#   
+# }
+# 
+# print.remlf90 <- function (object, ...) {
+#   
+# }
 
 #' @S3method ranef remlf90
 #' @export

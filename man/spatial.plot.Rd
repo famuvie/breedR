@@ -1,0 +1,19 @@
+\name{spatial.plot}
+\alias{spatial.plot}
+\title{Plot an spatially arranged continuous variable}
+\usage{
+spatial.plot(dat, scale = c("divergent", "sequential"))
+}
+\arguments{
+  \item{dat}{A 3-column data.frame with names 'x', 'y' and
+  'z' where the first two are the spatial coordinates, and
+  'z' is the value to be represented}
+
+  \item{scale}{Character. 'divergent' represents positive
+  and negative values with different colours. 'sequential'
+  uses a gradient scale of two colours.}
+}
+\description{
+Plot an spatially arranged continuous variable
+}
+

@@ -52,3 +52,35 @@ compare.plots <- function(plots) {
   #   qplot(irow, icol, fill = value, data = tmpdat, geom = 'tile') + facet_wrap(~.id)
 }
 
+#' Plot an spatially arranged continuous variable
+#' 
+#' @param dat A 3-column data.frame with names 'x', 'y' and 'z' where the first 
+#'   two are the spatial coordinates, and 'z' is the value to be represented
+#' @param scale Character. 'divergent' represents positive and negative values
+#'   with different colours. 'sequential' uses a gradient scale of two colours.
+spatial.plot <- function(dat, scale = c('divergent', 'sequential')) {
+  
+  scale <- match.arg(scale)
+  
+  p <- ggplot2::ggplot(dat, aes(x, y)) +
+    coord_fixed() +
+    geom_raster(aes(fill = z))
+  
+  # Tool to extract hex-codes of colours
+  #   scale_colour_brewer(type = 'seq', palette = 'Oranges')$palette(8)
+  #   http://blog.ggplot2.org/post/24607351280/choosing-colour-palettes-part-ii-educated-choices
+  
+  p <- switch(scale,
+              divergent = p + scale_fill_gradient2(low  = breedR.getOption('col.div')[1],
+                                                   high = breedR.getOption('col.div')[2]),
+              sequential = p + scale_fill_gradient(low  = breedR.getOption('col.seq')[1],
+                                                   high = breedR.getOption('col.seq')[2])
+  #                 sequential = p + scale_fill_gradient(low = "#FFF7FB", high = "#034E7B")
+  #                 sequential = p + scale_fill_gradientn(colours = terrain.colors(10))
+  #                 sequential = p
+  #                 sequential = p + scale_fill_gradient(low = 'black', high = 'white')
+  #                 sequential = p + scale_fill_gradient(low = scales::muted('green'),
+  #                                                      high = scales::muted('red'))
+              )
+  p
+}

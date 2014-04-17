@@ -2,7 +2,8 @@
 \alias{plot.remlf90}
 \title{Plot a model fit}
 \usage{
-plot.remlf90(x, y = NULL, type = "spatial", ...)
+plot.remlf90(x, y = NULL, type = c("phenotype", "fitted", "spatial",
+  "residuals"))
 }
 \arguments{
   \item{x}{A remlf90 object, or a matrix (-like) of

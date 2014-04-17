@@ -6,7 +6,7 @@
 \title{Set and get global options for breedR}
 \usage{
 breedR.getOption(option = c("ar.eval", "splines.nok",
-  "default.initial.variance"))
+  "default.initial.variance", "col.seq", "col.div"))
 
 breedR.setOption(...)
 }
@@ -29,12 +29,34 @@ breedR.setOption(...)
   specified
 
   \code{default.initial.variance}: a default value for all
-  variance components}
+  variance components
+
+  \code{col.seq}: a vector with the specification of
+  default extreme breedR col for sequential scales in
+  spatial quantitative plots. See Details.
+
+  \code{col.div}: a vector with the specification of
+  default extreme breedR col for diverging scales in
+  spatial quantitative plots. See Details.}
 }
 \description{
 Set and get global options for breedR. The options are
 stored in the variable \code{breedR.options} in the
 \code{.GlobalEnv}-environment.
+}
+\details{
+Sequential scales are used for variables not necessarily
+centered such as a response variable, or the fitted values
+of a model. The colour scale is built as a gradient between
+two extreme colours which are specified as hex codes or
+colour names in the option \code{col.seq}.
+
+Diverging scales are used for plots such as residuals,
+centered (hopefully) around zero, with positive and
+negative values represented with different colours whose
+intensity is linked to the magnitude. The option
+\code{col.div} is a vector of two hex codes or colour names
+of the most intense colours.
 }
 \examples{
 ## Set default values for the autoregressive parameters
