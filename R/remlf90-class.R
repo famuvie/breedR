@@ -473,6 +473,24 @@ setMethod('coordinates', signature = 'breedR',
           }
 )
 
+setMethod('coordinates<-', signature = 'breedR', 
+          function(object, value) {
+            # sp::coordinates() performs some sanity checks
+            # like coords to be positive integers, not NA, etc.
+            cc <- as.data.frame(sp::coordinates(value))
+            if( !object$components$spatial ) {
+              object$effects$spatial <- list(name = 'none',
+                                             sp = list(coord = cc))
+              # Now it is a "spatial" object, although there is no
+              # spatial model
+              object$components$spatial = TRUE
+            } else {
+              object$effects$spatial$sp$coord = cc
+            }
+            return(object)
+          }
+)
+
 # Plotting the spatial effect in the observed locations
 # TODO: implement this as a plotting method for remlf90 objects
 
@@ -670,7 +688,7 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
     cat(" Subset:", x$call$subset,"\n")
   print(x$model.fit, digits = digits)
   
-  if( x$components$spatial ) {
+  if( x$components$spatial & !is.null(x$spatial$name)) {
     switch(x$spatial$name,
            AR = cat(paste("\nAutoregressive parameters for rows and columns: (",
                     paste(x$spatial$model$param, collapse = ', '),

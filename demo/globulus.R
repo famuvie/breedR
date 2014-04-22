@@ -14,11 +14,11 @@ str(globulus)
 # Fit a model with genetic group as a fixed effect, block as a random effect
 # and the pedigree-based additive genetic effect.
 res.blk <- remlf90(fixed  = phe_X ~ gg,
-                     random = ~ bl,
-                     genetic = list(model = 'add_animal', 
-                                    pedigree = globulus[,1:3],
-                                    id = 'self'), 
-                     data = globulus)
+                   random = ~ bl,
+                   genetic = list(model = 'add_animal', 
+                                  pedigree = globulus[,1:3],
+                                  id = 'self'), 
+                   data = globulus)
 
 ### Splines ###
 # Alternativelly, account for the environmental variation with a

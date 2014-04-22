@@ -219,7 +219,7 @@ print.breedR.variogram <- function(x) {
     require(grid)
     
     plot.new()
-    # split the graphic window in four
+    # split the graphic window in four and reduce margins
     op <- par(mfrow = c(2, 2), mar = rep(0.5, 4))
     par(mfg = c(2, 1))
     
