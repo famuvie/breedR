@@ -2,6 +2,37 @@
 
 data(globulus)
 
+# Fit a model without accounting for spatial autocorrelation
+res0  <- remlf90(fixed  = phe_X ~ gg,
+                genetic = list(model = 'add_animal', 
+                               pedigree = globulus[,1:3],
+                               id = 'self'), 
+                data = globulus)
+
+# To plot spatially arranged values, we need to provide the coordinates of the
+# observations
+coordinates(res0) <- globulus[, c('x','y')]
+
+# Visualize the phenotype and model fit
+(p.phe <- plot(res0, type = 'phenotype'))
+(p.fit0 <- plot(res0, type = 'fitted'))
+
+# Compare observed and fitted values side by side *in the same scale*
+compare.plots(list(Phenotype = p.phe,
+                   Fitted    = p.fit0))
+
+  # The model explains very little!
+
+# The residuals looks very autocorrelated
+plot(res0, type = 'residuals')
+
+# (semi)Variograms of the residuals
+# By default, isotropic, row/column anisotropy (3d surface and heat map)
+# and fully anisotropic
+variogram(res0)
+
+
+# There is obviously the need to account for spatial autocorrelation
 res  <- remlf90(fixed  = phe_X ~ gg,
                 genetic = list(model = 'add_animal', 
                                pedigree = globulus[,1:3],
@@ -11,23 +42,18 @@ res  <- remlf90(fixed  = phe_X ~ gg,
                                rho = c(.8, .9)), 
                 data = globulus)
 
-# Visualize the phenotype, model fit, spatial component or residuals, 
-(p.phe <- plot(res, type = 'phenotype'))
-(p.fit <- plot(res, type = 'fitted'))
-plot(res, type = 'spatial')
-plot(res, type = 'residuals')
+
 
 # Compare observed and fitted values side by side in the same scale
-compare.plots(list(Phenotype = p.phe,
-                   Fitted    = p.fit))
+compare.plots(list(Phenotype      = p.phe,
+                   Fitted0        = p.fit0,
+                   Fitted_spatial = plot(res, type = 'fitted')))
 
 # Compare the spatial and residual components
 compare.plots(list(Spatial = plot(res, type = 'sp'),
                    Residual= plot(res, type = 're')))
 
-# (semi)Variograms of the residuals
-# By default, isotropic, row/column anisotropy (3d surface and heat map)
-# and fully anisotropic
+# Now the variograms are mostly "flat"
 variogram(res)
 
 # Individual variograms can be plotted using
