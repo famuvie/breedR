@@ -505,66 +505,70 @@ setMethod('coordinates<-', signature = 'breedR',
 #' phenotypes.
 #' 
 #' @param x A remlf90 object, or a matrix (-like) of coordinates
-#' @param y Optional. A numeric vector to be plotted.
 #' @param type Character. Plot type. 'spatial' is currently the only option.
-#' 
+#' @param z Optional. A numeric vector to be plotted with respect to the spatial
+#'   coordinates.
+#'   
 #' @S3method plot remlf90
 #' @export
-plot.remlf90 <- function (x, y = NULL, type = c('phenotype', 'fitted', 'spatial', 'residuals')) {
+plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspatial', 'residuals'), z = NULL) {
   
   type = match.arg(type)
-  
-  # Argument y is used only in specific cases of spatial
-  if(type != 'spatial' & !is.null(y))
-    warning("Argument 'y' ignored.\n")
   
   coord <- coordinates(x)
   names(coord) <- c('x', 'y')
   
-  if(type == 'phenotype') {
+  # Argument z is used for plotting a custom spatial variable
+  if( !is.null(z) ) {
+    z <- as.vector(z)
+    if( !is.numeric(z) | length(z) != nrow(coord) )
+      stop(paste("'z' must be a vector of length", nrow(coord), ".\n"))
     
-    mf <- x$mf
-    mt <- attr(mf, 'terms')
-    resp.idx <- attr(mt, 'response')
-    if( resp.idx == 0L ) stop('There is no response in the model frame')
-    resp <- with(mf, eval(attr(mt, 'variables'))[[resp.idx]])
+    # Determine the type of scale, depending on whether the vector includes 0
+    if( min(z) < 0 & max(z) > 0 ) sc = 'div'
+    else sc = 'seq'
     
-    p <- spatial.plot(data.frame(coord, z = resp), scale = 'seq')
-  }
-  
-
-  if(type == 'fitted') {
+    p <- spatial.plot(data.frame(coord, z = z), scale = sc)
     
-    p <- spatial.plot(data.frame(coordinates(x), z = fitted(x)), scale = 'seq')
-  }
-  
-  
-  if(type == 'spatial'){
-    if( x$components$spatial & is.null(y) ) {
-      spdat <- data.frame(coord,
-                          z = x$spatial$fit$z,
-                          model = x$call$spatial$model)
+  } else {
+    
+    if(type == 'phenotype') {
       
+      mf <- x$mf
+      mt <- attr(mf, 'terms')
+      resp.idx <- attr(mt, 'response')
+      if( resp.idx == 0L ) stop('There is no response in the model frame')
+      resp <- with(mf, eval(attr(mt, 'variables'))[[resp.idx]])
       
-      p <- spatial.plot(spdat, scale = 'div') + facet_wrap(~ model)
-      #       layer <- paste('geom_tile(aes(fill =', x$call$spatial$model, '))')
-      #       eval(parse(text = paste('p +', layer)))
-    } else if( !is.null(y) ) {
-      # Is there a block effect?
-      # how to find out the relevant variable?
-      # TODO: may be an additional argument to pass the block variable name?
-      # Or use the free argument y?
+      p <- spatial.plot(data.frame(coord, z = resp), scale = 'seq')
+    }
+    
+    
+    if(type == 'fitted') {
       
-      y <- as.vector(y)
-      if( !is.numeric(y) | length(y) != nrow(coord) )
-        stop(paste("'y' must be a vector of length", nrow(coord), ".\n"))
-      
-      p <- spatial.plot(data.frame(coord, z = y), scale = 'div')
-    } else stop('This model has no spatial effect')
-  }
-  
-  if(type == 'residuals') {
-    p <- spatial.plot(data.frame(coord, z = residuals(x)), scale = 'div')
+      p <- spatial.plot(data.frame(coordinates(x), z = fitted(x)), scale = 'seq')
+    }
+    
+    
+    if(type == 'spatial' | type == 'fullspatial'){
+      if( x$components$spatial ) {
+        
+        if( type == 'spatial' ) {
+          spdat <- data.frame(coord,
+                              z = x$spatial$fit$z,
+                              model = x$call$spatial$model)
+        } else {
+          spdat <- data.frame(x$spatial$prediction,
+                              model = x$call$spatial$model)
+        }
+        
+        p <- spatial.plot(spdat, scale = 'div') + facet_wrap(~ model)
+      } else stop('This model has no spatial effect')
+    }
+    
+    if(type == 'residuals') {
+      p <- spatial.plot(data.frame(coord, z = residuals(x)), scale = 'div')
+    }
   }
   p
 }

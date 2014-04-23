@@ -11,13 +11,15 @@ str(globulus)
   # and can be used either as fixed or random effects
 
 ### Blocks ###
-# Fit a model with genetic group as a fixed effect, block as a random effect
-# and the pedigree-based additive genetic effect.
+# Fit a model with genetic group as a fixed effect, block as a spatial random
+# effect and the pedigree-based additive genetic effect.
 res.blk <- remlf90(fixed  = phe_X ~ gg,
-                   random = ~ bl,
                    genetic = list(model = 'add_animal', 
                                   pedigree = globulus[,1:3],
                                   id = 'self'), 
+                   spatial = list(model = 'blocks', 
+                                  coord = globulus[, c('x','y')],
+                                  id = 'bl'),
                    data = globulus)
 
 ### Splines ###
@@ -25,14 +27,14 @@ res.blk <- remlf90(fixed  = phe_X ~ gg,
 # continuous spatial effect instead of using discrete blocks.
 # We use 'em' method as AI-REML doesn't mix well with splines.
 res.spl  <- remlf90(fixed  = phe_X ~ gg,
-                     genetic = list(model = 'add_animal', 
-                                    pedigree = globulus[,1:3],
-                                    id = 'self'), 
-                     spatial = list(model = 'Cappa07', 
-                                    coord = globulus[, c('x','y')], 
-                                    n.knots = c(7, 7)), 
-                     data = globulus,
-                     method = 'em')
+                    genetic = list(model = 'add_animal', 
+                                   pedigree = globulus[,1:3],
+                                   id = 'self'), 
+                    spatial = list(model = 'Cappa07', 
+                                   coord = globulus[, c('x','y')], 
+                                   n.knots = c(7, 7)), 
+                    data = globulus,
+                    method = 'em')
 
 ### AR1 x AR1 ###
 # A further spatial approach with a separable First order Autoregressive
@@ -56,56 +58,41 @@ summary(res.ar)
   # variability by reducing the residual and genetic variances a bit.
 
 
-
 ### Comparison of spatial effects ###
 
 # Spatial effects estimates in the positions of the observations
 # Ordered by blocks and increasing values of the splines effect
 spatial.dat <- transform(globulus,
-                         Block = ranef(res.blk)$bl$value[bl],
+                         Blocks  = res.blk$spatial$fit$z,
                          Splines = res.spl$spatial$fit$z,
                          AR1xAR1 = res.ar$spatial$fit$z)
-ord <- with(spatial.dat, order(Block, Splines))
+ord <- with(spatial.dat, order(Blocks, Splines))
 
 ggplot(cbind(melt(spatial.dat, id = 1:9), Ind = order(ord)),
        aes(Ind, value)) + 
   geom_point(aes(col = variable))
 
 
-# Plot the Block effects
-(p.bl <- ggplot(transform(spatial.dat,
-                         z = Block,
-                         model = "Block"),
-               aes(x, y)) +
-  geom_tile(aes(fill = z)) +
-  coord_fixed() +
-  facet_wrap(~ model) +
-  scale_fill_gradient(low='green', high='red'))
-
-# For models with specific spatial effects, breedR provides convenience methods.
-plot(res.spl)
-plot(res.ar)
+# For models with specific spatial effects, breedR provides convenience plotting
+# methods.
+(p.blk <- plot(res.blk, type = 'spatial'))
+(p.spl <- plot(res.spl, type = 'spatial'))
+(p.ar  <- plot(res.ar,  type = 'spatial'))
 
 
 # We can compare the results under the same scale with the convenience function 
 # compare.plots()
-compare.plots(list(Block = p.bl,
-                   Splines = plot(res.spl),
-                   AR1xAR1 = plot(res.ar)))
+compare.plots(list(Blocks  = p.blk,
+                   Splines = p.spl,
+                   AR1xAR1 = p.ar))
+
+
+### Prediction of the spatial effect in unobserved locations ###
+
+# We can use the 'fullspatial' plot type instead
+compare.plots(list(Blocks  = plot(res.blk, type = 'fullspatial'),
+                   Splines = plot(res.spl, type = 'fullspatial'),
+                   AR1xAR1 = plot(res.ar, type = 'fullspatial')))
 
 
 
-### Prediction in unobserved locations ###
-
-# In this case we need to manually build the plots.
-# We can find the full spatial grid in the spatial$prediction component
-compare.plots(list(Splines = qplot(x, y, fill=z, geom='tile',
-                                   data = res.spl$spatial$prediction) + 
-                     scale_fill_gradient(low='green', high='red') +
-                     coord_fixed() +
-                     facet_wrap( ~ model),
-                   AR1xAR1 = qplot(x, y, fill=z, geom='tile',
-                                   data = res.ar$spatial$prediction) + 
-                     scale_fill_gradient(low='green', high='red') +
-                     coord_fixed() +
-                     facet_wrap( ~ model)))
