@@ -249,6 +249,25 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
       
     }
     
+    # Blocks effect
+    # An independent random effect
+    # re-use the already detected random effect from the model-frame
+    # change its name, and complete fields
+    if(spatial$model == 'blocks') {
+      sp <- build.blocks.model(spatial$coord,
+                               as.numeric(spatial$id),
+                               spatial$autofill)
+
+      effect.item <- list(name   = spatial$model,
+                          pos    = pos,
+                          levels = nlevels(spatial$id),
+                          type   = 'cross',
+                          model  = 'diagonal',
+                          file   = '',
+                          var    = spatial$var.ini,
+                          sp     = sp)
+    }
+    
     effects <- c(effects, 
                  spatial = list(effect.item))
   }
@@ -363,9 +382,10 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   # several in the same location), and the pred is the predicted value in a full
   # rectangular grid, even if there were no observations there.
   if (isSpatial) {
+    ranef$spatial <- result$spatial$value
+    
     if( length(effects$spatial$pos) > 1 ){
       # Splines model
-      ranef$spatial <- result$spatial$value
       spatial.fit <- data.frame(effects$spatial$sp$coord,
                                 z = as.vector(effects$spatial$sp$B
                                               %*% 
@@ -373,14 +393,21 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       spatial.pred <- data.frame(effects$spatial$sp$plotting$grid,
                                  z = as.vector(effects$spatial$sp$plotting$B
                                                %*% result$spatial$value))
-    } else {
+    } else if( effects$spatial$name == "AR" ) {
       # Autoregressive model
-      ranef$spatial <- result$spatial$value
       # In the ordering of the dataset
       spatial.fit <- data.frame(effects$spatial$sp$coord,
                                 z = result$spatial$value[effects$spatial$sp$B])
       spatial.pred <- data.frame(effects$spatial$sp$plotting$grid,
                                  z = result$spatial$value)
+    } else if( effects$spatial$name == "blocks" ) {
+      # Blocks model
+      spatial.fit <- data.frame(effects$spatial$sp$coord,
+                                z = result$spatial$value[effects$spatial$sp$B])
+      tmp <- rep(NA, nrow(effects$spatial$sp$plotting$grid))
+      tmp[effects$spatial$sp$map] <- result$spatial$value[effects$spatial$sp$B]
+      spatial.pred <- data.frame(effects$spatial$sp$plotting$grid,
+                                 z = tmp)
     }
   }
   # Build up the model matrix *for the fixed and random terms*
@@ -549,6 +576,7 @@ build.mf <- function(call) {
   # Make sure there is something for the rhs
   terms.list$int <- 0
 
+  ## Fixed effects
   fxd <- eval(call$fixed, parent.frame(2))
   tfxd <- terms(fxd)
   
@@ -568,6 +596,7 @@ build.mf <- function(call) {
 	terms.list$fxd <- attr(terms(fxd), 'term.labels')
 	
 	
+	## Random effects (unstructured)
 	rnd <- eval(call$random, parent.frame(2))
   if(!is.null(rnd))
     terms.list$rnd <- attr(terms(rnd), 'term.labels')

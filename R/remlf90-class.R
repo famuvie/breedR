@@ -254,7 +254,12 @@ remlf90 <- function(fixed,
   # Spatial effect
   if(!is.null(spatial)) {
     spatial$model <- match.arg(spatial$model,
-                               choices = c('Cappa07', 'AR'))
+                               choices = c('Cappa07', 'AR', 'blocks'))
+    
+    # If blocks model, include the values of the relevant covariate
+    if(spatial$model == "blocks") {
+      spatial$id <- data[, spatial$id]
+    }
     
     # If AR model without rho specified
     # we need to fit it with several fixed rho's
