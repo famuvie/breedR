@@ -3,6 +3,10 @@
 #' Given the coordinates of the observations, ...
 build.ar.model <- function (coord, rho, autofill) {
   
+  # Checks
+  if( !all(abs(rho) < 1) )
+    stop('The autoregressive parameters rho must be strictly in (-1, 1).\n')
+  
   # Original coordinates
   coord0 <- as.data.frame(sapply(coord, as.numeric))
     
