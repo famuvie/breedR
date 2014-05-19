@@ -28,6 +28,8 @@
 #'  breedR col for diverging scales in spatial quantitative plots. See 
 #'  Details.
 #'  
+#'  \code{breedR.bin}: full path for breedR backend binaries
+#'  
 #'@details
 #'
 #'Sequential scales are used for variables not necessarily centered such as a 
@@ -57,7 +59,8 @@ breedR.getOption <- function(option = c("ar.eval",
                                         "splines.nok",
                                         "default.initial.variance",
                                         "col.seq",
-                                        "col.div")) {
+                                        "col.div",
+                                        "breedR.bin")) {
   envir = breedR.get.breedREnv()
 
   default.opt = list(
@@ -65,9 +68,12 @@ breedR.getOption <- function(option = c("ar.eval",
     splines.nok = quote(breedR:::determine.n.knots),
     default.initial.variance = 1,
     col.seq = c('#034E7B', '#FDAE6B'),
-    col.div = c('#3A3A98FF', '#832424FF')
+    col.div = c('#3A3A98FF', '#832424FF'),
+    breedR.bin = file.path(system.file(package = 'breedR'),
+                           'bin',
+                           breedR.os.type())
   )
-  
+
   if (missing(option) | is.null(option))
     option <- names(default.opt)
   #     return(default.opt)   
@@ -106,7 +112,8 @@ breedR.setOption <- function(...) {
                                                 "splines.nok",
                                                 "default.initial.variance",
                                                 "col.seq",
-                                                "col.div"),
+                                                "col.div",
+                                                "breedR.bin"),
                                      value) {
     
     if(is.list(option)) return(do.call('breedR.setOption', args = option))

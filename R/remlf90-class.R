@@ -321,11 +321,7 @@ remlf90 <- function(fixed,
   write.progsf90(pf90, dir = tmpdir)
 
   # variance components and BLUPs with REML
-  platform <- switch(.Platform$OS.type, 
-                     unix = 'linux',
-                     windows = 'windows',
-                     mac = 'mac')
-  binary.path <- system.file('bin', platform, package='breedR')
+  binary.path <- breedR.getOption('breedR.bin')
 
   # Change to temporal directory to avoid specification of long paths
   # Avoids Issue #1

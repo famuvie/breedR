@@ -51,3 +51,22 @@ breedR.result <- function() {
                                    data = globulus))
   return(res)
 }
+
+
+#' Return platform string
+#' 
+#' Return whether the OS is either \code{windows}, \code{linux} or \code{mac}
+#' Inspired in INLA's os.R functions
+breedR.os.type <- function() {
+  
+  type <- .Platform$OS.type
+
+  if (type == "windows") {
+    os <- type
+  } else if (type == "unix") {
+    mac.dirs <- file.info("/Library")$isdir && file.info("/Applications")$isdir
+    os <- ifelse(is.na(mac.dirs), 'linux', 'mac')
+  } else os <- 'else'
+    
+  return(os)
+}
