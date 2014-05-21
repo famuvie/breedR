@@ -5,10 +5,9 @@
 \alias{breedR.setOption}
 \title{Set and get global options for breedR}
 \usage{
-breedR.getOption(option = c("ar.eval", "splines.nok",
-  "default.initial.variance", "col.seq", "col.div"))
+  breedR.getOption(option = c("ar.eval", "splines.nok", "default.initial.variance", "col.seq", "col.div", "breedR.bin"))
 
-breedR.setOption(...)
+  breedR.setOption(...)
 }
 \arguments{
   \item{...}{Option and value, like \code{option=value} or
@@ -37,7 +36,9 @@ breedR.setOption(...)
 
   \code{col.div}: a vector with the specification of
   default extreme breedR col for diverging scales in
-  spatial quantitative plots. See Details.}
+  spatial quantitative plots. See Details.
+
+  \code{breedR.bin}: full path for breedR backend binaries}
 }
 \description{
 Set and get global options for breedR. The options are

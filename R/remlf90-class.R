@@ -208,11 +208,9 @@ remlf90 <- function(fixed,
     stop('Some initial variances missing. Please check.')
   # In the case of no specification, complete with defaults and Warn
   if( all(!var.ini.checks, na.rm = TRUE) ) {
-    warning(paste('No specification of initial variances.\n',
-                  '\tUsing default value of',
-                  breedR.getOption('default.initial.variance'),
-                  'for all variance components.\n',
-                  '\tSee ?breedR.getOption.\n'))
+    # flag the warning in now, but issue later if computations
+    # actually takes place.
+    var.ini.warn = TRUE
     var.ini <- as.list(rep(breedR.getOption('default.initial.variance'),
                            length(random.terms)))
     names(var.ini) <- random.terms
@@ -339,6 +337,14 @@ remlf90 <- function(fixed,
                                  input  = parameter.file.path,
                                  stdout = ifelse(debug, '', TRUE))
   )
+  
+  # Is it any warning message to be issued?
+  if( exists('var.ini.warn') ) 
+    warning(paste('No specification of initial variances.\n',
+                  '\tUsed default value of',
+                  breedR.getOption('default.initial.variance'),
+                  'for all variance components.\n',
+                  '\tSee ?breedR.getOption.\n'))
   
   if( !debug ) {
     # Error catching
