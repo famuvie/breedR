@@ -320,12 +320,17 @@ remlf90 <- function(fixed,
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)
 
-  # variance components and BLUPs with REML
+  # Where to find the binaries
   binary.path <- breedR.getOption('breedR.bin')
+  check.bin <- breedR.check.bin(binary.path, silent = debug)
+  if(!check.bin) stop('Binaries not installed. See ?breedR.install.bin\n')
 
   # Change to temporal directory to avoid specification of long paths
   # Avoids Issue #1
   cdir <- setwd(tmpdir)
+  on.exit(setwd(cdir))
+
+  # variance components and BLUPs with REML
   reml.out <- switch(method,
                      ai = system2(file.path(binary.path, 'airemlf90'), 
                                  input  = parameter.file.path,
@@ -334,8 +339,6 @@ remlf90 <- function(fixed,
                                  input  = parameter.file.path,
                                  stdout = ifelse(debug, '', TRUE))
   )
-  # Return to current directory
-  setwd(cdir)
   
   if( !debug ) {
     # Error catching
