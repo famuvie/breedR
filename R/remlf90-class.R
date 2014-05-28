@@ -604,19 +604,24 @@ vcov.remlf90 <- function (object, effect = 'spatial') {
     stop(paste('There is no', effect, 'effect in this object.\n'))
   
   # Underlying covariance matrix
+  # (only the lower triangle)
   Usp <- object$effects[[effect]]$sp$U
   dimU <- c(max(Usp[, 1]), max(Usp[, 2]))
   stopifnot(identical(dimU[1], dimU[2]))
   
-  U <- spMatrix(dimU[1], dimU[2], i = Usp[, 1], j = Usp[, 2], x = Usp[, 3])
+  U <- sparseMatrix(i = Usp[, 1], j = Usp[, 2], x = Usp[, 3], symmetric = TRUE)
+  
+  # need to invert?
+  if(object$effects[[effect]]$sp$Utype == 'precision')
+    U <- solve(U)
   
   # Incidence matrix
-  # It can be a vector if it is an identity reordered (e.g. AR case)
+  # It can be a vector if it is an identity reordered (e.g. block or AR cases)
   Bsp <- as.matrix(object$effects[[effect]]$sp$B)
   
   if( ncol(Bsp) == 1 ) {
     dimB = nrow(Bsp)
-    B <- spMatrix(dimB, dimB, i = 1:dimB, j = Bsp[, 1], x = rep(1, dimB))
+    B <- spMatrix(dimB, dimU[1], i = 1:dimB, j = Bsp[, 1], x = rep(1, dimB))
   } else {
     B <- Matrix(Bsp, sparse = TRUE)
   }
