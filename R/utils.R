@@ -51,3 +51,15 @@ breedR.result <- function() {
                                    data = globulus))
   return(res)
 }
+
+#' Geometric mean
+gmean <- function(x) {
+  logx <- log(x)
+  finite.logx <- is.finite(logx)
+  if( !all(finite.logx) ) {
+    warning('Removing zeroes for geometric mean')
+    logx <- logx[finite.logx]
+  }
+  
+  return(exp(mean(logx)))
+}

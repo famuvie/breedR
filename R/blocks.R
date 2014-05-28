@@ -23,16 +23,22 @@ build.blocks.model <- function (coord, id, autofill) {
     return(apply(x, 1, function(y) map[y[1], y[2]]))
   }
   data.ordering <- matrix2vec(sapply(coord, as.integer))
-  
   # How to "fill-in" the missing locations with the right block number?
   # Not trivial.
   # For the moment, don't fill anything.
+  
+  # Structure matrix for the blocks (identity)
+  # (needed by vcov())
+  n.blocks <- length(unique(id))
+  U <- cbind(1:n.blocks, 1:n.blocks, 1)
   
   plot.grid <- expand.grid(pos)
   plotting <- list(grid = plot.grid)
   return(list(coord = coord0,
               map = data.ordering,
               B = id,
+              U = U,
+              Utype = 'covariance',
               plotting = plotting))
 }
 

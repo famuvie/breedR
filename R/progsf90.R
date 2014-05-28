@@ -235,7 +235,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
                            spatial$rho,
                            spatial$autofill)
       # The number of levels of the effect must be the size
-      # of the covariance matrix U. The Incidence matrix
+      # of the covariance/precision matrix U. The Incidence matrix
       # need not contain an observation of the last level.
       stopifnot(identical(max(sp$U[, 1]), max(sp$U[, 2])))
       effect.item <- list(name   = spatial$model,

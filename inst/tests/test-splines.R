@@ -17,7 +17,7 @@ test_that("determine.n.knots fails with few data points", {
 context("Splines infraestructure") 
 ########################
 
-test_that("build.splines.model gives a list with tree elements of correct sizes", {
+test_that("build.splines.model gives a list with six elements of correct sizes", {
   x.loc <- 1:100
   y.loc <- seq(1000, by = 5, length = 51)
   coord <- expand.grid(x.loc, y.loc)
@@ -25,7 +25,7 @@ test_that("build.splines.model gives a list with tree elements of correct sizes"
   n.knots <- ncol(result$B)
   
   expect_that(result, is_a('list'))
-  expect_that(length(result), equals(5))
+  expect_that(length(result), equals(6))
   expect_that(nrow(result$B), equals(nrow(coord)))
   expect_that(prod(result$param + 2), equals(n.knots))
   # The matrix U should be in sparse format: row col value

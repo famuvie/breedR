@@ -46,7 +46,10 @@ build.ar.model <- function (coord, rho, autofill) {
   # by columns: first vary x and then y
   # (1, 1), (2, 1), ..., (n_x, 1), (1, 2), ..., (n_x, 2), ...
   # Only the lower triangle
-  Q <- tril(kronecker(Q1d[[2]], Q1d[[1]]))
+  Uinv <- kronecker(Q1d[[2]], Q1d[[1]])
+  dimUinv <- dim(Uinv)
+  stopifnot(identical(dimUinv[1], dimUinv[2]))
+  
   # Map data coordinates with corresponding index of the Q matrix
   matrix2vec <- function(x, nx = pos.length[1], ny = pos.length[2]) {
     map <- matrix(1:(nx*ny), nx, ny)
@@ -54,6 +57,20 @@ build.ar.model <- function (coord, rho, autofill) {
   }
   data.ordering <- matrix2vec(sapply(coord, as.integer))
   
+  
+  # Scaling so that the characteristic marginal variance equals 1/sigma^2
+  # Sorbye and Rue (2014)
+  # Caveat: I need to invert the matrix here
+  # Is there a way of finding the characteristic marginal variance
+  # from the precision matrix?
+  B <- sparseMatrix(i = 1:length(data.ordering),
+                    j = data.ordering,
+                    x = 1)
+  
+  Uinv <- Uinv * gmean(Matrix::diag(B %*% solve(Uinv) %*% Matrix::t(B)))
+  
+  # Store only the lower triangle of the symmetric matrix Q in triplet form
+  trilUinv <- as(tril(Uinv), 'dgTMatrix')
   
   # Coordinates for the full grid
   #   coord.1d <- function(nx, levels) {
@@ -67,7 +84,8 @@ build.ar.model <- function (coord, rho, autofill) {
   return(list(param = rho,
               coord = coord0,
               B = data.ordering,
-              U = cbind(Q@i + 1, Q@j + 1, Q@x),
+              U = cbind(trilUinv@i + 1, trilUinv@j + 1, trilUinv@x),
+              Utype = 'precision',
               plotting = plotting))
 }
 

@@ -101,12 +101,16 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
   U <- kronecker(Sigma.marginal(length(knots[[1]])-degree-1), 
                  Sigma.marginal(length(knots[[2]])-degree-1))
   
+  
+  # Scaling so that the characteristic marginal variance equals 1/sigma^2
+  # Sorbye and Rue (2014)
+  U <- U/gmean(diag(B %*% U %*% t(B)))
+  
   U.sparse <- as(Matrix(tril(U), sparse = TRUE), 'dgTMatrix')
   # Note: The Matrix package counts rows and columns starting from zero
   # Thus, I add 1 to the corresponding columns
   U.values <- cbind(U.sparse@i + 1, U.sparse@j + 1, U.sparse@x)
 
-  
   # grid and Incidence matrix for plotting purposes
                  
   #   resolution = 51
@@ -122,5 +126,6 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
               coord       = coord,
               B           = B,
               U           = U.values,
+              Utype       = 'covariance',
               plotting    = plotting))
 }
