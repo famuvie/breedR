@@ -34,29 +34,31 @@ loc_grid <- function (coord, autofill) {
 #' Find and fill all the holes in a vector
 fill_holes <- function(x, label) {
   
-  # Distance between lines of individuals
-  dif <- diff(x)
-  
-  # Check whether there is a "regular spacing"
-  # defined as the spacing between at least 80% of the individuals
-  if( diff(quantile(dif, probs = c(.1, .9))) != 0 )
-    stop("This does not seem to be a regular grid.\n",
-         "The spacing between", label, "should be the same for",
-         "at least the 80% of the cases.\n",
-         "You can override this check with autofill = FALSE.\n")
-  
-  # Otherwise, the grid spacing can be defined as the median sepparation
-  sep <- median(dif)
-  
-  # Check whether there are some "holes"
-  if( min(dif) != max(dif) ) {
-    holes <- which(dif > sep)
-    # The hole can be either larger or shorter than the standard sep
-    hole_sizes <- dif[holes] - 1
+  if(length(x) > 1){
+    # Distance between lines of individuals
+    dif <- diff(x)
     
-    for( i in 1:length(holes) ) {
-      x <- fill_hole(x, holes[i], hole_sizes[i] , sep, label)
-      holes[i+1] <- holes[i+1] + hole_sizes[i]
+    # Check whether there is a "regular spacing"
+    # defined as the spacing between at least 80% of the individuals
+    if( diff(quantile(dif, probs = c(.1, .9))) != 0 )
+      stop("This does not seem to be a regular grid.\n",
+           "The spacing between", label, "should be the same for",
+           "at least the 80% of the cases.\n",
+           "You can override this check with autofill = FALSE.\n")
+    
+    # Otherwise, the grid spacing can be defined as the median sepparation
+    sep <- median(dif)
+    
+    # Check whether there are some "holes"
+    if( min(dif) != max(dif) ) {
+      holes <- which(dif > sep)
+      # The hole can be either larger or shorter than the standard sep
+      hole_sizes <- dif[holes] - 1
+      
+      for( i in 1:length(holes) ) {
+        x <- fill_hole(x, holes[i], hole_sizes[i] , sep, label)
+        holes[i+1] <- holes[i+1] + hole_sizes[i]
+      }
     }
   }
   

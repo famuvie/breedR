@@ -17,8 +17,10 @@
 #' representations of a variogram which assumes that the process depends only on
 #' the absolute distance between rows and columns.
 #' 
-#' Unless \code{coord} or \code{z} are specified by the user, \code{variogram}
-#' plots
+#' Unless \code{coord} or \code{z} are specified by the user, \code{variogram} 
+#' builds the variogram with the residuals of the model fit in \code{x}. If
+#' \code{coord} or \code{z} are specified, then the spatial coordinates or the
+#' residuals are respectively overrided.
 #' 
 #' This function assumes that there is at most one observation per spatial 
 #' location. Otherwise, are observations measured at different times? should a 
@@ -29,18 +31,28 @@
 #'   is 'all'. Other options are 'isotropic', 'heat', 'perspective' and 
 #'   'anisotropic'. See Details.
 #' @param R numeric. Radius of the variogram
-#' @param coord a two-column matrix with coordinates of observations
-#' @param z a numeric vector of values to be represented spatially
+#' @param coord (optional) a two-column matrix with coordinates of observations
+#' @param z (optional) a numeric vector of values to be represented spatially
 #'   
 #'   
 #' @importFrom fields vgram.matrix
 #' @export
 variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspective', 'heat', 'none'), R, coord, z) {
   
-  if( !inherits(x, 'breedR') & (missing(coord) | missing(z)) ) 
-    stop(paste('This function works on models fitted with breedR,',
-               'or with both arguments coord and z.\n',
-               sep='\n'))
+  if( missing(x) ) {
+    if( (missing(coord) | missing(z)) ) {
+      stop(paste('This function works on models fitted with breedR,',
+                 'or with both arguments coord and z.\n',
+                 sep='\n'))
+    } else {
+      stopifnot(is.numeric(coord))
+      coord <- as.matrix(coord)
+      stopifnot(ncol(coord) == 2)
+      stopifnot(nrow(coord) > 1)
+    }
+  } else {
+    stopifnot(inherits(x, 'breedR'))
+  }
   
   plot <- match.arg(plot)
   # We need to place the residuals in matrix form

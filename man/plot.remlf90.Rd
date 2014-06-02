@@ -2,17 +2,18 @@
 \alias{plot.remlf90}
 \title{Plot a model fit}
 \usage{
-plot.remlf90(x, y = NULL, type = c("phenotype", "fitted", "spatial",
-  "residuals"))
+plot.remlf90(x, type = c("phenotype", "fitted", "spatial", "fullspatial",
+  "residuals"), z = NULL)
 }
 \arguments{
   \item{x}{A remlf90 object, or a matrix (-like) of
   coordinates}
 
-  \item{y}{Optional. A numeric vector to be plotted.}
-
   \item{type}{Character. Plot type. 'spatial' is currently
   the only option.}
+
+  \item{z}{Optional. A numeric vector to be plotted with
+  respect to the spatial coordinates.}
 }
 \description{
 Plots the predicted values of the spatial component of the
