@@ -65,7 +65,8 @@ build.ar.model <- function (coord, rho, autofill) {
   # from the precision matrix?
   B <- sparseMatrix(i = 1:length(data.ordering),
                     j = data.ordering,
-                    x = 1)
+                    x = 1,
+                    dims = c(length(data.ordering), dimUinv[1]))
   
   Uinv <- Uinv * gmean(Matrix::diag(B %*% solve(Uinv) %*% Matrix::t(B)))
   
