@@ -1,3 +1,6 @@
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 data(globulus)
 ped <- build_pedigree(1:3, data = globulus)
 # Test function

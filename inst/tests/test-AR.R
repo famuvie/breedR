@@ -1,3 +1,6 @@
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 #### Build small testbeds ####
 build.testbed <- function(corner = c(0, 0), size, treesep = c(1, 1), beta){
   n = size[1] * size[2]
@@ -48,13 +51,13 @@ context("AR models with diffferent arrangements of trees")
 
 # Fit models both with EM and AI-REML
 run.model <- function(dat, method) {
-  res = try(suppressWarnings(remlf90(fixed = y ~ 1 + z, 
-                                     spatial = list(model = 'AR',
-                                                    coord = dat[, 1:2],
-                                                    rho = c(.9, .9)),
-                                     data = dat,
-                                     method = method)),
-                             silent = TRUE)
+  res = try(remlf90(fixed = y ~ 1 + z, 
+                    spatial = list(model = 'AR',
+                                   coord = dat[, 1:2],
+                                   rho = c(.9, .9)),
+                    data = dat,
+                    method = method),
+  silent = TRUE)
   return(list(dat = dat,
               method = method,
               res = res))

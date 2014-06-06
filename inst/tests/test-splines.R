@@ -1,3 +1,6 @@
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 context("Number of knots")
 ##########################
 
@@ -49,12 +52,12 @@ data(m1)
 dat <- as.data.frame(m1)
 
 # Use a different number of knots for rows and columns
-res <- try(suppressWarnings(remlf90(fixed = phe_X ~ sex, 
+res <- try(remlf90(fixed = phe_X ~ sex, 
                                     spatial = list(model = 'Cappa07', 
                                                    coord = coordinates(m1),
                                                    n.knots = c(2, 3)), 
                                     data = dat,
-                                    method = 'em')),
+                                    method = 'em'),
            silent = TRUE)
 
 

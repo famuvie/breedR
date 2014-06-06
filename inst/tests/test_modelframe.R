@@ -1,5 +1,8 @@
 ### Test the building of model frames ###
 
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 # In particular, check that the intercept attribute is always set to zero,
 # and it is manually introduced in the model frame when necessary
 

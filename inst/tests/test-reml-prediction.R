@@ -1,4 +1,6 @@
 ### For testing prediction, we perform a cross-validation excercise ###
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
 
 data(m1)
 

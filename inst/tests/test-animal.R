@@ -1,3 +1,6 @@
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 data(m1)
 dat <- as.data.frame(m1)
 ped <- get_pedigree(m1)

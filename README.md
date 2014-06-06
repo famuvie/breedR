@@ -40,7 +40,7 @@ This package provides frequentist and Bayesian statistical tools to build predic
 ##### Test cycle
 - Check the automated tests
   - `library('testthat')`
-  - `test_dir(system.file('test', package = 'breedR'))`
+  - `test_dir(system.file('tests', package = 'breedR'))`
 - Try it with your own data or with provided datasets
 - Report [issues](https://github.com/famuvie/breedR/issues "Issues page")
 

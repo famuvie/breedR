@@ -1,4 +1,7 @@
 #### pedigree building and checking ####
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 context("Pedigree")
 
 # Use the pedigree in data(m4) and shuffle the codes
@@ -25,7 +28,7 @@ test_that('The shuffled pedigree fails all checks', {
 })
 
 # Reorder and recode 
-ped_fix <- suppressWarnings(build_pedigree(1:3, data = ped_shuffled))
+ped_fix <- build_pedigree(1:3, data = ped_shuffled)
 test_that('build_pedigree() fixes everything', {
   expect_that(all(check_pedigree(ped_fix)), is_true())
 })
@@ -56,9 +59,7 @@ map <- sample(10*mcode, size = mcode)
 m1_shuffled <- m1
 m1_shuffled$Data[, 1:3] <- sapply(as.data.frame(ped), function(x) map[x])
 
-ped_fix <- suppressWarnings(
-  build_pedigree(1:3, data = as.data.frame(get_pedigree(m1_shuffled)))
-)
+ped_fix <- build_pedigree(1:3, data = as.data.frame(get_pedigree(m1_shuffled)))
 
 res_shuffled <- try(
   remlf90(fixed = phe_X ~ sex,
