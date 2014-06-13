@@ -50,6 +50,8 @@ build.ar.model <- function (coord, rho, autofill) {
   dimUinv <- dim(Uinv)
   stopifnot(identical(dimUinv[1], dimUinv[2]))
   
+  
+  
   # Map data coordinates with corresponding index of the Q matrix
   matrix2vec <- function(x, nx = pos.length[1], ny = pos.length[2]) {
     map <- matrix(1:(nx*ny), nx, ny)
@@ -68,7 +70,20 @@ build.ar.model <- function (coord, rho, autofill) {
                     x = 1,
                     dims = c(length(data.ordering), dimUinv[1]))
   
-  Uinv <- Uinv * gmean(Matrix::diag(B %*% solve(Uinv) %*% Matrix::t(B)))
+  
+  # In the AR1xAR1 model, B is a permutation matrix, thus 
+  # diag(B·U·B') = diag(U)
+  # On the other hand, U = Q2inv %*% Q1inv, the kronecker product of the
+  # one-dimentional autoregressive covariance matrices, which have constant
+  # diagonal equal to 1/(1-rho^2).
+  # An element in the diagonal of the kronecker product is the scalar product
+  # of the corresponding elements in the diagonals (which are constant)
+  # So, diag(U) is constant, and the geometric mean turns out to be the 
+  # product of 1/(1-rho**2) for both rhos.
+  #   scaling <- gmean(Matrix::diag(B %*% solve(Uinv) %*% Matrix::t(B)))
+  scaling <- prod(1/(1-rho**2))
+  
+  Uinv <- Uinv * scaling
   
   # Store only the lower triangle of the symmetric matrix Q in triplet form
   trilUinv <- as(tril(Uinv), 'dgTMatrix')
