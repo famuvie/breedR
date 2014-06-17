@@ -33,12 +33,6 @@ build.ar.model <- function (coord, rho, autofill) {
   if( !all(pos.length > 2) )
     stop('Are you kidding? This is a line!')
   
-  # Build precision matrix of AR1(rho) in the line
-  build.AR1d <- function(n, x) {
-    temp <- diag(c(1, rep(1 + x^2, n-2), 1))
-    subdiag <- rbind(0, cbind(diag(-x, n-1), 0))
-    return(as(Matrix(temp + subdiag + t(subdiag), sparse = TRUE), 'dgTMatrix'))
-  }
   Q1d <- mapply(build.AR1d, pos.length, rho)
 
   # Precision matrix for the AR1(rho_x) x AR1(rho_y) process
@@ -64,7 +58,7 @@ build.ar.model <- function (coord, rho, autofill) {
   # Sorbye and Rue (2014)
   # Caveat: I need to invert the matrix here
   # Is there a way of finding the characteristic marginal variance
-  # from the precision matrix?
+  # from the precision matrix? Yes. see below.
   B <- sparseMatrix(i = 1:length(data.ordering),
                     j = data.ordering,
                     x = 1,
@@ -73,8 +67,8 @@ build.ar.model <- function (coord, rho, autofill) {
   
   # In the AR1xAR1 model, B is a permutation matrix, thus 
   # diag(B·U·B') = diag(U)
-  # On the other hand, U = Q2inv %*% Q1inv, the kronecker product of the
-  # one-dimentional autoregressive covariance matrices, which have constant
+  # On the other hand, U = Q2inv %x% Q1inv, the kronecker product of the
+  # one-dimentional autoregressive *covariance* matrices, which have constant
   # diagonal equal to 1/(1-rho^2).
   # An element in the diagonal of the kronecker product is the scalar product
   # of the corresponding elements in the diagonals (which are constant)
@@ -124,3 +118,9 @@ build.AR.rho.grid <- function(rho) {
   return(grid)
 }
 
+# Build precision matrix of AR1(rho) in the line
+build.AR1d <- function(n, x) {
+  temp <- diag(c(1, rep(1 + x^2, n-2), 1))
+  subdiag <- rbind(0, cbind(diag(-x, n-1), 0))
+  return(as(Matrix(temp + subdiag + t(subdiag), sparse = TRUE), 'dgTMatrix'))
+}

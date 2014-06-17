@@ -1,0 +1,65 @@
+\name{simulation}
+\alias{breedR.sample.AR}
+\alias{breedR.sample.BV}
+\alias{breedR.sample.pedigree}
+\alias{simulation}
+\title{Simulation of phenotypes and model components}
+\usage{
+breedR.sample.phenotype(fixed = NULL, random = NULL, genetic = NULL,
+  spatial = NULL, residual.variance, N = NULL)
+
+breedR.sample.AR(size, rho, sigma2, N = 1)
+
+breedR.sample.BV(ped, Sigma, N = 1)
+
+breedR.sample.pedigree(Nobs, Nparents, check.factorial = TRUE)
+}
+\arguments{
+  \item{fixed}{a numeric vector of regression
+  coefficients.}
+
+  \item{N}{numeric. Number of samples to be drawn.}
+
+  \item{size}{numeric. A vector of length two with the
+  number of rows and columns}
+
+  \item{rho}{numeric. A vector of length two with the
+  autocorrelation parameters for the row and column
+  autoregressive processes}
+
+  \item{sigma2}{numeric. The marginal variance}
+
+  \item{ped}{a pedigree object}
+
+  \item{Sigma}{numeric. The additive genetic variance.
+  Either a variance for a single additive genetic effect,
+  or a matrix with the covariance structure for a set of
+  correlated genetic effects}
+
+  \item{Nobs}{numeric. Number of individuals to sample}
+
+  \item{Nparents}{numeric. Vector of length two. Number of
+  fathers and mothers to randomly mate.}
+
+  \item{check.factorial.}{logical. If TRUE, checks whether
+  all the possible matings had taken place at least once.}
+}
+\description{
+These functions allow to draw samples from several models
+(spatial, genetic, competition, etc.) and to combine them
+to produce a simulated phenotype. The resulting dataset can
+then be fitted with breedR to compare the estimations with
+the true underlying parameters.
+}
+\details{
+\code{breedR.sample.AR} simulates a two-dimensional spatial
+process as the kronecker product of first-order
+autoregressive processes in each dimension.
+
+\code{breedR.sample.BV} simulates a set of breeding values
+(BV) given a pedigree
+
+\code{breedR.sample.pedigree} simulates a one-generation
+pedigree from random mating of independent founders
+}
+

@@ -1,7 +1,7 @@
 Package: breedR
 Type: Package
 Title: Statistical methods for forest genetic resources analysts
-Version: 0.6-4
+Version: 0.6-5
 Date: 2013-11-12
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
@@ -33,7 +33,8 @@ Imports:
     fields,
     grid
 Suggests:
-    testthat
+    testthat,
+    spam
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
