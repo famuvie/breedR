@@ -274,14 +274,14 @@ remlf90 <- function(fixed,
         rho.grid <- spatial$rho
       }
       
-      if( !is.null(nrow(spatial$rho)) ) {
+      if( !is.null(nrow(rho.grid)) ) {
         
         # Results conditional on rho
         eval.rho <- function(rho, mc) {
           mc$spatial$rho <- rho
           ## Bloody function environments and scoping rules!
           mc$spatial$coord <- spatial$coord
-          mc$data <- data
+          mc$data <- quote(data)
           suppressWarnings(eval(mc))   # Avoid multiple redundant warnings
                                        # about initial variances.
         }
