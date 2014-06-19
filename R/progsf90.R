@@ -10,10 +10,18 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   # or other complex effects.
   # Builds the lines in the EFFECTS section
   parse.effect <- function(x) {
+    # TODO: Fix the spatial models to include also 'levels' and 'type'
+    # elements in the effects list (build.effects). 
+    # So I can get rid of this function.
     if(length(x$pos) > 1) {
-      # Effects that reflect into multiple lines (e.g. spatial)
+      # Effects that reflect into multiple lines (e.g. spatial, competition)
       n.pos <- length(x$pos)
-      paste(x$pos, c(rep(0, n.pos-1), n.pos), 'cov', tail(x$pos, 1) + 1:n.pos)
+      if( !is.null(x$levels) ) {
+        with(x, paste(pos, levels, type))
+      } else {
+        # This is specific for the splines model
+        paste(x$pos, c(rep(0, n.pos-1), n.pos), 'cov', tail(x$pos, 1) + 1:n.pos)
+      }
     }
     else {
       # Simple effects
@@ -46,7 +54,8 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
               residvar = res.var.ini,
               rangroup = lapply(random.effects.idx, 
                                 function(x) {
-                                  list(pos = tail(effects[[x]]$pos, 1)-ntraits,
+                                  list(pos = head(effects[[x]]$pos,
+                                                  nrow(as.matrix(effects[[x]]$var)))-ntraits,
                                        type = effects[[x]]$model, 
                                        file = effects[[x]]$file, 
                                        cov  = effects[[x]]$var)
@@ -77,7 +86,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
     }
     switch(name,
            '(Intercept)' = rep(1L, n),
-           genetic       = effects$genetic$idx,
+           genetic       = effects$genetic$gen$B,
            spatial       = process.spatial.dat(effects$spatial),
            mf[[name]])
   }
@@ -136,7 +145,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
   effects <- list()
   
   # Intercept term, if not precluded explicitly in the formula
-  if(attr(mt, 'intercept')) {
+  if( attr(mt, 'intercept') ) {
     effects <- list('(Intercept)'=list(pos = pos, levels=1L, type='cross'))
     pos <- pos + 1
   }
@@ -160,7 +169,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     return(list(pos=pos, levels=nl, type=type))
   }
   
-  # Parameters for all effects in the formula
+  # Parameters for all effects in the fixed formula
   effects <- c(effects, lapply(attr(mt, 'term.labels'), eff.par.f))
   ef_names <- attr(mt, 'term.labels')
   names(effects)[pos-ntraits - length(ef_names):1] <- ef_names
@@ -176,28 +185,49 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
   }
   
   # Genetic effect
-  # Both the genetic and spatial terms are "cross"
+  # Both the additive genetic and spatial terms are "cross"
+  # The competition effect is nested into the additive genetic and it is 'cov'
+  # with the funny structure of zeroes to produce the sum of effects
   # For pedigree effects, there might be more levels than those
   # present in the data. We should declare the levels present in the pedigree.
-  # It is possible that the pedigree has been recoded/reordered
-  # In that case, we need to recode the data file id codes as well
-  if( !is.null(attr(genetic$pedigree, 'map')) )
-    idx <- attr(genetic$pedigree, 'map')[genetic$id]
-  else
-    idx <- genetic$id
   
-  if(!is.null(genetic)) {
+  if( !is.null(genetic) ) {
+
+    if( is.null(genetic$autofill) ) {
+      genetic$autofill = TRUE
+    }
+    
+    gen <- build.genetic.model(genetic)
+    
+    gen.levels <- nrow(as.data.frame(genetic$pedigree))
+    gen.type   <- 'cross'
+
+    # max n of competitors (0 under no competition)
+    n.comp <- (ncol(gen$B) - 1)/2
+    
+    # In the competition model, B has one column for the animal direct effect,
+    # and two columns for each neighbouring effect (at most 8), one for the 
+    # IC and the other for keeping the neigbour index.
+    if( genetic$model == 'competition' ) {
+      stopifnot(n.comp > 0)
+      gen.levels <- c(gen.levels,
+                      rep(0, n.comp - 1),
+                      gen.levels)
+      gen.type   <- c(gen.type,
+                      paste('cov', pos + n.comp + 1:n.comp))
+    }
+    
     effects <- c(effects, 
                  genetic = list(
-                   list(pos = pos,
-                        levels = nrow(as.data.frame(genetic$pedigree)),
-                        type = 'cross',
-                        model = genetic$model,
-                        file = 'pedigree',
-                        ped = as.data.frame(genetic$pedigree),
-                        idx = idx,
-                        var = genetic$var.ini)))
-    pos = pos + 1
+                   list(pos    = pos - 1 + 1:(1 + n.comp),
+                        levels = gen.levels,
+                        type   = gen.type,
+                        model  = 'add_animal', # both add_animal or competition
+                        file   = 'pedigree',
+                        ped    = as.data.frame(genetic$pedigree),
+                        var    = genetic$var.ini,
+                        gen    = gen)))
+    pos = pos + 1 + 2 * n.comp
   }
   
   # Spatial effect if applicable
@@ -205,7 +235,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
   # TODO: let the user determine the degree/order of the B-splines
   # the functions build.*.model need to return a list with 
   # an element B
-  if(!is.null(spatial)) {
+  if( !is.null(spatial) ) {
     
     if( is.null(spatial$autofill) ) {
       spatial$autofill = TRUE
@@ -289,10 +319,16 @@ write.progsf90 <- function (pf90, dir) {
            paste(unlist(effects)),
            'RANDOM_RESIDUAL VALUES', residvar,
            sapply(rangroup, 
-                  function(x) c('RANDOM_GROUP', x$pos,
-                                'RANDOM_TYPE', x$type,
-                                'FILE', x$file,
-                                '(CO)VARIANCES', x$cov)),
+                  function(x) c('RANDOM_GROUP',
+                                paste(x$pos, collapse = ' '),
+                                'RANDOM_TYPE',
+                                x$type,
+                                'FILE',
+                                x$file,
+                                '(CO)VARIANCES',
+                                apply(as.matrix(x$cov), 1,
+                                      paste,
+                                      collapse = ' '))),
            paste('OPTION', options)))
   
   
@@ -373,8 +409,19 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   genetic.fit <- spatial.fit <- genetic.pred <- spatial.pred <- NULL
   
   if(isGenetic){
-    ranef$genetic <- result$genetic$value
-    genetic.fit <- result$genetic$value[effects$genetic$idx]
+    # Work around to account for genetic competition models
+    # In this case, the incidence matrix has more than one column
+    if( ncol(effects$genetic$gen$B) ==1 ) {
+      ranef$genetic <- result$genetic$value
+      genetic.fit <- result$genetic$value[as.numeric(effects$genetic$gen$B)]
+    } else {
+      gen.idx <- which(names(result) == 'genetic')
+      stopifnot(is.na(names(result)[gen.idx + 1]))
+      names(result)[gen.idx + 1] <- 'competition'
+      ranef$genetic <- list(direct = result$genetic,
+                            competition = result$competition)
+      genetic.fit <- result$genetic$value[as.numeric(effects$genetic$gen$B[,1])]
+    }
   }
   # Spatial Surface
   # Here, the random effects are the underlying model parameters,
@@ -441,6 +488,12 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   #                                ranef[c('genetic', 'spatial')]))
   if(isGenetic | isSpatial)
     eta <- eta + rowSums(cbind(genetic.fit, spatial.fit$z))
+  
+  # TODO!!!
+  if( length(effects$spatial$pos) > 1 ) {
+    warning('Fitted values do not take into account the competition effect yet.')
+  }
+    
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
   # TODO: apply inverse link
@@ -477,8 +530,26 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
     # There should be one variance for each random effect plus one resid. var.
     stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
-    varcomp <- cbind('Estimated variances' = as.numeric(reml.out[varcomp.idx]))
-    rownames(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
+
+    rangroup.sizes <- c(sapply(effects[random.effects.idx],
+                               function(x) nrow(x$var)),
+                        resid = 1)
+    if( all(rangroup.sizes == 1) ){
+      varcomp <- cbind('Estimated variances' = as.numeric(reml.out[varcomp.idx]))
+      rownames(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
+    } else {
+      varcomp.str <- lapply(mapply(function(x, y) x + 1:y,
+                                   varcomp.idx-1,
+                                   rangroup.sizes),
+                            function(x) reml.out[x])
+      parse.varmat <- function(v) {
+        ans <- sapply(v, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
+        names(ans) <- dimnames(ans) <- NULL
+        ans
+      }
+      varcomp <- lapply(varcomp.str, parse.varmat)
+      names(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
+    }
     
     # EM-REML does not print Standard Errors for variance components
     if(method == 'ai'){
@@ -489,9 +560,18 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       # Watch out!! AI-REML gives SE for R in the *first place*
       # even when the variance component was last
       varsd.idx <- c(varsd.idx[-1], varsd.idx[1])
-      varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
-    }
-
+      if( all(rangroup.sizes == 1) ){
+        varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
+      } else {
+        varsd.str <- lapply(mapply(function(x, y) x + 1:y,
+                                     varsd.idx-1,
+                                     rangroup.sizes),
+                              function(x) reml.out[x])
+        varsd <- lapply(varsd.str, parse.varmat)
+        names(varsd) <- c(names(effects)[random.effects.idx], 'Residual')
+      }
+  }
+    
     # Update: we step back from this decision. We report the estimated variance
     # parameter of the spatial effect, even if it is not additive.
     # It might be used for comparison of the same model fitted to different data.
@@ -546,7 +626,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     mf = mf,
     mm = mm,
     y = y,
-    fixed = result[fixed.effects.idx],
+    fixed = result[which(fixed.effects.idx)],
     ranef = ranef,
     eta = eta,
     mu = mu,

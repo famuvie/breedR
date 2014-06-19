@@ -216,8 +216,9 @@ remlf90 <- function(fixed,
     var.ini <- as.list(rep(breedR.getOption('default.initial.variance'),
                            length(random.terms)))
     names(var.ini) <- random.terms
-    if( !is.na(var.ini.checks['genetic']) )
+    if( !is.na(var.ini.checks['genetic']) ){
       genetic$var.ini <- breedR.getOption('default.initial.variance')
+    }
     if( !is.na(var.ini.checks['spatial']) )
       spatial$var.ini <- breedR.getOption('default.initial.variance')
   }
@@ -240,24 +241,30 @@ remlf90 <- function(fixed,
 
   
   # Genetic effect
-  if(!is.null(genetic)) {
-    genetic$model <- match.arg(genetic$model, choices = c('add_animal'))
+  if( !is.null(genetic) ) {
+    genetic$model <- match.arg(genetic$model,
+                               choices = c('add_animal', 'competition'))
 
     if( !all(check_pedigree(genetic$pedigree)) )
       genetic$pedigree <- build_pedigree(1:3, data = genetic$pedigree)
     
-    if(length(genetic$id)==1) {
+    if( length(genetic$id)==1 ) {
       genetic$id <- data[, genetic$id]
+    }
+    
+    if( genetic$model == 'competition' ) {
+      genetic$var.ini <- diag(genetic$var.ini, 2)
+      genetic$var.ini[1,2] <- genetic$var.ini[2,1] <- -genetic$var.ini[1,1]/2
     }
   }
   
   # Spatial effect
-  if(!is.null(spatial)) {
+  if( !is.null(spatial) ) {
     spatial$model <- match.arg(spatial$model,
                                choices = c('Cappa07', 'AR', 'blocks'))
     
     # If blocks model, include the values of the relevant covariate
-    if(spatial$model == "blocks") {
+    if( spatial$model == "blocks" ) {
       spatial$id <- data[, spatial$id]
     }
     
@@ -265,7 +272,7 @@ remlf90 <- function(fixed,
     # we need to fit it with several fixed rho's
     # and return the most likely
     # TODO: It would be nice if we didn't need to recompute Q each time
-    if(spatial$model == 'AR') {
+    if( spatial$model == 'AR' ) {
       if( is.null(spatial$rho) ) spatial$rho <- matrix(c(NA, NA), 1, 2)
       if( any(is.na(spatial$rho)) ) {
         # Evaluation values for rho
@@ -330,6 +337,8 @@ remlf90 <- function(fixed,
   # Change to temporal directory to avoid specification of long paths
   # Avoids Issue #1
   cdir <- setwd(tmpdir)
+  on.exit(setwd(cdir))
+  
   reml.out <- switch(method,
                      ai = system2(file.path(binary.path, 'airemlf90'), 
                                  input  = parameter.file.path,
@@ -338,8 +347,7 @@ remlf90 <- function(fixed,
                                  input  = parameter.file.path,
                                  stdout = ifelse(debug, '', TRUE))
   )
-  # Return to current directory
-  setwd(cdir)
+  
   
   if( !debug ) {
     # Error catching

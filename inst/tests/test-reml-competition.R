@@ -1,12 +1,12 @@
 ### For testing competition, we perform a simulation excercise ###
 
 set.seed(12345)
-grid.size <- c(x = 3, y = 4)   # x: columns, y: rows
+grid.size <- c(x = 20, y = 25)   # x: columns, y: rows
 # dist.rc <- c(x = 3, y = 5)
 coord <- expand.grid(sapply(grid.size, seq))
 Nobs <- prod(grid.size)
-Nparents <- c(mum = 2, dad = 2)
-rho <- -.5  # genetic correlation between additive and competitive values
+Nparents <- c(mum = 10, dad = 10)
+rho <- -.7  # genetic correlation between additive and competitive values
 sigma2_a <- 2   # additive genetic variance
 sigma2_c <- 1   # competitive genetic variance
 sigma2   <- .5   # residual variance
@@ -21,37 +21,31 @@ ped.obs <- data.frame(id = 1:Nobs + sum(Nparents),
 fullped <- build_pedigree(1:3, data = ped.obs)
 
 # checks
-stopifnot(all(xtabs( ~ mum + dad, data = ped.obs) > 0))
+# stopifnot(all(xtabs( ~ mum + dad, data = ped.obs) > 0))
 stopifnot(all(check_pedigree(fullped)))
 
 # Additive matrix
-# Not valid for a general pedigree
-# Founders indepedent, no inbreeding, only one generation, no diploids
-A.coef <- function(x, y) {
-  # Number of coincident parents
-  # either 0, 1 or 2
-  z = sum(x - y == 0, na.rm = TRUE)
-  switch(z + 1, 0, .25, .5)
-}
-
-# TODO: The relationship between parents and offspring is missing
-ped <- as.data.frame(fullped)
-trilA <- do.call(c,
-                 sapply(1:(nrow(ped)-1),
-                        function(i) apply(ped[-(1:i), -1], 1,
-                                          function(y) A.coef(ped[i, -1], y))))
-A <- matrix(0, nrow(ped), nrow(ped))
-A[lower.tri(A)] <- trilA
-A <- diag(nrow(ped)) + A + t(A)
+# Precision matrices are more sparse
+  # # Workaround with package pedigree
+  # makeAinv(as.data.frame(fullped))
+  # Ai <- read.table("Ainv.txt")
+  # nInd <- nrow(as.data.frame(fullped))
+  # Ainv <- matrix(0,nrow = nInd,ncol = nInd)
+  # Ainv[as.matrix(Ai[,1:2])] <- Ai[,3]
+  # dd <- diag(Ainv)
+  # Ainv <- Ainv + t(Ainv)
+  # diag(Ainv) <- dd
+Ainv <- pedigreemm::getAInv(fullped)
 
 # Covariance matrix for the genetic effects (a, c)
 S_ac <- matrix(c(sigma2_a, rho*sqrt(sigma2_a*sigma2_c),
                  rho*sqrt(sigma2_a*sigma2_c), sigma2_c), 2, 2)
-Sigma <- kronecker(S_ac, A)
+Q <- kronecker(solve(S_ac), Ainv)
 
 # Simulate genetic effects
-gen_a_c <- matrix(MASS::mvrnorm(mu = rep(0, 2*nrow(ped)),
-                         Sigma = Sigma),
+ped <- as.data.frame(fullped)
+gen_a_c <- matrix(spam::rmvnorm.prec(n = 1,
+                                     Q = Q),
                   ncol = 2,
                   dimnames = list(NULL, c('a', 'c')))
 
@@ -75,31 +69,6 @@ dat <- data.frame(coord[sample(Nobs),],
 # Compute IFCs and corresponding neighbours. Assume equal row/col spacing and
 # competition intensity decreasing with inverse distance
 
-# 'move' left-right up-down and add 1 where there are neighbours
-neighbours.at <- function(x, dir) UseMethod('neighbours.at')
-neighbours.at.matrix <-function(x, dir) {
-  stopifnot(is.character(dir))
-  if( length(dir) == 1 ){
-    dimx <- dim(x)
-    switch(dir,
-           N = rbind(NA, x[-dimx[1], ]),
-           S = rbind(x[-1, ], NA),
-           E = cbind(x[, -1], NA),
-           W = cbind(NA, x[, -dimx[2]]),
-           NE = cbind(rbind(NA, x[-dimx[1], -1]), NA),
-           SE = cbind(rbind(x[-1, -1], NA), NA),
-           SW = cbind(NA, rbind(x[-1, -dimx[2]], NA)),
-           NW = cbind(NA, rbind(NA, x[-dimx[1], -dimx[2]]))
-    )
-  } else {
-    sapply(dir, function(d) neighbours.at(x, d))
-  }
-}
-neighbours.at.list <- function(x, dir) {
-  # Check that it is a list of matrices
-  stopifnot(all(lapply(x, class) == 'matrix'))
-  lapply(x, neighbours.at, dir)
-}
 
 # neighbours and weighted coefficients of IC
 X <- local({
@@ -111,8 +80,8 @@ X <- local({
   matlst <- lapply(dat[ord, c('id', 'a', 'c', 'e')],
                    function(x) matrix(x, nrow = grid.size['y']))
   
-  rect <- neighbours.at(matlst, c('N', 'S', 'E', 'W'))
-  diag <- neighbours.at(matlst, c('NE', 'SE', 'SW', 'NW'))
+  rect <- breedR:::neighbours.at(matlst, c('N', 'S', 'E', 'W'))
+  diag <- breedR:::neighbours.at(matlst, c('NE', 'SE', 'SW', 'NW'))
 
   dat <- c(rect$id,
            diag$id,
@@ -159,4 +128,38 @@ dat$wnc <- rowSums(X[,10:17] * X[,18:25], na.rm = TRUE)
 
 # Simulated phenotype
 dat <- transform(dat, z = a + wnc + e)
+
+
+
+#### Fitting the competition model with remlf90
+
+# fixed  = z ~ 1
+# random = NULL
+# genetic = list(model = c('comp'), 
+#                pedigree = dat[, c('id', 'mum', 'dad')],
+#                id = 'id',
+#                coord = dat[, c('x', 'y')],
+#                competition_decay = 1)
+# spatial = NULL
+# method = 'ai'
+# data = dat
+# debug = FALSE
+# mc <- call('remlf90',
+#            fixed = fixed,
+#            random = random,
+#            genetic = genetic,
+#            spatial = spatial,
+#            method = method,
+#            data = data,
+#            debug = debug)
+# 
+# res <- remlf90(fixed  = z ~ 1,
+#                genetic = list(model = c('comp'), 
+#                               pedigree = dat[, c('id', 'mum', 'dad')],
+#                               id = 'id',
+#                               coord = dat[, c('x', 'y')],
+#                               competition_decay = 1), 
+#                data = dat,
+#                method = 'ai',
+#                debug = T)
 
