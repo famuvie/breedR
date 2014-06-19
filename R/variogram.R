@@ -45,8 +45,8 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
                  'or with both arguments coord and z.\n',
                  sep='\n'))
     } else {
-      stopifnot(is.numeric(coord))
       coord <- as.matrix(coord)
+      stopifnot(is.numeric(coord))
       stopifnot(ncol(coord) == 2)
       stopifnot(nrow(coord) > 1)
     }
