@@ -99,12 +99,12 @@ X <- local({
   # 3 = neighbour c
   x <- array(dat, dim = c(rev(grid.size), 8, 3))
   
-  # normalize to make all coefficient add up to one throughout dim. 3
-  normalizing.constant = apply(x[,,,2], 1:2, sum, na.rm = TRUE)
-  x[,,,2] <- x[,,,2] / as.vector(normalizing.constant)
+  # normalize to make all squared-coefficients add up to one throughout dim. 3
+  normalizing.constant = apply(x[,,,2]**2, 1:2, sum, na.rm = TRUE)
+  x[,,,2] <- x[,,,2] / as.vector(sqrt(normalizing.constant))
   
   # check
-  stopifnot(all(apply(x[,,,2], 1:2, sum, na.rm = TRUE) == 1))
+  stopifnot(all(sapply(apply(x[,,,2]**2, 1:2, sum, na.rm = TRUE), all.equal, 1)))
   
   # result in tabular form
   # first eight cols are neighbour idx, last eight are coefs that add up to 1
@@ -117,7 +117,7 @@ X <- local({
   rownames(res) <- NULL
   
   # check
-  stopifnot(all(apply(res[,10:17], 1, sum, na.rm = TRUE) == 1))
+  stopifnot(all(sapply(apply(res[,10:17]**2, 1, sum, na.rm = TRUE), all.equal, 1)))
   
   # return results in the original order of the data frame
   res[order(ord),]
@@ -160,6 +160,6 @@ dat <- transform(dat, z = a + wnc + e)
 #                               coord = dat[, c('x', 'y')],
 #                               competition_decay = 1), 
 #                data = dat,
-#                method = 'ai',
-#                debug = T)
+#                method = 'em',
+#                debug = F)
 

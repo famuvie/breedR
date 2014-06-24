@@ -79,13 +79,13 @@ build.genetic.model <- function (genetic) {
     Bneigh <- neighbours.at(idx.mat, dirs)[ord, ]
     
     # IC of neighbouring trees at each direction
-    # normalize to make all coefficients add up to one
+    # normalize to make all coefficients-squared add up to one
     BIC <- sapply(1:length(dirs),
                   function(dir) ifelse(is.na(Bneigh[, dir]), NA, wdir.dist[dir]))
-    BIC <- BIC / apply(BIC, 1, sum, na.rm = TRUE)
+    BIC <- BIC / sqrt(apply(BIC**2, 1, sum, na.rm = TRUE))
     
     # check
-    stopifnot(all(apply(BIC, 1, sum, na.rm = TRUE) == 1))
+    stopifnot(all(sapply(apply(BIC**2, 1, sum, na.rm = TRUE), all.equal, 1)))
     
     
       
