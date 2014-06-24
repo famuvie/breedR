@@ -5,10 +5,12 @@ grid.size <- c(x = 20, y = 25)   # x: columns, y: rows
 # dist.rc <- c(x = 3, y = 5)
 coord <- expand.grid(sapply(grid.size, seq))
 Nobs <- prod(grid.size)
-Nparents <- c(mum = 10, dad = 10)
+Nparents <- c(mum = 20, dad = 20)
 rho <- -.7  # genetic correlation between additive and competitive values
+            # covariance = -.7 * sqrt(2) = -0.98
 sigma2_a <- 2   # additive genetic variance
 sigma2_c <- 1   # competitive genetic variance
+sigma2_p <- .5  # permanent environment effect of competition
 sigma2   <- .5   # residual variance
 
 ped.obs <- data.frame(id = 1:Nobs + sum(Nparents),
@@ -57,6 +59,7 @@ gen_a_c <- matrix(spam::rmvnorm.prec(n = 1,
 dat <- data.frame(coord[sample(Nobs),],
                   ped.obs,
                   tail(gen_a_c, Nobs),
+                  pef = rnorm(Nobs, sd = sqrt(sigma2_p)),
                   e = rnorm(Nobs, sd = sqrt(sigma2)))
 
 # check
@@ -77,7 +80,7 @@ X <- local({
 
   # It is convenient to work with matrices representing the spatial arrangement
   ord <- order(dat$x, dat$y)
-  matlst <- lapply(dat[ord, c('id', 'a', 'c', 'e')],
+  matlst <- lapply(dat[ord, c('id', 'a', 'c', 'e', 'pef')],
                    function(x) matrix(x, nrow = grid.size['y']))
   
   rect <- breedR:::neighbours.at(matlst, c('N', 'S', 'E', 'W'))
@@ -88,7 +91,9 @@ X <- local({
            ifelse(is.na(rect$id), NA, 1/rect.dist),
            ifelse(is.na(diag$id), NA, 1/diag.dist),
            rect$c,
-           diag$c)
+           diag$c,
+           rect$pef,
+           diag$pef)
 
   # Four-dimensional array
   # two first dimensions are spatial
@@ -97,7 +102,8 @@ X <- local({
   # 1 = neighbour idx
   # 2 = neighbour IFC
   # 3 = neighbour c
-  x <- array(dat, dim = c(rev(grid.size), 8, 3))
+  # 4 = neighbour pef
+  x <- array(dat, dim = c(rev(grid.size), 8, 4))
   
   # normalize to make all squared-coefficients add up to one throughout dim. 3
   normalizing.constant = apply(x[,,,2]**2, 1:2, sum, na.rm = TRUE)
@@ -109,11 +115,12 @@ X <- local({
   # result in tabular form
   # first eight cols are neighbour idx, last eight are coefs that add up to 1
   res <- data.frame(as.vector(matlst$id),
-                    array(x, dim = c(prod(grid.size), 24)))
+                    array(x, dim = c(prod(grid.size), 32)))
   colnames(res) <- c('idx',
                      paste('n', 1:8, sep = ''),
                      paste('ifc', 1:8, sep = ''),
-                     paste('c', 1:8, sep = ''))
+                     paste('c', 1:8, sep = ''),
+                     paste('pef', 1:8, sep = ''))
   rownames(res) <- NULL
   
   # check
@@ -123,11 +130,14 @@ X <- local({
   res[order(ord),]
   })
 
-# Contribution to phenotype of neighbouring competition effects
-dat$wnc <- rowSums(X[,10:17] * X[,18:25], na.rm = TRUE)
+# Contribution to phenotype of neighbouring genetic-competition effects
+dat$wnc <- rowSums(X[,10:17] * X[,17+1:8], na.rm = TRUE)
 
-# Simulated phenotype
-dat <- transform(dat, z = a + wnc + e)
+dat$pef <- rowSums(X[,10:17] * X[,25+1:8], na.rm = TRUE)
+
+# Simulated phenotype (with or without pef)
+dat <- transform(dat, z = a + wnc + pef + e)
+# dat <- transform(dat, z = a + wnc + e)
 
 
 
