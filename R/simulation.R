@@ -99,9 +99,16 @@ breedR.sample.phenotype <- function(fixed = NULL,
     if( is.null(genetic$check.factorial) ) cf <- TRUE
     else cf <- genetic$check.factorial
     
-    # TODO: allow sampling only from half-sibs (may be 0 fathers?)
     ped <- breedR.sample.pedigree(Nobs, genetic$Nparents,
                                   check.factorial = cf)
+    
+    # Account for OP pedigrees
+    if( exists('relations', genetic) ) {
+      if( genetic$relations == 'half-sibs' ) {
+        ped@sire <- as.integer(rep(NA, Nfull))
+      }
+    }
+    
     components <- cbind(components, as.data.frame(ped))
     
     # Include Breeding Values (direct additive and potentially others like comp.)
