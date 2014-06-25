@@ -71,6 +71,8 @@ breedR.sample.phenotype <- function(fixed = NULL,
     ord <- sample(Nobs)
     if( !is.null(genetic) ){
       # Make room for founders
+      # The first sum(genetic$Nparents) will go out of range and result
+      # in coordinates NA
       arrange <- c(Nobs + 1:sum(genetic$Nparents), ord)
     } else arrange <- ord
     
@@ -89,12 +91,48 @@ breedR.sample.phenotype <- function(fixed = NULL,
     if( is.null(genetic$check.factorial) ) cf <- TRUE
     else cf <- genetic$check.factorial
     
+    # TODO: allow sampling only from half-sibs (may be 0 fathers?)
     ped <- breedR.sample.pedigree(Nobs, genetic$Nparents,
                                   check.factorial = cf)
     components <- cbind(components, as.data.frame(ped))
-    components$BV  <- breedR.sample.BV(ped, genetic$sigma2_a)
     
-    phenotype <- phenotype + as.numeric(components$BV)
+    # Include Breeding Values (direct additive and potentially others like comp.)
+    components  <- cbind(components, breedR.sample.BV(ped, genetic$sigma2_a))
+    
+    # Compute the effect of competitors on phenotypes
+    if( genetic$model == 'competition' ){
+      # Incidence matrix (in condensed 8-col format, with neighbour indices)
+      genetic$pedigree <- as.data.frame(ped)
+      genetic$id <-sum(genetic$Nparents) + 1:Nobs  # index of individuals
+      genetic$coord <- coord[ord, ]
+      genetic$autofill <- TRUE
+      if( !exists('competition_decay', genetic) )
+        genetic$competition_decay <- 1
+      Bmat <- build.genetic.model(genetic)$B
+      Bmat[Bmat==0] <- NA
+      
+      # Genetic competition values of neighbours
+      Cmat <- matrix(components$BV2[Bmat[, 1+8+1:8]], nrow = Nobs)
+      
+      # Weighted Neighbour Competition
+      components$wnc <- c(rep(NA, Nfull-Nobs),
+                          rowSums(Bmat[, 1+1:8] * Cmat, na.rm = TRUE))
+      
+      # Permanent Environment Effect
+      if( exists('pef', genetic) ) {
+        components$pef <- c(rep(NA, Nfull-Nobs),
+                            rnorm(Nobs, sd = sqrt(genetic$pef)))
+        Pmat <- matrix(components$pef[Bmat[, 1+8+1:8]], nrow = Nobs)
+        components$wnp <- c(rep(NA, Nfull-Nobs),
+                            rowSums(Bmat[, 1+1:8] * Pmat, na.rm = TRUE))
+      }
+      
+    }
+    # Include in the phenotype the corresponding components
+    phenotype <- phenotype +
+      apply(as.matrix(components[,names(components) %in% c('BV1', 'wnc', 'wnp')]),
+            1, sum)
+
   } else genetic$Nparents = 0
 
   # Residual
