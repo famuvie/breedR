@@ -15,6 +15,8 @@ build.genetic.model <- function (genetic) {
   
   B = as.matrix(idx, ncol = 1)
   
+  ans <- list()
+  
   # In a competition model, there are further columns to be added to the right
   if( genetic$model == 'competition' ) {
     
@@ -91,13 +93,14 @@ build.genetic.model <- function (genetic) {
       
     # cbind the Intensity of Competition and the neighbours idx
     B <- cbind(B, BIC, Bneigh)
-             
+
+    ans <- list(param = genetic$competition_decay,
+                coord = coord0,
+                B = B)
   }
   
   B[is.na(B)] <- 0
-  return(list(param = genetic$competition_decay,
-              coord = coord0,
-              B = B))
+  return(c(ans, list(B = B)))
 }
 
 

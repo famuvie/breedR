@@ -532,7 +532,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
 
     rangroup.sizes <- c(sapply(effects[random.effects.idx],
-                               function(x) nrow(x$var)),
+                               function(x) nrow(as.matrix(x$var))),
                         resid = 1)
     if( all(rangroup.sizes == 1) ){
       varcomp <- cbind('Estimated variances' = as.numeric(reml.out[varcomp.idx]))
