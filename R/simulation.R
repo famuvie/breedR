@@ -77,11 +77,19 @@ breedR.sample.phenotype <- function(fixed = NULL,
     } else arrange <- ord
     
     components <- cbind(components, coord[arrange, ])
-    components$AR  <- breedR.sample.AR(spatial$grid.size,
-                                       spatial$rho,
-                                       spatial$sigma2_s)[arrange, ]
     
-    phenotype <- rowSums(cbind(phenotype, components$AR), na.rm = TRUE)
+    if( spatial$model == 'AR') {
+      components$spatial  <- breedR.sample.AR(spatial$grid.size,
+                                              spatial$rho,
+                                              spatial$sigma2_s)[arrange, ]
+    } else if( spatial$model == 'splines') {
+      if( !exists('n.knots', spatial) ) spatial$n.knots <- NULL
+      components$spatial  <- breedR.sample.splines(coord[ord, ],
+                                                   spatial$n.knots,
+                                                   spatial$sigma2_s)[arrange, ]
+    } else stop('Please specify spatial model.')
+    
+    phenotype <- rowSums(cbind(phenotype, components$spatial), na.rm = TRUE)
   } 
   
   # Genetic
@@ -182,9 +190,6 @@ breedR.sample.AR <- function(size, rho, sigma2, N = 1){
   # Note: MASS:mvrnorm only draws samples from the covariance Matrix
   ans <- t(spam::rmvnorm.prec(N, Q = Uinv))
   
-  if(N == 1) colnames(ans) <- 'AR'
-  else colnames(ans) <- paste('AR', 1:N, sep = '')
-  
   return(as.data.frame(ans))
 }
 
@@ -196,10 +201,19 @@ breedR.sample.AR <- function(size, rho, sigma2, N = 1){
 #' @param sigma2 numeric. The marginal variance
 #' @details \code{breedR.sample.splines} simulates a two-dimensional spatial
 #'   process as the kronecker product of B-splines processes in each dimension.
-breedR.sample.splines <- function(size, nkn, sigma2, N = 1){
+breedR.sample.splines <- function(coord, nkn, sigma2, N = 1){
   
+  splines_struct <- build.splines.model(coord, nkn)
+
+  Umat <- with(splines_struct,
+               sparseMatrix(i = U[, 1], j = U[, 2], x = U[, 3],
+                            symmetric = TRUE))
   
-  return(NULL)
+  # Simulated samples
+  ans <- t(matrix(MASS::mvrnorm(N, mu = rep(0, dim(Umat)[1]), Sigma = Umat*sigma2),
+                  nrow = N))
+  
+  return(as.data.frame(ans))
 }
 
 #' @rdname simulation
