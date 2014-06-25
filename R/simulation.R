@@ -36,13 +36,14 @@ breedR.sample.phenotype <- function(fixed = NULL,
 
   # Fixed
   if( !is.null(fixed) ) {
-    X <- matrix(runif(Nfull*length(fixed)),
-                nrow = Nfull)
+    X <- cbind(1,
+               matrix(runif(Nfull*(length(fixed) - 1)),
+                      nrow = Nfull))
     phenotype <- phenotype + X %*% fixed
 
     components$X <- as.data.frame(X)
     if( length(fixed) == 1 ) names(fixed) <- 'X'
-    else names(fixed) <- paste('X', 1:length(fixed), sep = '')
+    else names(fixed) <- paste('X', 1:length(fixed)-1, sep = '')
     names(components$X) <- names(fixed)
   }
 
@@ -84,9 +85,12 @@ breedR.sample.phenotype <- function(fixed = NULL,
                                               spatial$sigma2_s)[arrange, ]
     } else if( spatial$model == 'splines') {
       if( !exists('n.knots', spatial) ) spatial$n.knots <- NULL
-      components$spatial  <- breedR.sample.splines(coord[ord, ],
+      # this one comes in the right order, because it is already 
+      # multiplied by the incidence matrix
+      components$spatial  <- rbind(data.frame(V1 =rep(NA, Nfull - Nobs)), 
+                               breedR.sample.splines(coord[ord, ],
                                                    spatial$n.knots,
-                                                   spatial$sigma2_s)[arrange, ]
+                                                   spatial$sigma2_s))
     } else stop('Please specify spatial model.')
     
     phenotype <- rowSums(cbind(phenotype, components$spatial), na.rm = TRUE)
@@ -216,9 +220,12 @@ breedR.sample.splines <- function(coord, nkn, sigma2, N = 1){
                sparseMatrix(i = U[, 1], j = U[, 2], x = U[, 3],
                             symmetric = TRUE))
   
-  # Simulated samples
-  ans <- t(matrix(MASS::mvrnorm(N, mu = rep(0, dim(Umat)[1]), Sigma = Umat*sigma2),
+  # Simulated samples of effects
+  eff <- t(matrix(MASS::mvrnorm(N, mu = rep(0, dim(Umat)[1]), Sigma = Umat*sigma2),
                   nrow = N))
+  
+  # Multiply by incidence matrix to get observations at individual level
+  ans <- splines_struct$B %*% eff
   
   return(as.data.frame(ans))
 }
