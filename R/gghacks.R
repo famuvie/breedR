@@ -15,6 +15,9 @@ compare.plots <- function(plots) {
   
   # Aggregate datasets and substitute data
   # http://docs.ggplot2.org/current/gg-add.html
+  if( is.null(names(plots)) ) {
+    names(plots) <- paste('p', 1:length(plots), sep = '')
+  }
   tmpdat <- ldply(plots, function(x) x$data)
   # Keep the order of the plots
   tmpdat <- transform(tmpdat,
@@ -31,9 +34,9 @@ compare.plots <- function(plots) {
                parse = plot$layers[[lab.idx]]$geom_params$parse)
   }
   text.data <- ldply(plots, extract.text.data)
-  
+
   # If there are annotations ...
-  if(nrow(text.data) > 0) {
+  if( nrow(text.data) > 0 ) {
     # Remove the original geom_text layer
     p$layers[[text.data[1, 'layer']]] <- NULL
     p <- p + geom_text(aes(x, y, label = lab),
