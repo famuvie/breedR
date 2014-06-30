@@ -82,7 +82,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
     if( spatial$model == 'AR') {
       components$spatial  <- breedR.sample.AR(spatial$grid.size,
                                               spatial$rho,
-                                              spatial$sigma2_s)[arrange, ]
+                                              spatial$sigma2_s)[arrange, 'V1']
     } else if( spatial$model == 'splines') {
       if( !exists('n.knots', spatial) ) spatial$n.knots <- NULL
       # this one comes in the right order, because it is already 
@@ -90,7 +90,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
       components$spatial  <- rbind(data.frame(V1 =rep(NA, Nfull - Nobs)), 
                                breedR.sample.splines(coord[ord, ],
                                                    spatial$n.knots,
-                                                   spatial$sigma2_s))
+                                                   spatial$sigma2_s))[, 'V1']
     } else stop('Please specify spatial model.')
     
     phenotype <- rowSums(cbind(phenotype, components$spatial), na.rm = TRUE)
@@ -265,7 +265,7 @@ breedR.sample.BV <- function(ped, Sigma, N = 1) {
 #'   from random mating of independent founders
 breedR.sample.pedigree <- function(Nobs, Nparents, check.factorial = TRUE) {
   stopifnot(length(Nparents) == 2)
-  names(Nparents) <- c('dad', 'mum')
+  if( is.null(names(Nparents)) ) names(Nparents) <- c('mum', 'dad')
   ped.obs <- data.frame(id = 1:Nobs + sum(Nparents),
                         dad = sample(Nparents['dad'],
                                      size = Nobs,
@@ -273,8 +273,14 @@ breedR.sample.pedigree <- function(Nobs, Nparents, check.factorial = TRUE) {
                         mum = sample(Nparents['mum'],
                                      size = Nobs,
                                      replace = TRUE) + Nparents['dad'])
+  # Case half-sibs balanced
+  if( Nparents['dad'] == 0 & Nobs %% Nparents['mum'] == 0) {
+    ped.obs <- data.frame(id = 1:Nobs + sum(Nparents),
+                          dad = 0,
+                          mum = sample(rep(1:Nparents['mum'], length = Nobs)))
+  }
   fullped <- build_pedigree(1:3, data = ped.obs)
-  
+
   # checks
   if( check.factorial )
     stopifnot(all(xtabs( ~ dad + mum, data = ped.obs) > 0))
