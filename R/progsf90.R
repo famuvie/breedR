@@ -5,29 +5,6 @@
 #' of the progsf90 programs.
 progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   
-  # Parses all fixed; random; spatial and genetic effects
-  # Possibly it will need changes to account for competition 
-  # or other complex effects.
-  # Builds the lines in the EFFECTS section
-  parse.effect <- function(x) {
-    # TODO: Fix the spatial models to include also 'levels' and 'type'
-    # elements in the effects list (build.effects). 
-    # So I can get rid of this function.
-    if(length(x$pos) > 1) {
-      # Effects that reflect into multiple lines (e.g. spatial, competition)
-      n.pos <- length(x$pos)
-      if( !is.null(x$levels) ) {
-        with(x, paste(pos, levels, type))
-      } else {
-        # This is specific for the splines model
-        paste(x$pos, c(rep(0, n.pos-1), n.pos), 'cov', tail(x$pos, 1) + 1:n.pos)
-      }
-    }
-    else {
-      # Simple effects
-      paste(do.call(c, x[c('pos', 'levels', 'type')]), collapse=' ')
-    }
-  }
   
   # Build models for random effects
   mt <- attr(mf, 'terms')
@@ -36,6 +13,16 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
                                   names(effects)=='spatial'))
   
                           
+  parse.rangroup <- function(x) {
+    group.size <- nrow(as.matrix(effects[[x]]$var))
+    group.head <- head(which(effects[[x]]$levels != 0), 1)
+    # Determine the right position in the effects list
+    group.head.abs <- sum(sapply(effect.lst, length)[1:(x-1)]) + group.head
+    return(list(pos = group.head.abs + 1:group.size - 1,
+                type = effects[[x]]$model, 
+                file = effects[[x]]$file, 
+                cov  = effects[[x]]$var))
+  }
   # Number of traits
   # (size of the response vector or matrix)
   ntraits <- ncol(as.matrix(model.response(mf)))
@@ -43,23 +30,18 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   # Weights
   weights <- ''     # No weights for the moment --- TODO
   
+  # Builds the lines in the EFFECTS section
+  effect.lst <- sapply(effects,
+                       function(x) with(x, paste(pos, levels, type)))
   # Parameters  
   par <- list(datafile = 'data',
               ntraits  = ntraits,
               neffects = sum(sapply(effects, function(x) length(x$pos))),
               observations = 1:ntraits,
               weights  = weights,
-              effects  = sapply(effects,
-                                function(x) unlist(parse.effect(x))),
+              effects  = effect.lst,
               residvar = res.var.ini,
-              rangroup = lapply(random.effects.idx, 
-                                function(x) {
-                                  list(pos = head(effects[[x]]$pos,
-                                                  nrow(as.matrix(effects[[x]]$var)))-ntraits,
-                                       type = effects[[x]]$model, 
-                                       file = effects[[x]]$file, 
-                                       cov  = effects[[x]]$var)
-                                }),
+              rangroup = lapply(random.effects.idx, parse.rangroup),
               options = opt
   )
   
@@ -216,7 +198,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
       gen.type   <- c(gen.type,
                       paste('cov', pos + n.comp + 1:n.comp))
     }
-    
+
     effects <- c(effects, 
                  genetic = list(
                    list(pos    = pos - 1 + 1:(1 + n.comp),
@@ -227,7 +209,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
                         ped    = as.data.frame(genetic$pedigree),
                         var    = genetic$var.ini,
                         gen    = gen)))
-    pos = pos + 1 + 2 * n.comp
+    pos = pos + 1 + 2 * n.comp   # under add_animal, n.comp = 0
   }
   
   # Spatial effect if applicable
@@ -247,14 +229,16 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
                                 spatial$n.knots,
                                 spatial$autofill,
                                 degree = 3)
+      n.pos <- ncol(sp$B)
       effect.item <- list(name   = spatial$model,
-                          pos    = pos - 1 + 1:ncol(sp$B),
-                          levels = 1,
-                          type   = 'cov',
+                          pos    = pos - 1 + 1:n.pos,
+                          levels = c(rep(0, n.pos-1), n.pos),
+                          type   = paste('cov', pos - 1 + n.pos + 1:n.pos),
                           model  = 'user_file_i',
                           file   = 'spatial',
                           var    = spatial$var.ini,
                           sp     = sp)
+      pos = pos + 2*ncol(sp$B)
       
     }
 
@@ -276,7 +260,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
                           file   = 'spatial',
                           var    = spatial$var.ini,
                           sp     = sp)
-      
+      pos = pos + 1
     }
     
     # Blocks effect
@@ -296,11 +280,13 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
                           file   = '',
                           var    = spatial$var.ini,
                           sp     = sp)
+      pos = pos + 1
     }
     
     effects <- c(effects, 
                  spatial = list(effect.item))
   }
+  
   return(effects)
 }
 
@@ -318,7 +304,7 @@ write.progsf90 <- function (pf90, dir) {
            'EFFECTS: POSITIONS_IN_DATAFILE NUMBER_OF_LEVELS TYPE_OF_EFFECT [EFFECT NESTED]',
            paste(unlist(effects)),
            'RANDOM_RESIDUAL VALUES', residvar,
-           sapply(rangroup, 
+           c(sapply(rangroup, 
                   function(x) c('RANDOM_GROUP',
                                 paste(x$pos, collapse = ' '),
                                 'RANDOM_TYPE',
@@ -329,8 +315,8 @@ write.progsf90 <- function (pf90, dir) {
                                 apply(as.matrix(x$cov), 1,
                                       paste,
                                       collapse = ' '))),
+             recursive = TRUE),
            paste('OPTION', options)))
-  
   
   writeLines(as.character(parameter.file),
              con = file.path(dir, 'parameters'))
@@ -363,7 +349,24 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   
   # Assuming one trait only
   result <- by(sol.file[,4:5], sol.file$effect, identity)
-  names(result) <- names(effects)
+  
+  # Name the results according to effects
+  # Effects can be grouped (e.g. competition) and account for correlated
+  # effects
+  get.effect.name <- function(idx) {
+    if( exists('var', effects[[idx]]) ) {
+      group_size <- nrow(as.matrix(effects[[idx]]$var))
+      if( group_size > 1 ) {
+        if( names(effects)[idx] == 'genetic' & group_size == 2)
+          return(c('genetic-direct', 'genetic-competition'))
+        else 
+          return(paste(names(effects)[idx],
+                       1:group_size, sep = '_'))
+      }
+    }
+    return(names(effects)[idx])
+  }
+  names(result) <- unlist(sapply(1:length(effects), get.effect.name))
   
   # Identify factors in model terms
   mt <- attr(mf, 'terms')
@@ -371,8 +374,8 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                 function(x) x %in% c('factor', 'ordered'))
   
   # Flags for specific effects
-  isGenetic <- exists('genetic', as.environment(effects))
-  isSpatial <- exists('spatial', as.environment(effects))
+  isGenetic <- exists('genetic', effects)
+  isSpatial <- exists('spatial', effects)
   
   # write labels for factor levels in results
   for( x in names(isF)[which(isF)] )
@@ -383,13 +386,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   diagonal.effects.idx <- sapply(effects, function(x) identical(x$model, 'diagonal'))
   special.effects.idx <- !(fixed.effects.idx | diagonal.effects.idx)
   random.effects.idx <- diagonal.effects.idx | special.effects.idx
-  #   special.effects.idx <- which(names(effects) == 'genetic' | 
-  #                                   names(effects)=='spatial')
-  #   random.effects.idx <- c(diagonal.effects.idx, special.effects.idx)
-  #   if( length(random.effects.idx) )
-  #     fixed.effects.idx <- (1:length(effects))[-random.effects.idx]  else
-  #       fixed.effects.idx <- (1:length(effects))
-  #   diagonal.effects.idx <- which(attr(mt, 'term.types') == 'random')
   
   # Fixed effects coefficients
   beta <- sol.file$value[sol.file$effect %in% which(fixed.effects.idx)]
@@ -406,21 +402,43 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   if( sum(diagonal.effects.idx) )
     ranef <- c(ranef, result[diagonal.effects.idx])
   
-  genetic.fit <- spatial.fit <- genetic.pred <- spatial.pred <- NULL
+  genetic.fit <- spatial.fit <- genetic.pred <- spatial.pred <- genetic.contribution <- NULL
   
   if(isGenetic){
-    # Work around to account for genetic competition models
-    # In this case, the incidence matrix has more than one column
-    if( ncol(effects$genetic$gen$B) ==1 ) {
-      ranef$genetic <- result$genetic$value
-      genetic.fit <- result$genetic$value[as.numeric(effects$genetic$gen$B)]
+    # Indices of genetic-related effects (direct and/or competition)
+    gen.idx <- grep('genetic', names(result))
+    
+    # Incidence vector for the direct effect
+    fit.idx <- effects$genetic$gen$B[,1]
+    
+    if( length(gen.idx) == 1 ) {
+      ranef$genetic <- result$genetic
+      genetic.fit <- result$genetic$value[fit.idx]
+      
+      genetic.contribution <- genetic.fit
     } else {
-      gen.idx <- which(names(result) == 'genetic')
-      stopifnot(is.na(names(result)[gen.idx + 1]))
-      names(result)[gen.idx + 1] <- 'competition'
-      ranef$genetic <- list(direct = result$genetic,
-                            competition = result$competition)
-      genetic.fit <- result$genetic$value[as.numeric(effects$genetic$gen$B[,1])]
+      # Account for genetic competition models
+      # Incidence matrix of competition effect in short 16-column format
+      gen.inc <- list(coef = effects$genetic$gen$B[, 1+1:8],
+                      neig = effects$genetic$gen$B[, 1+8+1:8])
+      gen.inc$neig[gen.inc$neig==0] <- NA # necessary for ulterior subsetting operations
+      
+      ranef$genetic <- list(direct = result$'genetic-direct',
+                            competition = result$'genetic-competition')
+      genetic.fit <- list(direct = result$'genetic-direct'$value[fit.idx],
+                          competition = result$'genetic-competition'$value[fit.idx])
+
+      # Genetic competition values of neighbours
+      Cmat <- matrix(result$'genetic-competition'$value[gen.inc$neig],
+                     nrow = nrow(gen.inc$neig))
+      
+      # Weighted Neighbour Competition
+      genetic.pred <- rowSums(gen.inc$coef * gen.inc$neig, na.rm = TRUE)
+      
+      # Genetic contribution to phenotype: 
+      # direct additive genetic effect + weighted neighbour competition effects
+      genetic.contribution <- genetic.fit$direct + genetic.pred
+      
     }
   }
   # Spatial Surface
@@ -487,13 +505,8 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   #   eta <- eta + rowSums(do.call(cbind, 
   #                                ranef[c('genetic', 'spatial')]))
   if(isGenetic | isSpatial)
-    eta <- eta + rowSums(cbind(genetic.fit, spatial.fit$z))
+    eta <- eta + rowSums(cbind(genetic.contribution, spatial.fit$z))
   
-  # TODO!!!
-  if( length(effects$spatial$pos) > 1 ) {
-    warning('Fitted values do not take into account the competition effect yet.')
-  }
-    
   # Fitted Values
   # ASSUMPTION: Linear Model (not generalized)
   # TODO: apply inverse link
@@ -534,6 +547,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     rangroup.sizes <- c(sapply(effects[random.effects.idx],
                                function(x) nrow(as.matrix(x$var))),
                         resid = 1)
+
     if( all(rangroup.sizes == 1) ){
       varcomp <- cbind('Estimated variances' = as.numeric(reml.out[varcomp.idx]))
       rownames(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
@@ -542,12 +556,16 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                                    varcomp.idx-1,
                                    rangroup.sizes),
                             function(x) reml.out[x])
-      parse.varmat <- function(v) {
+      parse.varmat <- function(v, names) {
         ans <- sapply(v, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
-        names(ans) <- dimnames(ans) <- NULL
+        if( is.null(names) ) names(ans) <- dimnames(ans) <- NULL
+        else dimnames(ans) <- list(names, names)
         ans
       }
-      varcomp <- lapply(varcomp.str, parse.varmat)
+
+      subnames <- sapply(names(rangroup.sizes), function(x) names(ranef[[x]]))
+      varcomp <- mapply(parse.varmat, varcomp.str, subnames)
+      
       names(varcomp) <- c(names(effects)[random.effects.idx], 'Residual')
     }
     

@@ -21,7 +21,7 @@ build.genetic.model <- function (genetic) {
   if( genetic$model == 'competition' ) {
     
     # Original coordinates
-    coord0 <- as.data.frame(sapply(genetic$coord, as.integer))
+    coord0 <- as.data.frame(sapply(genetic$coord, as.numeric))
     
     # lattice of spatial locations
     # possibly with automatic filling of empty rows or columns
@@ -95,10 +95,9 @@ build.genetic.model <- function (genetic) {
     B <- cbind(B, BIC, Bneigh)
 
     ans <- list(param = genetic$competition_decay,
-                coord = coord0,
-                B = B)
+                coord = coord0)
   }
-  
+
   B[is.na(B)] <- 0
   return(c(ans, list(B = B)))
 }
