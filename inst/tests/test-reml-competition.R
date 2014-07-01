@@ -83,8 +83,8 @@ X <- local({
   matlst <- lapply(dat[ord, c('id', 'a', 'c', 'e', 'pef')],
                    function(x) matrix(x, nrow = grid.size['y']))
   
-  rect <- breedR:::neighbours.at(matlst, c('N', 'S', 'E', 'W'))
-  diag <- breedR:::neighbours.at(matlst, c('NE', 'SE', 'SW', 'NW'))
+  rect <- breedR:::neighbours.at.list(matlst, c('N', 'S', 'E', 'W'))
+  diag <- breedR:::neighbours.at.list(matlst, c('NE', 'SE', 'SW', 'NW'))
 
   dat <- c(rect$id,
            diag$id,

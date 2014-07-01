@@ -9,8 +9,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   # Build models for random effects
   mt <- attr(mf, 'terms')
   random.effects.idx <- c(which(attr(mt, 'term.types') == 'random'),
-                          which(names(effects) == 'genetic' | 
-                                  names(effects)=='spatial'))
+                          which(names(effects) %in% c('genetic', 'pec', 'spatial')))
   
                           
   parse.rangroup <- function(x) {
@@ -181,6 +180,8 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     
     gen <- build.genetic.model(genetic)
     
+    # Initial values for the add-animal model, which
+    # are present also in the competition model
     gen.levels <- nrow(as.data.frame(genetic$pedigree))
     gen.type   <- 'cross'
 
@@ -209,6 +210,22 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
                         ped    = as.data.frame(genetic$pedigree),
                         var    = genetic$var.ini,
                         gen    = gen)))
+    
+    # Permanent Environmental Competition Effect
+    # In this case, create yet another effect, with the same incidence matrix
+    # but unstructured
+    if( genetic$model == 'competition' ) {
+      if( genetic$pec$present )
+        effects <- c(effects, 
+                     pec = list(
+                       list(pos    = pos + 1:n.comp,
+                            levels = gen.levels[-1],
+                            type   = gen.type[-1],
+                            model  = 'diagonal', # both add_animal or competition
+                            file   = '',
+                            var    = genetic$pec$var.ini)))
+    }
+    
     pos = pos + 1 + 2 * n.comp   # under add_animal, n.comp = 0
   }
   

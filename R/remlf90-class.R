@@ -194,6 +194,7 @@ remlf90 <- function(fixed,
   }
   var.ini.checks <- c(random  = FALSE,
                       genetic = check.var.ini(genetic),
+                      pec     = check.var.ini(genetic$pec),
                       spatial = check.var.ini(spatial))
   if( !missing(var.ini) ) {
     if( !is.null(var.ini) ) {
@@ -255,6 +256,21 @@ remlf90 <- function(fixed,
     if( genetic$model == 'competition' ) {
       genetic$var.ini <- diag(genetic$var.ini, 2)
       genetic$var.ini[1,2] <- genetic$var.ini[2,1] <- -genetic$var.ini[1,1]/2
+      
+      # Specification of Permanent Environmental Effect
+      if( !exists('pec', genetic) ) {
+        # If pec was not listed, put it as not present
+        genetic$pec <- list(present = FALSE)
+      } else {
+        # If it was listed, mark it as present
+        if( !exists('present', genetic$pec) ) {
+          genetic$pec$present <- TRUE
+        }
+        # ... and check the initial variance
+        if( !exists('var.ini', genetic$pec) ) {
+          genetic$pec$var.ini <- breedR.getOption('default.initial.variance')
+        }
+      }
     }
   }
   

@@ -128,6 +128,6 @@ neighbours.at.matrix <-function(x, dir) {
 neighbours.at.list <- function(x, dir) {
   # Check that it is a list of matrices
   stopifnot(all(lapply(x, class) == 'matrix'))
-  lapply(x, neighbours.at, dir)
+  lapply(x, neighbours.at.matrix, dir)
 }
 

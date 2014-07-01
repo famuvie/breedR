@@ -2,6 +2,7 @@
 \alias{breedR.sample.AR}
 \alias{breedR.sample.BV}
 \alias{breedR.sample.pedigree}
+\alias{breedR.sample.splines}
 \alias{simulation}
 \title{Simulation of phenotypes and model components}
 \usage{
@@ -9,6 +10,8 @@ breedR.sample.phenotype(fixed = NULL, random = NULL, genetic = NULL,
   spatial = NULL, residual.variance, N = NULL)
 
 breedR.sample.AR(size, rho, sigma2, N = 1)
+
+breedR.sample.splines(coord, nkn, sigma2, N = 1)
 
 breedR.sample.BV(ped, Sigma, N = 1)
 
@@ -26,6 +29,15 @@ breedR.sample.pedigree(Nobs, Nparents, check.factorial = TRUE)
   \item{rho}{numeric. A vector of length two with the
   autocorrelation parameters for the row and column
   autoregressive processes}
+
+  \item{sigma2}{numeric. The marginal variance}
+
+  \item{size}{numeric. A vector of length two with the
+  number of rows and columns}
+
+  \item{nkn}{numeric. A vector of length two with the
+  number of knots in each dimension parameters for the row
+  and column autoregressive processes}
 
   \item{sigma2}{numeric. The marginal variance}
 
@@ -55,6 +67,10 @@ the true underlying parameters.
 \code{breedR.sample.AR} simulates a two-dimensional spatial
 process as the kronecker product of first-order
 autoregressive processes in each dimension.
+
+\code{breedR.sample.splines} simulates a two-dimensional
+spatial process as the kronecker product of B-splines
+processes in each dimension.
 
 \code{breedR.sample.BV} simulates a set of breeding values
 (BV) given a pedigree
