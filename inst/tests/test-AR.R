@@ -4,10 +4,12 @@ on.exit(options(old.op))
 #### Build small testbeds ####
 build.testbed <- function(corner = c(0, 0), size, treesep = c(1, 1), beta){
   n = size[1] * size[2]
+  # A planar spatial effect
   s.mat = matrix(NA, nrow = size[1], ncol = size[2])
   j = 1:size[2]
   for(i in 1:size[1])
     s.mat[i,j] = 0.1*(i+2*j)
+  
   ## a covariate
   set.seed(2)
   z.mat = matrix(runif(n), size[1], size[2])

@@ -92,14 +92,8 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
 
   B <- tensor(knots, coord, degree + 1)
   
-  # Compute U matrix (Green & Silverman, 2003)
-  Sigma.marginal <- function(n) {
-    temp <- diag(4, n)
-    subdiag <- rbind(cbind(0, diag(1, n-1)), 0)
-    return((temp + subdiag + t(subdiag))/6)
-  }
-  U <- kronecker(Sigma.marginal(length(knots[[1]])-degree-1), 
-                 Sigma.marginal(length(knots[[2]])-degree-1))
+  U1d <- lapply(sapply(knots, length) - degree - 1, build.splines1d)
+  U <- kronecker(U1d[[1]], U1d[[2]])
   
   
   # Scaling so that the characteristic marginal variance equals 1/sigma^2
@@ -128,4 +122,14 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
               U           = U.values,
               Utype       = 'covariance',
               plotting    = plotting))
+}
+
+
+# Build Covariance Matrix in 1D 
+build.splines1d <- function(n, model = 'GreenSilverman2003') {
+  
+  # U matrix (Green & Silverman, 2003)
+  temp <- diag(4, n)
+  subdiag <- rbind(cbind(0, diag(1, n-1)), 0)
+  return((temp + subdiag + t(subdiag))/6)
 }

@@ -61,15 +61,15 @@ test_that("Predicted spatial effects are similar everywhere", {
 # qplot(fullBV, predBV, data = plotdat, color = miss) + 
 #   geom_abline(int = 0, sl = 1, col ='darkgray')
 test_that("Predicted Breeding Values are similar in observed individuals", {
-  expect_equal(ranef(res.full)$genetic[-sel.idx],
-            ranef(res.pred)$genetic[-sel.idx],
+  expect_equal(ranef(res.full)$genetic[-sel.idx, ],
+            ranef(res.pred)$genetic[-sel.idx, ],
             tolerance = tol)
 })
 
 test_that("Predicted Breeding Values of missings are still similar 
           up to one additional order of magnitude", {
-  expect_equal(ranef(res.full)$genetic[sel.idx],
-               ranef(res.pred)$genetic[sel.idx],
+  expect_equal(ranef(res.full)$genetic[sel.idx, ],
+               ranef(res.pred)$genetic[sel.idx, ],
                tolerance = 10*tol)
 })
 

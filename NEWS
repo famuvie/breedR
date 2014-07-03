@@ -1,3 +1,15 @@
+breedR 0.7
+==========
+
+* Convenient scaling of spatial variance components
+
+* Additive genetic competition model
+
+* Permanent environmental competition effect
+
+* Simulation infrastructure
+
+
 breedR 0.6
 ==========
 
