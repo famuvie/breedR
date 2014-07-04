@@ -540,7 +540,6 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
   type = match.arg(type)
   
   coord <- coordinates(x)
-  names(coord) <- c('x', 'y')
   
   # Argument z is used for plotting a custom spatial variable
   if( !is.null(z) ) {
@@ -570,7 +569,7 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
     
     if(type == 'fitted') {
       
-      p <- spatial.plot(data.frame(coordinates(x), z = fitted(x)), scale = 'seq')
+      p <- spatial.plot(data.frame(coord, z = fitted(x)), scale = 'seq')
     }
     
     

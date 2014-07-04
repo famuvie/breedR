@@ -65,9 +65,18 @@ spatial.plot <- function(dat, scale = c('divergent', 'sequential')) {
   
   scale <- match.arg(scale)
   
-  p <- ggplot2::ggplot(dat, aes(x, y)) +
-    coord_fixed() +
-    geom_raster(aes(fill = z))
+  dat <- as.data.frame(dat)
+  cn <- names(dat)
+  
+  if( !all(c('x', 'y', 'z') %in% cn) ) {
+    ggcl <- paste('ggplot2::ggplot(dat, aes(',cn[1], ',', cn[2], ')) + geom_raster(aes(fill = ', cn[3], '))')
+    p <- eval(parse(text = ggcl))
+  } else {
+    p <- ggplot2::ggplot(dat, aes(x , y)) + geom_raster(aes(fill =  z))
+  }
+  
+    
+  p <- p + coord_fixed()
   
   # Tool to extract hex-codes of colours
   #   scale_colour_brewer(type = 'seq', palette = 'Oranges')$palette(8)
