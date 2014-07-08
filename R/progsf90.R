@@ -450,12 +450,11 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                      nrow = nrow(gen.inc$neig))
       
       # Weighted Neighbour Competition
-      genetic.pred <- rowSums(gen.inc$coef * gen.inc$neig, na.rm = TRUE)
+      genetic.pred <- rowSums(gen.inc$coef * Cmat, na.rm = TRUE)
       
       # Genetic contribution to phenotype: 
       # direct additive genetic effect + weighted neighbour competition effects
       genetic.contribution <- genetic.fit$direct + genetic.pred
-      
     }
   }
   # Spatial Surface
