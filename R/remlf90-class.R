@@ -496,8 +496,14 @@ nobs.remlf90 <- function (object, ...) {
 setOldClass('breedR')
 setMethod('coordinates', signature = 'breedR', 
           function(obj, ...) {
-            if( !obj$components$spatial ) 
-              stop("This breedR object has no spatial structure.\n")
+            if( !obj$components$spatial ) {
+              if( !obj$components$pedigree ) {
+                stop("This breedR object has no spatial structure.\n")
+              } else {
+                stopifnot(exists('coord', obj$effects$genetic$gen))
+                return(obj$effects$genetic$gen$coord)
+              }
+            }
             return(obj$effects$spatial$sp$coord)
           }
 )
