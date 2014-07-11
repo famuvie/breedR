@@ -550,10 +550,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     # Variance components
     # ASSUMPTION: I always have a Genetic Variance component
     
-    # Issue #2 In Linux, AIREMLF90 prints S.D. for R and G
-    # while under Windows it outputs SE for R and G
-    # Update: from version 1.109 (at least), Linux updated to SE as well
-    #   sd.label <- ifelse(.Platform$OS.type == 'windows', 'SE', 'S.D.')
     sd.label <- ifelse(TRUE, 'SE', 'S.D.')
     
     varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
