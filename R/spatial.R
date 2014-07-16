@@ -40,7 +40,7 @@ fill_holes <- function(x, label) {
     
     # Check whether there is a "regular spacing"
     # defined as the spacing between at least 80% of the individuals
-    if( diff(quantile(dif, probs = c(.1, .9))) != 0 )
+    if( !all.equal(diff(quantile(dif, probs = c(.1, .9))), 0, check.attributes = FALSE) )
       stop("This does not seem to be a regular grid.\n",
            "The spacing between", label, "should be the same for",
            "at least the 80% of the cases.\n",
@@ -50,7 +50,7 @@ fill_holes <- function(x, label) {
     sep <- median(dif)
     
     # Check whether there are some "holes"
-    if( min(dif) != max(dif) ) {
+    if( !all.equal(min(dif), max(dif)) ) {
       holes <- which(dif > sep)
       # The hole can be either larger or shorter than the standard sep
       hole_sizes <- dif[holes] - 1
