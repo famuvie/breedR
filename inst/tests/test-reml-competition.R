@@ -168,8 +168,10 @@ dat <- transform(dat, z = a + wnc + pef + e)
 #                               pedigree = dat[, c('id', 'mum', 'dad')],
 #                               id = 'id',
 #                               coord = dat[, c('x', 'y')],
-#                               competition_decay = 1), 
+#                               competition_decay = 1,
+#                               pec = list(present = TRUE)), 
 #                data = dat,
 #                method = 'em',
 #                debug = F)
-
+# 
+# qplot(dat$z - dat$e, fitted(res)) + geom_abline(int = 0, sl = 1, col = 'darkgray')

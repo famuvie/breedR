@@ -14,19 +14,28 @@
 #'  \code{ar.eval}: numeric vector of values in (-1, 1) where the autoregressive
 #'  parameters should be evaluated if not otherwise specified
 #'  
+#'  \code{breedR.bin} path to the breedR binaries
+#'  
 #'  \code{splines.nok}: a function of the number of individuals in a row which 
 #'  gives the number of knots (nok) to be used for a splines model, if not 
 #'  otherwise specified
 #'  
 #'  \code{default.initial.variance}: a default value for all variance components
 #'  
-#'  \code{col.seq}: a vector with the specification of default extreme 
-#'  breedR col for sequential scales in spatial quantitative plots. See 
-#'  Details.
+#'  \code{col.seq}: a vector with the specification of default extreme breedR
+#'  col for sequential scales in spatial quantitative plots. See Details.
 #'  
-#'  \code{col.div}: a vector with the specification of default extreme 
-#'  breedR col for diverging scales in spatial quantitative plots. See 
-#'  Details.
+#'  \code{col.div}: a vector with the specification of default extreme breedR
+#'  col for diverging scales in spatial quantitative plots. See Details. 
+#'  
+#'  \code{cygwin}: the home of the Cygwin installation (default "C:/cygwin")
+#'  [Remote computing for Windows only]
+#'  
+#'  \code{cygwin}: the user's home in the Cygwin installation
+#'  [Remote computing for Windows only]
+#'  
+#'  \code{ssh.auth.sock}: the ssh bind-adress (value of $SSH_AUTH_SOCK in the
+#'  Cygwin-shell). [Remote computing for Windows only]
 #'  
 #'@details
 #'
@@ -37,9 +46,8 @@
 #'
 #'Diverging scales are used for plots such as residuals, centered (hopefully) 
 #'around zero, with positive and negative values represented with different 
-#'colours whose intensity is linked to the magnitude. The option 
-#'\code{col.div} is a vector of two hex codes or colour names of the most
-#'intense colours.
+#'colours whose intensity is linked to the magnitude. The option \code{col.div}
+#'is a vector of two hex codes or colour names of the most intense colours.
 #'
 #'@name breedR.option
 #'@aliases breedR.options breedR.setOption breedR.getOption
@@ -54,18 +62,40 @@
 
 
 breedR.getOption <- function(option = c("ar.eval",
+                                        "breedR.bin",
                                         "splines.nok",
                                         "default.initial.variance",
                                         "col.seq",
-                                        "col.div")) {
-  envir = breedR.get.breedREnv()
+                                        "col.div",
+                                        "cygwin",
+                                        "cygwin.home",
+                                        "ssh.auth.sock")) {
+  envir <- breedR.get.breedREnv()
 
+  option <- match.arg(option, several.ok = TRUE)
+  if( exists("breedR.options", envir = envir) ) {
+    opt = get("breedR.options", envir = envir)
+  } else {
+    opt = list()
+  }
+  
+  if ( is.null(opt$breedR.bin) ) {
+    breedR.bin = breedR.bin.builtin()
+  } else if ( tolower(opt$breedR.bin) == "remote" || tolower(opt$breedR.bin) == "breedR.remote" ) {
+    breedR.bin = gsub("\\\\", "/", system.file("bin/remote/breedR.remote", package="breedR"))
+  } else
+    breedR.bin = opt$breedR.bin
+  
   default.opt = list(
+    breedR.bin  = breedR.bin,
     ar.eval     = c(-8, -2, 2, 8)/10,
     splines.nok = quote(breedR:::determine.n.knots),
     default.initial.variance = 1,
     col.seq = c('#034E7B', '#FDAE6B'),
-    col.div = c('#3A3A98FF', '#832424FF')
+    col.div = c('#3A3A98FF', '#832424FF'),
+    cygwin = 'C:/cygwin',
+    cygwin.home = paste("/home/", breedR.get.USER(), sep=""),
+    ssh.auth.sock = paste("/tmp/ssh-auth-sock-", breedR.get.USER(), sep="")
   )
   
   if (missing(option) | is.null(option))
@@ -73,11 +103,6 @@ breedR.getOption <- function(option = c("ar.eval",
   #     return(default.opt)   
   #     stop("argument is required.")
   
-  option = match.arg(option, several.ok = TRUE)
-  if (exists("breedR.options", envir = envir))
-    opt = get("breedR.options", envir = envir)
-  else
-    opt = list()
   
   res = list()
   for (i in 1:length(option)) {
@@ -103,10 +128,14 @@ breedR.getOption <- function(option = c("ar.eval",
 breedR.setOption <- function(...) {
   
   breedR.setOption.core <-  function(option = c("ar.eval",
+                                                "breedR.bin",
                                                 "splines.nok",
                                                 "default.initial.variance",
                                                 "col.seq",
-                                                "col.div"),
+                                                "col.div",
+                                                "cygwin",
+                                                "cygwin.home",
+                                                "ssh.auth.sock"),
                                      value) {
     
     if(is.list(option)) return(do.call('breedR.setOption', args = option))

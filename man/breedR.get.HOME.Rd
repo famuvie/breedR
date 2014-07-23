@@ -1,0 +1,12 @@
+\name{breedR.get.HOME}
+\alias{breedR.get.HOME}
+\title{Determine the user's home directory}
+\usage{
+breedR.get.HOME()
+}
+\description{
+Relies on \code{Sys.getenv('HOME')}, or under windows, on
+\code{Sys.getenv("USERPROFILE"))} changing backslashes to
+slashes.
+}
+

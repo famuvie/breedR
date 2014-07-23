@@ -3,7 +3,8 @@
 \title{Inference with REMLF90}
 \usage{
 remlf90(fixed, random = NULL, var.ini = NULL, genetic = NULL,
-  spatial = NULL, data, method = c("ai", "em"), debug = FALSE)
+  spatial = NULL, data, method = c("ai", "em"),
+  breedR.bin = breedR.getOption("breedR.bin"), debug = FALSE)
 }
 \arguments{
   \item{fixed}{an object of class \link{formula} (or one

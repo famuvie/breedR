@@ -5,8 +5,9 @@
 \alias{breedR.setOption}
 \title{Set and get global options for breedR}
 \usage{
-breedR.getOption(option = c("ar.eval", "splines.nok",
-  "default.initial.variance", "col.seq", "col.div"))
+breedR.getOption(option = c("ar.eval", "breedR.bin", "splines.nok",
+  "default.initial.variance", "col.seq", "col.div", "cygwin", "cygwin.home",
+  "ssh.auth.sock"))
 
 breedR.setOption(...)
 }
@@ -23,6 +24,8 @@ breedR.setOption(...)
   the autoregressive parameters should be evaluated if not
   otherwise specified
 
+  \code{breedR.bin} path to the breedR binaries
+
   \code{splines.nok}: a function of the number of
   individuals in a row which gives the number of knots
   (nok) to be used for a splines model, if not otherwise
@@ -37,7 +40,17 @@ breedR.setOption(...)
 
   \code{col.div}: a vector with the specification of
   default extreme breedR col for diverging scales in
-  spatial quantitative plots. See Details.}
+  spatial quantitative plots. See Details.
+
+  \code{cygwin}: the home of the Cygwin installation
+  (default "C:/cygwin") [Remote computing for Windows only]
+
+  \code{cygwin}: the user's home in the Cygwin installation
+  [Remote computing for Windows only]
+
+  \code{ssh.auth.sock}: the ssh bind-adress (value of
+  $SSH_AUTH_SOCK in the Cygwin-shell). [Remote computing
+  for Windows only]}
 }
 \description{
 Set and get global options for breedR. The options are
