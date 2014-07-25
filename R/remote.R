@@ -1,117 +1,52 @@
 # Functions adapted from the R-INLA project
 # www.r-inla.org
 
-## Export:  breedR.ssh.copy.id  breedR.remote
-
-##!\name{breedR.ssh.copy.id}
-##!\alias{breedR.ssh.copy.id}
-##!\alias{ssh.copy.id}
-##!\alias{breedR.remote}
-##!
-##!\title{Setup remote computing}
-##!
-##!\description{Initialize the definition file and print the path to the internal script to transfer ssh-keys}
-##!
-##!\usage{
-##!breedR.remote()
-##!breedR.ssh.copy.id()
-##!}
-##!\arguments{
-##! None
-##!}
-##!
-##!\value{%%
-##! \code{breedR.remote} is used once to setup the remote host information
-##! file (definition file) in the users home directory; see the FAQ entry on this
-##! issue for more information. 
-##! \code{breedR.ssh.copy.id} will return the path to the internal script to transfer ssh-keys.
-##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
-##!\examples{
-##!##See the FAQ entry on this issue on r-breedR.org.
-##!}
-
-
-`breedR.ssh.copy.id` = function ()
-{
-    ## print the path to the copy-id script
-
-    f = system.file("bin/remote/ssh-copy-id", package="breedR")
-    if (breedR.os("windows"))
-      return (breedR.cygwin.map.filename(f))
-    else
-        return (f)
-}
-
-#' Create .breedRrc configuration file for remote computing
-#' 
-#' Checks whether cygwin is necessary and accessible
-`breedR.configure_remote` = function()
-{
-  if (breedR.os("windows") && !breedR.cygwin.check.path()) {
-    cat("\n\n\tRemote computing in breedR from Windows require CYGWIN.\n")
-    cat("\tThe CYGWIN-installation is not found. Please install it from www.cygwin.com\n")
-    cat("\tMake sure to install also all `ssh' components; search for it, select them and install.\n")
-    cat("\tIts easiest to use the standard installation path; c:/cygwin, otherwise give the new path using\n")
-    cat("\t\tbreedR.setOption(\"cygwin\", \"NEWPATH\")\n")
-    cat("\n")
-    return (NULL)
-  }
-  
-  breedR <- system.file("bin/remote/breedR.remote", package="breedR")
-  breedR.setOption("breedR.bin", breedR)
-  
-  f = paste(breedR.get.HOME(), "/.breedRrc", sep="")
-  if (!file.exists(f)) {
-    if (breedR.os("windows"))
-      ini=system.file("bin/remote/dot.breedRrc-example-windows", package="breedR")
-    else
-      ini=system.file("bin/remote/dot.breedRrc-example", package="breedR")
-    
-    if (!file.exists(ini))
-      stop(paste("Missing file in installation:", ini, "This should not happen..."))
-    file.copy(ini, f)
-    cat(paste("Remote computing: Please edit remote-host details in\n\t\t", f, "\n"))
-  } else {
-    cat(paste("Remote computing is defined in\n\t\t", f, "\n"))
-  }
-  if (breedR.os("windows")) {
-    cat("\n\tIf you need to copy ssh-keys, you can do that using this script from within a cygwin-terminal\n")
-    cat(paste("\t\t", breedR.cygwin.map.filename(system.file("bin/remote/ssh-copy-id", package="BreedR")), "\n\n"))
-  }
-  
-  return (invisible())
-}
-
 #' Retrieve ssh configuration parameters
 breedR.ssh_params <- function(format = c('string', 'list')) {
   
   format <- match.arg(format)
   
+  ssh <- breedR.getOption(c('remote.host',
+                            'remote.user',
+                            'remote.port',
+                            'ssh.options'))
   # TODO: Stuff to be taken either from options or rc file
-  RemoteHost="147.99.222.196"
+  RemoteHost="eldorado"
   RemoteUser="fmunoz"
   Port=22
   sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
   
   # Options for ssh
-  ssh_params <- paste(paste('-p', Port, sep = ''),
-                      sshArguments,
-                      paste(RemoteUser, '@', RemoteHost, sep = ''))
+  ssh_params <- paste(paste('-p', ssh$remote.port, sep = ''),
+                      ssh$ssh.options,
+                      paste(ssh$remote.user, '@', ssh$remote.host, sep = ''))
   
   if( format == 'string' )
     return(ssh_params)
   else
-    return(list(port = Port,
-                sshArg = sshArguments,
-                user = RemoteUser,
-                host = RemoteHost))
+    return(ssh)
 }
 
 #' Perform an SSH system call
-breedR.ssh <- function(params, commands, ...) {
+#' 
+#' Use the given connection parameters for
+#' and run the given commands remotely.
+#' It also admits some pre or post strings (pipelines, or other modifications)
+breedR.ssh <- function(commands,
+                       params = breedR.ssh_params(),
+                       pre,
+                       post,
+                       ...) {
   cmd_str <- paste(commands, collapse = '; ')
-  system(paste('ssh', params, '"', cmd_str, '" &'), ...)
+  call_str <- paste('ssh', params, '"', cmd_str, '"')
+  if( !missing(pre) ) {
+    call_str <- paste(pre, call_str)
+  }
+  if( !missing(post) ) {
+    call_str <- paste(call_str, post)
+  }
+  
+  system(call_str, ...)
 }
 
 
@@ -119,7 +54,8 @@ breedR.ssh <- function(params, commands, ...) {
 breedR.remote = function(jobid, breedR.call, verbose = TRUE)
 {
   if( verbose ) {
-    message(paste('Run', breedR.call, 'at host', breedR.ssh_params('list')$host))
+    message(paste('Run', breedR.call, 'at host',
+                  breedR.ssh_params('list')$remote.host))
   }
   
   # Remote directory
@@ -139,8 +75,8 @@ breedR.remote = function(jobid, breedR.call, verbose = TRUE)
   )
 
   # Compress stuff and execute ssh commands
-  res <- system(paste('tar cfmz - . | ssh', breedR.ssh_params(), '"',
-                      paste(ssh_commands, collapse = '; '), '"'))
+  res <- breedR.ssh(ssh_commands,
+                    pre = 'tar cfmz - . |')
 
   if( verbose ) {
     message(paste(' *** Computations finished at', date(),
@@ -175,14 +111,16 @@ breedR.submit <- function(jobid, breedR.call) {
                           '< interface && touch done; }',
                           '</dev/null > LOG 2>&1 &'))
 
-  # Compress local stuff and execute ssh commands
-  system(paste('tar cfmz - . | ssh', breedR.ssh_params(), '"',
-               paste(ssh_commands, collapse = '; '), '" &'))
+  # Compress local stuff and execute ssh commands *in background*
+  breedR.ssh(ssh_commands,
+             pre = 'tar cfmz - . |',
+             post = '&')
 }
 
 
 
-#'Control and view a remote breedR-queue
+#' Control and view a remote breedR-queue
+#'
 #'@name breedR.qstat
 #'@aliases breedR.q breedR.qget breedR.qdel breedR.qnuke summary.breedR.q 
 #'  print.breedR.q
@@ -312,7 +250,7 @@ breedR.submit <- function(jobid, breedR.call) {
   }
   
   # Execute
-  res <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
+  res <- breedR.ssh(ssh_commands, intern = TRUE)
   if( !is.character(res) & length(res) != 0) stop('This should not happen')
   
   message(paste('Deleted job:', status$no, 'Id:', status$id))
@@ -371,7 +309,7 @@ breedR.submit <- function(jobid, breedR.call) {
       'done')                       # End For
 
   # execute ssh script
-  out <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
+  out <- breedR.ssh(ssh_commands, intern = TRUE)
 
   # Parse results
   if (length(out) >= 1 && nchar(out[1]) > 0) {
@@ -423,7 +361,7 @@ breedR.submit <- function(jobid, breedR.call) {
   } 
   
   # Execute
-  res <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
+  res <- breedR.ssh(ssh_commands, intern = TRUE)
   if( !is.character(res) & length(res) != 0) stop('This should not happen')
   
   message('NUKE')
@@ -446,14 +384,14 @@ retrieve_remote <- function (rdir) {
       paste('tar cf',              # Compress results into a tar file
             tarfile,
             'LOG solutions'))
-  res <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
+  res <- breedR.ssh(ssh_commands, intern = TRUE)
   if( !is.character(res) & length(res) != 0) stop('This should not happen')
   
   # Copy the compressed file to local
   tf <- tempfile(pattern = 'breedR.result_', fileext = '.tar')
   ssh_par <- breedR.ssh_params('list')
-  scp_args <- paste('-P', ssh_par$port, ' -B -C -p -q', sep ='')
-  scp_file <- paste(ssh_par$user, '@', ssh_par$host, ':',
+  scp_args <- paste('-P', ssh_par$remote.port, ' -B -C -p -q', sep ='')
+  scp_file <- paste(ssh_par$remote.user, '@', ssh_par$remote.host, ':',
                     file.path(dirname(rdir), basename(tarfile)), sep = '')
   res <- system(paste('scp', scp_args, scp_file, tf))
   stopifnot( identical(res, 0L) )
@@ -463,7 +401,7 @@ retrieve_remote <- function (rdir) {
   
   # Cleanup remote temporary tar
   ssh_commands <- paste('rm', file.path(dirname(rdir), basename(tarfile)))
-  res <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
+  res <- breedR.ssh(ssh_commands, intern = TRUE)
   if( !is.character(res) & length(res) != 0) stop('This should not happen')
   return(dirname(tf))
 }

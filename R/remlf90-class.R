@@ -357,8 +357,11 @@ remlf90 <- function(fixed,
   if ( tolower(breedR.bin) == "remote" || tolower(breedR.bin) == "submit" ) {
     remote = TRUE
     submit.id = paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1,min=1E8,max=1E9-1)), sep="")
-    # TODO: grab this from breedR.options?
-    remote.bin = "/home/fmunoz/R/x86_64-unknown-linux-gnu-library/3.0/breedR/bin/linux"
+    remote.bin = breedR.getOption('remote.bin')
+    if( remote.bin == "path_to/breedR/bin/linux" ) {
+      stop('breedR is not configured for remote computing. See ?breedR.remote')
+    }
+    
     breedR.call = switch(method,
                          ai = file.path(remote.bin, 'airemlf90'),
                          em = file.path(remote.bin, 'remlf90'))
