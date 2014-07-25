@@ -46,7 +46,7 @@
 #' Create .breedRrc configuration file for remote computing
 #' 
 #' Checks whether cygwin is necessary and accessible
-`breedR.remote` = function()
+`breedR.configure_remote` = function()
 {
   if (breedR.os("windows") && !breedR.cygwin.check.path()) {
     cat("\n\n\tRemote computing in breedR from Windows require CYGWIN.\n")
@@ -91,7 +91,6 @@ breedR.ssh_params <- function(format = c('string', 'list')) {
   # TODO: Stuff to be taken either from options or rc file
   RemoteHost="147.99.222.196"
   RemoteUser="fmunoz"
-  RemoteREML="/home/fmunoz/R/x86_64-unknown-linux-gnu-library/3.0/breedR/bin/linux/remlf90"
   Port=22
   sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
   
@@ -106,14 +105,53 @@ breedR.ssh_params <- function(format = c('string', 'list')) {
     return(list(port = Port,
                 sshArg = sshArguments,
                 user = RemoteUser,
-                host = RemoteHost,
-                bin  = RemoteREML))
+                host = RemoteHost))
 }
 
 #' Perform an SSH system call
 breedR.ssh <- function(params, commands, ...) {
   cmd_str <- paste(commands, collapse = '; ')
   system(paste('ssh', params, '"', cmd_str, '" &'), ...)
+}
+
+
+#' Perform a job remotely
+breedR.remote = function(jobid, breedR.call, verbose = TRUE)
+{
+  if( verbose ) {
+    message(paste('Run', breedR.call, 'at host', breedR.ssh_params('list')$host))
+  }
+  
+  # Remote directory
+  rdir=file.path('tmp',
+                 '.breedR.remote',
+                 paste('breedR-remote', jobid, sep = '-'))
+  
+  
+  # To be executed on the server
+  ssh_commands <- c(paste('mkdir -p', rdir),        # make temp dir for job
+                    paste('cd', rdir),              # switch to job dir
+                    'tar xfmz -',                   # uncompress stuff
+                    'echo parameters > interface',  # interface arguments
+                    paste(breedR.call,
+                          '< interface',
+                          '> LOG 2>&1') # run breedR
+  )
+
+  # Compress stuff and execute ssh commands
+  res <- system(paste('tar cfmz - . | ssh', breedR.ssh_params(), '"',
+                      paste(ssh_commands, collapse = '; '), '"'))
+
+  if( verbose ) {
+    message(paste(' *** Computations finished at', date(),
+                  '\n *** Transfer the results...'))
+  }
+  
+  Sys.sleep(1)  # Not too fast...
+  # Retrieve results to local dir
+  ldir <- retrieve_remote(rdir)
+  
+  return(ldir)
 }
 
 
@@ -137,7 +175,7 @@ breedR.submit <- function(jobid, breedR.call) {
                           '< interface && touch done; }',
                           '</dev/null > LOG 2>&1 &'))
 
-  # Compress stuff and execute ssh commands
+  # Compress local stuff and execute ssh commands
   system(paste('tar cfmz - . | ssh', breedR.ssh_params(), '"',
                paste(ssh_commands, collapse = '; '), '" &'))
 }
@@ -217,10 +255,10 @@ breedR.submit <- function(jobid, breedR.call) {
   stopifnot( inherits(id, 'remlf90') & is.list(id) & exists('id', id) )
   
   # check that the job is correctly finished and uniquely determined
-  status <- breedR.qstat(id)
-  if( length(status) == 0 ) stop('Job not found')
-  if( length(status) != 1 ) stop('This should not happen')
-  status <- status[[1]]
+  statlst <- breedR.qstat(id)
+  if( length(statlst) == 0 ) stop('Job not found')
+  if( length(statlst) != 1 ) stop('This should not happen')
+  status <- statlst[[1]]
   if( id$id != status$id ) stop('This should not happen')
   if( status$status != "Finished" ) {
     print(status)
@@ -231,61 +269,32 @@ breedR.submit <- function(jobid, breedR.call) {
   rdir = file.path('tmp', '.breedR.remote',
                    paste('breedR-job-', status$id, sep = ''))
   
-  # Compressed filename for storing results remotely
-  tarfile = tempfile(pattern = 'results',
-                     tmpdir = '..',
-                     fileext = '.tar')
-  
-  # Save results into the compressed file
-  ssh_commands <- 
-      c(paste('cd', rdir),           # Move in
-        paste('tar cf',              # Compress results into a tar file
-              tarfile,
-              'LOG solutions'))
-  res <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
-  if( !is.character(res) & length(res) != 0) stop('This should not happen')
-  
-  # Copy the compressed file to local
-  tf <- tempfile(pattern = 'breedR.result_', fileext = '.tar')
-  ssh_par <- breedR.ssh_params('list')
-  scp_args <- paste('-P', ssh_par$port, ' -B -C -p -q', sep ='')
-  scp_file <- paste(ssh_par$user, '@', ssh_par$host, ':',
-                    file.path(dirname(rdir), basename(tarfile)), sep = '')
-  res <- system(paste('scp', scp_args, scp_file, tf))
-  stopifnot( identical(res, 0L) )
-  
-  system(paste('tar xfm', tf, '-C', dirname(tf))) # Uncompress
-  unlink(tf)                                      # Remove tar
-  
-  # Cleanup remote temporary tar
-  ssh_commands <- paste('rm', file.path(dirname(rdir), basename(tarfile)))
-  res <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
-  if( !is.character(res) & length(res) != 0) stop('This should not happen')
+  ldir <- retrieve_remote(rdir)
 
   # Integrate the model structure with the results
-  ans <- parse_results(file.path(dirname(tf), 'solutions'),
+  ans <- parse_results(file.path(ldir, 'solutions'),
                        id$effects,
                        id$mf,
-                       readLines(file.path(dirname(tf), 'LOG')),
+                       readLines(file.path(ldir, 'LOG')),
                        id$method,
                        id$mcout)
   class(ans) <- c('breedR', 'remlf90')  
   
-  if( remove ) suppressMessages(breedR.qdel(id))
+  if( remove ) suppressMessages(breedR.qdel(id, statlst))
   
   message('Job retrieved')
   return (ans)
 }
 
-`breedR.qdel` = function(id)
+`breedR.qdel` = function(id, statlst)
 {
   
   if( missing(id) ) stop('No job specified. To delete all jobs use breedR.qnuke()')
 
-  status <- breedR.qstat(id)
-  if( length(status) == 0 ) stop('Job not found')
-  if( length(status) != 1 ) stop('This should not happen')
-  status <- status[[1]]
+  if( missing(statlst) ) statlst <- breedR.qstat(id)
+  if( length(statlst) == 0 ) stop('Job not found')
+  if( length(statlst) != 1 ) stop('This should not happen')
+  status <- statlst[[1]]
   
   
   # Remote target dir
@@ -359,9 +368,10 @@ breedR.submit <- function(jobid, breedR.call) {
       'fi',                         # End case the current job should be listed
       'fi',                         # End sanitized case
       'done')                       # End For
+
   # execute ssh script
   out <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
-  
+
   # Parse results
   if (length(out) >= 1 && nchar(out[1]) > 0) {
     output = lapply(strsplit(out, " +"),
@@ -416,4 +426,43 @@ breedR.submit <- function(jobid, breedR.call) {
   if( !is.character(res) & length(res) != 0) stop('This should not happen')
   
   message('NUKE')
+}
+
+
+#' Retrieve results stored in some remote directory
+#' 
+#' Use scp to transfer compressed files. Clean up afterwards.
+#' @return dir name where the results are retrieved
+retrieve_remote <- function (rdir) {
+  # Compressed filename for storing results remotely
+  tarfile = tempfile(pattern = 'results',
+                     tmpdir = '..',
+                     fileext = '.tar')
+  
+  # Save results into the compressed file
+  ssh_commands <- 
+    c(paste('cd', rdir),           # Move in
+      paste('tar cf',              # Compress results into a tar file
+            tarfile,
+            'LOG solutions'))
+  res <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
+  if( !is.character(res) & length(res) != 0) stop('This should not happen')
+  
+  # Copy the compressed file to local
+  tf <- tempfile(pattern = 'breedR.result_', fileext = '.tar')
+  ssh_par <- breedR.ssh_params('list')
+  scp_args <- paste('-P', ssh_par$port, ' -B -C -p -q', sep ='')
+  scp_file <- paste(ssh_par$user, '@', ssh_par$host, ':',
+                    file.path(dirname(rdir), basename(tarfile)), sep = '')
+  res <- system(paste('scp', scp_args, scp_file, tf))
+  stopifnot( identical(res, 0L) )
+  
+  system(paste('tar xfm', tf, '-C', dirname(tf))) # Uncompress
+  unlink(tf)                                      # Remove tar
+  
+  # Cleanup remote temporary tar
+  ssh_commands <- paste('rm', file.path(dirname(rdir), basename(tarfile)))
+  res <- breedR.ssh(breedR.ssh_params(), ssh_commands, intern = TRUE)
+  if( !is.character(res) & length(res) != 0) stop('This should not happen')
+  return(dirname(tf))
 }

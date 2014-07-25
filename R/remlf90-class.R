@@ -354,28 +354,27 @@ remlf90 <- function(fixed,
   remote = FALSE
   submit = FALSE
   submit.id = ""
-  if ( tolower(breedR.bin) == "remote" ) {
+  if ( tolower(breedR.bin) == "remote" || tolower(breedR.bin) == "submit" ) {
     remote = TRUE
-    stop('Under construction...')
-    # breedR.call = system.file("bin/remote/breedR.remote", package="breedR")
-    if (breedR.os("windows")) {
-      stop('Sorry, remote computing not available in windows yet.')
-      # breedR.call = paste(breedR.call, ".cygwin", sep="")
-    }
-  } else if ( tolower(breedR.bin) == "submit" ) {
-    remote = TRUE
-    submit = TRUE
     submit.id = paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1,min=1E8,max=1E9-1)), sep="")
+    # TODO: grab this from breedR.options?
     remote.bin = "/home/fmunoz/R/x86_64-unknown-linux-gnu-library/3.0/breedR/bin/linux"
     breedR.call = switch(method,
                          ai = file.path(remote.bin, 'airemlf90'),
                          em = file.path(remote.bin, 'remlf90'))
-    reml.out <- breedR.submit(submit.id, breedR.call)
     
-    if (breedR.os("windows")) {
-      stop('Sorry, remote computing not available in windows yet.')
-      # breedR.call = paste(breedR.call, ".cygwin", sep="")
-    } 
+    # Run either breedR.remote or breedR.submit
+    if ( tolower(breedR.bin) == "remote" ) {
+      ldir <- breedR.remote(submit.id, breedR.call)
+
+      if( !identical(ldir, tmpdir) ) stop('This should not happen')
+      reml.out <- readLines(file.path(ldir, 'LOG'))
+    }
+    
+    if ( tolower(breedR.bin) == "submit" ) {
+      submit = TRUE
+      reml.out <- breedR.submit(submit.id, breedR.call)
+    }
   } else {
     breedR.call = switch(method,
                          ai = file.path(breedR.bin, 'airemlf90'),
@@ -396,7 +395,7 @@ remlf90 <- function(fixed,
       # Parse solutions
       ans <- parse_results(file.path(tmpdir, 'solutions'), effects, mf, reml.out, method, mcout)
     } else {
-      # Submitted job
+      # Submitted job (solutions are parsed later with breedR.qget)
       ans <- list(id = submit.id,
                   effects = effects,
                   mf = mf,
