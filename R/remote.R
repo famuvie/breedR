@@ -344,7 +344,7 @@ breedR.submit <- function(jobid, breedR.call) {
       'mypid=0',                    # reset PID number
       'if [ -f \\$d/done ]',   # If there exists a file named done
       'then status="Finished"',     #   the job is finished
-      'else mypid=\\$(ps -o pid,command -C bash | grep -s \\$myid | awk \'{print int(\\$1)}\')',  # find PID of script
+      'else mypid=\\$(ps -o pid,command -C bash | grep -s \\$myid | grep -v grep | awk \'{print int(\\$1)}\')',  # find PID of script, excluding the match of this grep process itself
       'if [ \\$mypid ]',            # If there is such PID
       'then if [ \\$(ps --ppid \\$mypid -o comm= | grep -s remlf90) ]', # If reml is running under that PID
       'then runtime=\\$(ps --ppid \\$mypid -o time=)',
