@@ -261,7 +261,7 @@ breedR.submit <- function(jobid, breedR.call) {
   status <- statlst[[1]]
   if( id$id != status$id ) stop('This should not happen')
   if( status$status != "Finished" ) {
-    print(status)
+    print(statlst)
     stop('Job not finished')
   }
   
@@ -304,7 +304,7 @@ breedR.submit <- function(jobid, breedR.call) {
   ssh_commands <- paste('rm -rf', rdir)
   
   # If process is running, then kill him
-  if( status$status == 'Running' & status$pid != 0) {
+  if( grepl("Running", status$status) & status$pid != 0) {
     ssh_commands <- c(ssh_commands,
                       paste('kill', status$pid))
   } else {
@@ -350,21 +350,22 @@ breedR.submit <- function(jobid, breedR.call) {
             idx, '-eq \\$nno -o',   #    should be listed
             '\\$d =', paste('breedR-job-', id, sep =''), ']'),
       'then myid=\\$(echo \\$d | sed \'s/breedR-job-//\')', # get current job id,
-      'mypid=0',                    # reset PID number
+      'mypid=0; myppid=0',                    # reset PID and PPID numbers
       'if [ -f \\$d/done ]',   # If there exists a file named done
       'then status="Finished"',     #   the job is finished
-      'else mypid=\\$(ps -o pid,command -C bash | grep -s \\$myid | grep -v grep | awk \'{print int(\\$1)}\')',  # find PID of script, excluding the match of this grep process itself
-      'if [ \\$mypid ]',            # If there is such PID
-      'then if [ \\$(ps --ppid \\$mypid -o comm= | grep -s remlf90) ]', # If reml is running under that PID
-      'then runtime=\\$(ps --ppid \\$mypid -o time=)',
+      'else myppid=\\$(ps -o pid,command -C bash | grep -s \\$myid | grep -v grep | awk \'{print int(\\$1)}\')',  # find PPID of script, excluding the match of this grep process itself
+      'if [ \\$myppid ]',            # If there is such PID
+      'then if [ \\$(ps --ppid \\$myppid -o comm= | grep -s remlf90) ]', # If reml is running under that PID
+      'then mypid=\\$(ps --ppid \\$myppid -o pid=)',
+      'runtime=\\$(ps --ppid \\$myppid -o time=)',
       'status="\\"Running\\(\\$runtime\\)\\""',   # Report running time
       'else status="Aborted"',      # Otherwise, it must have failed
       'fi',                         # End reml running
-      'else mypid=0',
+      'else myppid=0',
       'status="Aborted"',      # No active PID but job not done !!
       'fi',                         # End there is such pid
       'fi',                         # End job is done, running or aborted?
-      'echo "\\$myid \\$nno \\$mypid \\$status"', # Result
+      'echo "\\$myid \\$nno \\$mypid \\$myppid \\$status"', # Result
       'fi',                         # End case the current job should be listed
       'fi',                         # End sanitized case
       'done')                       # End For
@@ -376,7 +377,7 @@ breedR.submit <- function(jobid, breedR.call) {
   if (length(out) >= 1 && nchar(out[1]) > 0) {
     output = lapply(strsplit(out, " +"),
                     function(a) {
-                      names(a) = c("id", "no", "pid", "status")
+                      names(a) = c("id", "no", "pid", "ppid", "status")
                       return(as.list(a))
                       })
     # Diagnostic checks
