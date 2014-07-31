@@ -8,7 +8,7 @@ breedR.os(type = c("linux", "mac", "windows", "else"))
 Identifies host operating system.
 }
 \details{
-Relies on \code{.Platform$OS.type, but distinguishes
+Relies on \code{.Platform$OS.type}, but distinguishes
 between linux or mac.
 }
 

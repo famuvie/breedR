@@ -7,7 +7,8 @@
 \usage{
 breedR.getOption(option = c("ar.eval", "breedR.bin", "splines.nok",
   "default.initial.variance", "col.seq", "col.div", "cygwin", "cygwin.home",
-  "ssh.auth.sock"))
+  "ssh.auth.sock", "remote.host", "remote.user", "remote.port", "remote.bin",
+  "ssh.options"))
 
 breedR.setOption(...)
 }
@@ -45,12 +46,28 @@ breedR.setOption(...)
   \code{cygwin}: the home of the Cygwin installation
   (default "C:/cygwin") [Remote computing for Windows only]
 
-  \code{cygwin}: the user's home in the Cygwin installation
-  [Remote computing for Windows only]
+  \code{cygwin.home}: the user's home in the Cygwin
+  installation [Remote computing for Windows only]
 
   \code{ssh.auth.sock}: the ssh bind-adress (value of
   $SSH_AUTH_SOCK in the Cygwin-shell). [Remote computing
-  for Windows only]}
+  for Windows only]
+
+  \code{remote.host}: (IP or DNS) address of a Linux server
+  for remote computing
+
+  \code{remote.user}: user name with ssh-keys access to the
+  server (see details)
+
+  \code{remote.port}: port for ssh connection
+
+  \code{remote.bin}: path to the binaries directory in the
+  remote installation of breedR. Usually the output of
+  \code{system.file('bin/linux', package='breedR')} in a
+  remote server's R-session.
+
+  \code{ssh.options}: ssh options. You shouldn't need to
+  change this.}
 }
 \description{
 Set and get global options for breedR. The options are

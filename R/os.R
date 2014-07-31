@@ -7,7 +7,7 @@
 #' 
 #' Identifies host operating system.
 #' 
-#' Relies on \code{.Platform$OS.type, but distinguishes between linux or mac.
+#' Relies on \code{.Platform$OS.type}, but distinguishes between linux or mac.
 `breedR.os` = function(type = c("linux", "mac", "windows", "else"))
 {
     if (missing(type)) {

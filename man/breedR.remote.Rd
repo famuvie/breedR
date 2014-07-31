@@ -1,10 +1,10 @@
 \name{breedR.remote}
 \alias{breedR.remote}
-\title{Create .breedRrc configuration file for remote computing}
+\title{Perform a job remotely}
 \usage{
-breedR.remote()
+breedR.remote(jobid, breedR.call, verbose = TRUE)
 }
 \description{
-Checks whether cygwin is necessary and accessible
+Perform a job remotely
 }
 

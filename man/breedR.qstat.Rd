@@ -1,14 +1,21 @@
 \name{breedR.qstat}
-\alias{breedR.q}
 \alias{breedR.qdel}
 \alias{breedR.qget}
 \alias{breedR.qnuke}
 \alias{breedR.qstat}
 \alias{print.breedR.q}
 \alias{summary.breedR.q}
-\title{Control and view a remote breedR-queue}
+\title{Control and view a remote breedR-queue of submitted jobs}
 \usage{
 summary.breedR.q(object, ...)
+
+breedR.qget(id, remove = TRUE)
+
+breedR.qdel(id, statlst)
+
+breedR.qstat(id)
+
+breedR.qnuke()
 }
 \arguments{
   \item{id}{The job-id which is the output from
@@ -32,7 +39,7 @@ summary.breedR.q(object, ...)
 
   The recommended procedure is to use \code{r=breedR(...,
   breedR.call="submit")} and then do
-  \code{r=breedR.qget(r)} at a later stage.  If the job is
+  \code{r=breedR.qget(r)} at a later stage. If the job is
   not finished, then \code{r} will not be overwritten and
   this step can be repeated.  The reason for this
   procedure, is that some information usually stored in the
@@ -52,15 +59,17 @@ summary.breedR.q(object, ...)
 information about current jobs.
 }
 \description{
-Control and view a remote breedR-queue
+Control and view a remote breedR-queue of submitted jobs
 }
 \examples{
 \dontrun{
 r = remlf90(y~1, data = data.frame(y=rnorm(10)), breedR.call = "submit")
+summary(r)   # same as breedR.qstat(r)
 breedR.qstat()
 r = breedR.qget(r, remove=FALSE)
 breedR.qdel(1)
 breedR.qnuke()
+summary(r)   # results of the analysis
 }
 }
 \seealso{
