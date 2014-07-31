@@ -89,17 +89,37 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
     B <- kronecker(b.x, ones.y)*kronecker(ones.x, b.y)
     return(B)
   }
-
+  
+  tensor.sparse <- function (knots, xx, ord) {
+    b.x <- as(splineDesign(knots[[1]], xx[, 1], ord = ord), "Matrix")#, sparse=TRUE)
+    b.y <- as(splineDesign(knots[[2]], xx[, 2], ord = ord), "Matrix")#, sparse=TRUE)
+    # sparse argument was introduced between versions 2.15.0
+    # and 3.0.2 of the splines package.
+    # sparseness is useful but unnecessary. I prefer to keep this
+    # more widely compatible.
+    ones.y <- Matrix(1, ncol = ncol(b.y))
+    ones.x <- Matrix(1, ncol = ncol(b.x))
+    B <- kronecker(b.x, ones.y)*kronecker(ones.x, b.y)
+    return(B)
+  }
+  
   B <- tensor(knots, coord, degree + 1)
+  #   B <- tensor.sparse(knots, coord, degree + 1)
+
+  # The sparse incidence matrix weights 3.5 less than the non-sparse version,
+  # but it takes longer processing time. Besides, the gmean computation it also
+  # takes way longer. And at the end, I need the dense incidence matrix anyway.
   
   U1d <- lapply(sapply(knots, length) - degree - 1, build.splines1d)
+  #   U1d <- lapply(sapply(knots, length) - degree - 1, build.splines1d.sparse)
   U <- kronecker(U1d[[1]], U1d[[2]])
   
-  
+  #   browser()
   # Scaling so that the characteristic marginal variance equals 1/sigma^2
   # Sorbye and Rue (2014)
   U <- U/gmean(diag(B %*% U %*% t(B)))
-  
+  #   U <- U/gmean(Matrix::diag(B %*% U %*% Matrix::t(B)))
+
   U.sparse <- as(Matrix(tril(U), sparse = TRUE), 'dgTMatrix')
   # Note: The Matrix package counts rows and columns starting from zero
   # Thus, I add 1 to the corresponding columns
@@ -114,7 +134,7 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
   #   if(!is.null(colnames(coord))) 
   #     colnames(plot.grid) <- colnames(coord)
   plotting <- list(grid = plot.grid,
-                   B = tensor(knots, plot.grid, degree + 1))
+                   B = tensor.sparse(knots, plot.grid, degree + 1))
   
   return(list(param       = unname(n.knots),
               coord       = coord,
@@ -132,4 +152,17 @@ build.splines1d <- function(n, model = 'GreenSilverman2003') {
   temp <- diag(4, n)
   subdiag <- rbind(cbind(0, diag(1, n-1)), 0)
   return((temp + subdiag + t(subdiag))/6)
+}
+
+
+build.splines1d.sparse <- function(n, model = 'GreenSilverman2003') {
+  
+  # U matrix (Green & Silverman, 2003)
+  U <- sparseMatrix(i = c(1:n, 1:(n-1)),
+                    j = c(1:n, 2:n),
+                    x = c(rep(4, n), rep(1, n-1))/6,
+                    dims = c(n, n),
+                    symmetric = TRUE)
+  
+  return(U)
 }
