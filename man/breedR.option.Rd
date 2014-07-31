@@ -72,7 +72,10 @@ breedR.setOption(...)
 \description{
 Set and get global options for breedR. The options are
 stored in the variable \code{breedR.options} in the
-\code{.GlobalEnv}-environment.
+\code{.GlobalEnv}-environment, and will therefore persist
+during the session. If you want to set some options
+permanently do it in a file names \code{.breedRrc} in your
+home directory. See Examples.
 }
 \details{
 Sequential scales are used for variables not necessarily
@@ -95,5 +98,12 @@ breedR.setOption("ar.eval", 3*(-3:3)/10)
 breedR.setOption(ar.eval = 3*(-3:3)/10)
 ## check it
 breedR.getOption("ar.eval")
+
+\dontrun{
+# Set up some options permanently by writing the following in $HOME/.breedRc
+remote.host = '123.45.678.999'
+remote.user = 'uname'
+remote.bin  = 'remote/path/to/breedR/bin/linux'
+}
 }
 

@@ -38,16 +38,15 @@ breedR.qnuke()
   remove all jobs on the server.
 
   The recommended procedure is to use \code{r=breedR(...,
-  breedR.call="submit")} and then do
-  \code{r=breedR.qget(r)} at a later stage. If the job is
-  not finished, then \code{r} will not be overwritten and
-  this step can be repeated.  The reason for this
-  procedure, is that some information usually stored in the
-  result object does not go through the remote server,
-  hence have to be appended to the results that are
-  retrieved from the server. Hence doing
-  \code{r=breedR(..., breedR.call="submit")} and then later
-  retrive it using \code{r=breedR.qget(1)}, say, then
+  breedR.bin="submit")} and then do \code{r=breedR.qget(r)}
+  at a later stage.  If the job is not finished, then
+  \code{r} will not be overwritten and this step can be
+  repeated.  The reason for this procedure, is that some
+  information usually stored in the result object does not
+  go through the remote server, hence have to be appended
+  to the results that are retrieved from the server. Hence
+  doing \code{r=breedR(..., breedR.bin="submit")} and then
+  later retrive it using \code{r=breedR.qget(1)}, say, then
   \code{r} does not contain all the usual information.  All
   the main results are there, but administrative
   information which is required to call
@@ -61,9 +60,27 @@ information about current jobs.
 \description{
 Control and view a remote breedR-queue of submitted jobs
 }
+\section{Remote computing under Windows}{
+  You need to install \code{cygwin} and \code{ssh}
+  beforehand.
+}
+
+\section{Setup}{
+  You need to configure the client and server machines so
+  that passwordless SSH authentication works. See for
+  example
+  \code{\link{http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/}}
+
+  Furthermore, you need to configure breedR by setting the
+  options \code{remote.host}, \code{remote.user},
+  \code{remote.port} and \code{remote.bin}. You can
+  permanently set these options in the file
+  \code{.breedRrc} in your home directory. See
+  ?\code{breedR.setOption}.
+}
 \examples{
 \dontrun{
-r = remlf90(y~1, data = data.frame(y=rnorm(10)), breedR.call = "submit")
+r = remlf90(y~1, data = data.frame(y=rnorm(10)), breedR.bin = "submit")
 summary(r)   # same as breedR.qstat(r)
 breedR.qstat()
 r = breedR.qget(r, remove=FALSE)

@@ -359,7 +359,7 @@ remlf90 <- function(fixed,
     submit.id = paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1,min=1E8,max=1E9-1)), sep="")
     remote.bin = breedR.getOption('remote.bin')
     if( remote.bin == "path_to/breedR/bin/linux" ) {
-      stop('breedR is not configured for remote computing. See ?breedR.remote')
+      stop('breedR is not configured for remote computing. See ?breedR.options')
     }
     
     breedR.call = switch(method,

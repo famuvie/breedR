@@ -19,30 +19,46 @@
 #'   \code{breedR.qstat}
 #' @param ... other arguments
 #'   
+#'   
 #'   \code{breedR.qstat} show job(s) on the server, \code{breedR.qget} fetch the
-#'   results (and by default remove the files on the server), 
-#'   \code{breedR.qdel} removes a job on the server and \code{breedR.qnuke}
-#'   remove all jobs on the server.
+#'   results (and by default remove the files on the server), \code{breedR.qdel}
+#'   removes a job on the server and \code{breedR.qnuke} remove all jobs on the 
+#'   server.
 #'   
 #'   The recommended procedure is to use \code{r=breedR(..., 
-#'   breedR.call="submit")} and then do \code{r=breedR.qget(r)} at a later
-#'   stage. If the job is not finished, then \code{r} will not be overwritten
-#'   and this step can be repeated.  The reason for this procedure, is that some
+#'   breedR.bin="submit")} and then do \code{r=breedR.qget(r)} at a later stage.
+#'   If the job is not finished, then \code{r} will not be overwritten and this 
+#'   step can be repeated.  The reason for this procedure, is that some 
 #'   information usually stored in the result object does not go through the 
 #'   remote server, hence have to be appended to the results that are retrieved 
-#'   from the server. Hence doing \code{r=breedR(..., breedR.call="submit")} and
-#'   then later retrive it using \code{r=breedR.qget(1)}, say, then \code{r}
-#'   does not contain all the usual information.  All the main results are
-#'   there, but administrative information which is required to call
+#'   from the server. Hence doing \code{r=breedR(..., breedR.bin="submit")} and 
+#'   then later retrive it using \code{r=breedR.qget(1)}, say, then \code{r} 
+#'   does not contain all the usual information.  All the main results are 
+#'   there, but administrative information which is required to call 
 #'   \code{breedR.hyperpar} or \code{breedR.rerun} are not there.
 #'   
-#' @return \code{breedR.qstat} returns an \code{breedR.q}-object with
+#' @section Remote computing under Windows: You need to install \code{cygwin} 
+#'   and \code{ssh} beforehand.
+#'   
+#' @section Setup: You need to configure the client and server machines so that 
+#'   passwordless SSH authentication works. See for example 
+#'   \code{\link{http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/}}
+#'   
+#'   
+#'   Furthermore, you need to configure breedR by setting the options
+#'   \code{remote.host}, \code{remote.user}, \code{remote.port} and
+#'   \code{remote.bin}. You can permanently set these options in the file
+#'   \code{.breedRrc} in your home directory. See ?\code{breedR.setOption}.
+#'   
+#'   
+#'   
+#' @return \code{breedR.qstat} returns an \code{breedR.q}-object with 
 #'   information about current jobs.
 #'   
 #' @seealso \code{\link{remlf90}}
 #' @examples
 #' \dontrun{
-#' r = remlf90(y~1, data = data.frame(y=rnorm(10)), breedR.call = "submit")
+#' r = remlf90(y~1, data = data.frame(y=rnorm(10)), breedR.bin = "submit")
 #' summary(r)   # same as breedR.qstat(r)
 #' breedR.qstat()
 #' r = breedR.qget(r, remove=FALSE)
@@ -242,7 +258,7 @@
   killpids <- killpids[killpids > 0L]   # Just in case
   killpids <- paste(killpids, collapse = ' ')
     
-  if( length(killpids) > 0 ) {
+  if( nchar(killpids) > 0 ) {
     ssh_commands <- c(ssh_commands,
                       paste('kill', killpids))
   } 

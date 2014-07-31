@@ -1,13 +1,13 @@
 ## Export: breedR.setOption breedR.getOption
 
-#'Set and get global options for breedR
+#' Set and get global options for breedR
 #'
-#'Set and get global options for breedR. The options are stored in the variable 
-#'\code{breedR.options} in the \code{.GlobalEnv}-environment.
+#' Set and get global options for breedR. The options are stored in the variable 
+#'\code{breedR.options} in the \code{.GlobalEnv}-environment, and will therefore persist during the session. If you want to set some options permanently do it in a file names \code{.breedRrc} in your home directory. See Examples.
 #'
-#'@param ... Option and value,  like \code{option=value} or \code{option, 
+#' @param ... Option and value,  like \code{option=value} or \code{option, 
 #'  value}; see the Examples.
-#'@param option The option to get. If missing or \code{NULL}, then 
+#' @param option The option to get. If missing or \code{NULL}, then 
 #'  \code{breedR.getOption} will display the current defaults, otherwise, 
 #'  \code{option} must be one of
 #'  
@@ -51,20 +51,20 @@
 #'  
 #'  \code{ssh.options}: ssh options. You shouldn't need to change this.
 #'  
-#'@details
+#' @details
 #'
-#'Sequential scales are used for variables not necessarily centered such as a 
+#' Sequential scales are used for variables not necessarily centered such as a 
 #'response variable, or the fitted values of a model. The colour scale is built 
 #'as a gradient between two extreme colours which are specified as hex codes or 
 #'colour names in the option \code{col.seq}.
 #'
-#'Diverging scales are used for plots such as residuals, centered (hopefully) 
+#' Diverging scales are used for plots such as residuals, centered (hopefully) 
 #'around zero, with positive and negative values represented with different 
 #'colours whose intensity is linked to the magnitude. The option \code{col.div} 
 #'is a vector of two hex codes or colour names of the most intense colours.
 #'
-#'@name breedR.option
-#'@aliases breedR.options breedR.setOption breedR.getOption
+#' @name breedR.option
+#' @aliases breedR.options breedR.setOption breedR.getOption
 #' @examples
 #' ## Set default values for the autoregressive parameters
 #' breedR.setOption("ar.eval", 3*(-3:3)/10)
@@ -72,7 +72,14 @@
 #' breedR.setOption(ar.eval = 3*(-3:3)/10) 
 #' ## check it 
 #' breedR.getOption("ar.eval")
-#'@export breedR.setOption breedR.getOption
+#' 
+#' \dontrun{
+#' # Set up some options permanently by writing the following in $HOME/.breedRc
+#' remote.host = '123.45.678.999'
+#' remote.user = 'uname'
+#' remote.bin  = 'remote/path/to/breedR/bin/linux'
+#' }
+#' @export breedR.setOption breedR.getOption
 
 
 
@@ -177,7 +184,12 @@ breedR.setOption <- function(...) {
                                                 "col.div",
                                                 "cygwin",
                                                 "cygwin.home",
-                                                "ssh.auth.sock"),
+                                                "ssh.auth.sock",
+                                                "remote.host",
+                                                "remote.user",
+                                                "remote.port",
+                                                "remote.bin",
+                                                "ssh.options"),
                                      value) {
     
     if(is.list(option)) return(do.call('breedR.setOption', args = option))
