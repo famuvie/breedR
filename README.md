@@ -23,8 +23,7 @@ This package provides frequentist and Bayesian statistical tools to build predic
     - `install.pacakges('testthat')
 
 ##### Installation
-  - `library(devtools)`
-  - `install_github('breedR', 'famuvie')`
+  - `devtools::install_github('famuvie/breedR')`
 
 ##### How to use
 - Load the package
