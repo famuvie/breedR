@@ -1,34 +1,17 @@
 ## Nothing to export
 
-`breedR.cygwin.check.path` = function(path = breedR.getOption("cygwin"))
-{
-    return (file.exists(path) && file.info(path)$isdir)
-}
-
-`breedR.cygwin.run.command` = function(command, file.log = NULL, ...)
-{
-    if (breedR.cygwin.check.path()) {
-        cmd = paste(breedR.getOption("cygwin"),
-                     "/bin/bash.exe -c ",
-                     shQuote(paste("export PATH=/bin:/usr/bin:$PATH;",
-                                   command,
-                                   breedR.ifelse(is.null(file.log), "", paste(" > ", file.log)), 
-                                   sep=""), type="cmd"), sep="")
-        system(cmd, ...)
-    } else {
-        stop(paste("Cannot find the CYGWIN installation:", breedR.getOption("cygwin")))
-    }
-}
-
-`breedR.cygwin.map.filename` = function(filename, windows2cygwin = TRUE)
-{
-    if (windows2cygwin)
-        return (paste(breedR.cygwin.run.command(paste("cygpath -u ", filename), intern = TRUE, ignore.stderr = TRUE),
-                      collapse = ' '))
-    else
-        return (paste(breedR.cygwin.run.command(paste("cygpath -w -m -s ", filename), intern = TRUE, ignore.stderr = TRUE),
-                      collapse= ' '))
+# Return TRUE if CYGWIN seems installed in the given dir
+breedR.cygwin.check <- function(path = breedR.getOption("cygwin")) {
+  return (file.exists(path) && file.info(path)$isdir)
 }
 
 
-        
+# Check whether cygwin/bin is in the PATH environment variable
+# and inserts it if necessary. 
+breedR.cygwin.setPATH <- function(path = breedR.getOption("cygwin")) {
+  cygbin <- file.path(path, 'bin')
+  if( !grepl(cygbin, tolower(Sys.getenv('PATH'))) ) {
+    path <- paste(cygbin, Sys.getenv('PATH'), sep = .Platform$path.sep)
+    Sys.setenv(PATH = path)
+  }
+}

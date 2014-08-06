@@ -315,11 +315,21 @@ breedR.ssh <- function(commands,
     call_str <- paste(call_str, post)
   }
   
-  system(call_str, ...)
+  if( breedR.os('windows') ) {
+    # This is needed in Winblows to run things under a shell
+    # so to be able to use pipes and stuff
+    shell(call_str, ...)
+  } else {
+    system(call_str, ...)
+  }
+    
+  
 }
 
 
 #' Perform a job remotely
+#' 
+#' Assumes that all the relevant files are in the current directory.
 breedR.remote = function(jobid, breedR.call, verbose = TRUE)
 {
   if( verbose ) {
@@ -398,6 +408,11 @@ retrieve_remote <- function (rdir) {
                      tmpdir = '..',
                      fileext = '.tar')
   
+  if( breedR.os('windows') ) {
+    # Filename is created locally, but used remotely (in a Linux server)
+    tarfile <- gsub('\\', '/', tarfile, fixed = TRUE)
+  }
+  
   # Save results into the compressed file
   ssh_commands <- 
     c(paste('cd', rdir),           # Move in
@@ -409,6 +424,14 @@ retrieve_remote <- function (rdir) {
   
   # Copy the compressed file to local
   tf <- tempfile(pattern = 'breedR.result_', fileext = '.tar')
+  
+  # Avoid confusing the colon in Windows paths (i.e. C:) with a host
+  # by moving into the tf directory
+  cdir <- setwd(dirname(tf))
+  on.exit(setwd(cdir))
+  tf <- basename(tf)
+  
+  
   ssh_par <- breedR.ssh_params('list')
   scp_args <- paste('-P', ssh_par$remote.port, ' -B -C -p -q', sep ='')
   scp_file <- paste(ssh_par$remote.user, '@', ssh_par$remote.host, ':',
@@ -423,5 +446,7 @@ retrieve_remote <- function (rdir) {
   ssh_commands <- paste('rm', file.path(dirname(rdir), basename(tarfile)))
   res <- breedR.ssh(ssh_commands, intern = TRUE)
   if( !is.character(res) & length(res) != 0) stop('This should not happen')
-  return(dirname(tf))
+  
+  # Return current dir, which was the original dirname(tf)
+  return(getwd())
 }

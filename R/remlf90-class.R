@@ -362,6 +362,15 @@ remlf90 <- function(fixed,
       stop('breedR is not configured for remote computing. See ?breedR.options')
     }
     
+    if( breedR.os('windows') ) {
+      if( !breedR.cygwin.check() ) {
+        stop(paste("Cannot find the CYGWIN installation:", breedR.getOption("cygwin")))
+      }
+      
+      # Make sure the binaries are accesible
+      breedR.cygwin.setPATH()
+    }
+    
     breedR.call = switch(method,
                          ai = file.path(remote.bin, 'airemlf90'),
                          em = file.path(remote.bin, 'remlf90'))
@@ -370,7 +379,7 @@ remlf90 <- function(fixed,
     if ( tolower(breedR.bin) == "remote" ) {
       ldir <- breedR.remote(submit.id, breedR.call)
 
-      if( !identical(ldir, tmpdir) ) stop('This should not happen')
+      if( !identical(normalizePath(ldir), normalizePath(tmpdir)) ) stop('This should not happen')
       reml.out <- readLines(file.path(ldir, 'LOG'))
     }
     
