@@ -157,6 +157,8 @@ ggplot(data.frame(name = c(paste('a', 1:(ord+1), sep ='_'), 'resid'),
 
 
 # Some BVs in time
+# The points represent the times where the phenotype has been measured
+# for each individual
 n_show = 3
 idx <- sample(sum(N$fnd)+1:N$ind, n_show)
 x <- seq(t_range[1], t_range[2], length = 101)
@@ -168,8 +170,21 @@ BVf <- transform(x,
                  type = factor(rep(c('true', 'pred'), each = length(x)*n_show)),
                  BV = c(as.vector(true_BVf), as.vector(pred_BVf)))
 
+BVt <- mapply(function(i, t) legendre_values(t, ord,
+                                             scale = t_range) %*% pred_BV[i,],
+              idx,
+              tobs[idx],
+              SIMPLIFY = FALSE)
+
+BV_pt <- do.call(rbind,
+                 lapply(1:n_show,
+                        function(i) data.frame(ind = factor(idx[i]),
+                                               t = tobs[[idx[i]]],
+                                               BV = BVt[[i]])))
+
 ggplot(BVf, aes(t, BV)) + 
-  geom_line(aes(col = ind, lty = type))
+  geom_line(aes(col = ind, lty = type)) + 
+  geom_point(aes(col = ind), data = BV_pt)
 
 
 
