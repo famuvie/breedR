@@ -2,7 +2,7 @@
 #' @name simulation
 #' @title Simulation of phenotypes and model components
 #' @export breedR.sample.AR breedR.sample.splines breedR.sample.BV 
-#'   breedR.sample.phenotype
+#'   breedR.sample.phenotype breedR.sample.pedigree
 #' @description These functions allow to draw samples from several models 
 #'   (spatial, genetic, competition, etc.) and to combine them to produce a 
 #'   simulated phenotype. The resulting dataset can then be fitted with breedR 
@@ -245,11 +245,12 @@ breedR.sample.BV <- function(ped, Sigma, N = 1) {
   # number of genetic effects
   neff <- dim(as.matrix(Sigma))[1]
   
-  # A dim(Ainv)[1] x dim(Sigma)[1] vector with simulated BV
+  # A dim(Ainv)[1] x N*dim(Sigma)[1] vector with simulated BV
   ans <- matrix(spam::rmvnorm.prec(N, Q = Q),
                 nrow = dim(Ainv)[1])
-  if(neff == 1) colnames(ans) <- 'BV'
-  else colnames(ans) <- paste('BV', 1:neff, sep ='')
+
+  if( neff == 1 & N == 1 ) colnames(ans) <- 'BV'
+  else colnames(ans) <- paste('BV', 1:(neff*N), sep ='')
   
   return(ans)
 }

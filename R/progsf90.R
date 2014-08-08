@@ -433,7 +433,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       genetic.fit <- result$genetic$value[fit.idx]
       
       genetic.contribution <- genetic.fit
-    } else {
+    } else if( ncol(effects$genetic$gen$B) == 17 ) {
       # Account for genetic competition models
       # Incidence matrix of competition effect in short 16-column format
       gen.inc <- list(coef = effects$genetic$gen$B[, 1+1:8],
@@ -455,8 +455,20 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       # Genetic contribution to phenotype: 
       # direct additive genetic effect + weighted neighbour competition effects
       genetic.contribution <- genetic.fit$direct + genetic.pred
+    } else {
+      # Account for ohter models with more than one genetic effect
+      # (e.g. RR) 
+      # Assume that the individual is identified in the last column
+      n_inc <- ncol(effects$genetic$gen$B)
+      fit.idx <- effects$genetic$gen$B[, n_inc]
+      gen.inc <- list(coef = effects$genetic$gen$B[, -n_inc])
+      ranef$genetic <- result[gen.idx]
+      genetic.fit <- sapply(result[gen.idx],
+                            function(x) x[fit.idx, 'value'])
+      genetic.contribution <- rowSums(genetic.fit * gen.inc$coef)
     }
   }
+  
   # Spatial Surface
   # Here, the random effects are the underlying model parameters,
   # the fit is the predicted values for all the observations (which may include
