@@ -181,18 +181,16 @@ print.summary.metagene <- function(x, ...) {
 plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 #   dat <- data(x)
   type <- match.arg(type)
-  n = nindividuals(x)
   
   if(type == 'spatial') {
     stopifnot('spatial' %in% names(x))
-    ggplot(transform(as.data.frame(x),
-                     value = sp_X),
-           aes(irow, icol)) + 
-      geom_tile(aes(fill = value)) + 
-      scale_fill_gradient(low = 'green', high = 'red')
+    spdat <- with(as.data.frame(x),
+                  data.frame(x = irow, y = icol, z = sp_X))
+    spatial.plot(spdat, scale = 'div') 
   }
   else {
-    dat <- data.frame(label=rep(c('genotype', 'phenotype'), each=n),
+    dat <- data.frame(label=rep(c('genotype', 'phenotype'),
+                                each = nindividuals(x)),
                       generation = rep(factor(x$gen), 2),
                       sex = rep(x$sex, 2),
                       value = c(x$BV_X, x$phe_X))
