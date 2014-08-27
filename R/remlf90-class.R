@@ -522,18 +522,15 @@ setMethod('coordinates<-', signature = 'breedR',
           }
 )
 
-# Plotting the spatial effect in the observed locations
-# TODO: implement this as a plotting method for remlf90 objects
 
-#' Plot a model fit
+#' Spatial plot of a model's fit components
 #' 
-#' Plots the predicted values of the spatial component of the observations' 
-#' phenotypes.
+#' Plots the predicted values of the component effects of the phenotype.
 #' 
-#' @param x A remlf90 object, or a matrix (-like) of coordinates
-#' @param type Character. Plot type. 'spatial' is currently the only option.
+#' @param x A \code{breedR} object
+#' @param type Character. Which component is to be represented in the map.
 #' @param z Optional. A numeric vector to be plotted with respect to the spatial
-#'   coordinates.
+#'   coordinates. Overrides \code{type}.
 #'   
 #' @S3method plot remlf90
 #' @export
@@ -541,7 +538,12 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
   
   type = match.arg(type)
   
-  coord <- coordinates(x)
+  coord <- try(coordinates(x), silent = TRUE)
+  if( inherits(coord, "try-error") ) {
+    stop(paste('Missing spatial structure. Use coordinates(',
+               deparse(substitute(x)),
+               ') <- coord', sep = ''))
+  }
   
   # Argument z is used for plotting a custom spatial variable
   if( !is.null(z) ) {
