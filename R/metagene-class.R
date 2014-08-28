@@ -73,12 +73,7 @@ read.metagene <- function(fname) {
 }
 
 
-#' Summary method for metagene objects
-#' 
-#' Prints a summary of a metagene objects.
 #' @method summary metagene
-#' @param x A metagene object
-#' @return Prints summary
 #' @export
 summary.metagene <- function(object, ...) {
 #   attach(x)
@@ -233,7 +228,7 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
 #' 
 #' Returns an object from the formal class 'pedigree'
 #' @export
-#' @S3method get_pedigree metagene
+#' @method get_pedigree metagene
 get_pedigree <- function(x, ...) UseMethod('get_pedigree')
 get_pedigree.metagene <- function(x, ...) {
   return(with(x$Data, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))

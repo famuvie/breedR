@@ -65,7 +65,7 @@
 #' 
 #' If \code{n.knots} is omitted, a sensible number of knots for each dimension
 #' is computed based on the number of observations in the experiment. See the
-#' internal function \code{\link{breedR:::determine.n.knots}}. This is the 
+#' internal function \code{\link{determine.n.knots}}. This is the 
 #' default function that computes the default number of knots, but you can
 #' provide an alternative default function through 
 #' \code{\link{breedR.setOption}}.
@@ -398,7 +398,7 @@ coef.remlf90 <- function(object, ...) {
 
 #' Extract the Akaike Information Criterion from a fitted model
 #' 
-#' @S3method extractAIC remlf90
+#' @method extractAIC remlf90
 #' @export
 extractAIC.remlf90 <- function(fit, scale, k,...) {
   return(fit$fit$AIC)
@@ -406,7 +406,7 @@ extractAIC.remlf90 <- function(fit, scale, k,...) {
   
 #' Extract Model Fitted Values
 #'
-#' @S3method fitted remlf90
+#' @method fitted remlf90
 #' @export
 fitted.remlf90 <- function (object, ...) {
   object$mu
@@ -414,7 +414,7 @@ fitted.remlf90 <- function (object, ...) {
   
 #' Extract fixed-effects estimates
 #'
-#' @S3method fixef remlf90
+#' @method fixef remlf90
 #' @export
 fixef.remlf90 <- function (object, ...) {
       object$fixed
@@ -422,7 +422,7 @@ fixef.remlf90 <- function (object, ...) {
 
 #' Extract Log-Likelihood
 #' 
-#' @S3method logLik remlf90
+#' @method logLik remlf90
 #' @export
 logLik.remlf90 <- function (object, ...) {
   # TODO: Revise this, N parameters, df, N obs.
@@ -468,19 +468,19 @@ logLik.remlf90 <- function (object, ...) {
   ans
 }
 
-#' @S3method model.frame remlf90
+#' @method model.frame remlf90
 #' @export
 model.frame.remlf90 <- function (object, ...) {
   object$mf
 }
 
-#' @S3method model.matrix remlf90
+#' @method model.matrix remlf90
 #' @export
 model.matrix.remlf90 <- function (object, ...) {
   object$mm
 }
 
-#' @S3method nobs remlf90
+#' @method nobs remlf90
 #' @export
 nobs.remlf90 <- function (object, ...) {
   nrow(as.matrix(object$y))
@@ -532,7 +532,7 @@ setMethod('coordinates<-', signature = 'breedR',
 #' @param z Optional. A numeric vector to be plotted with respect to the spatial
 #'   coordinates. Overrides \code{type}.
 #'   
-#' @S3method plot remlf90
+#' @method plot remlf90
 #' @export
 plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspatial', 'residuals'), z = NULL) {
   
@@ -608,7 +608,7 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
 #   
 # }
 
-#' @S3method ranef remlf90
+#' @method ranef remlf90
 #' @export
 ranef.remlf90 <- function (object, ...) {
   object$ranef
@@ -620,9 +620,10 @@ ranef.remlf90 <- function (object, ...) {
 #' Returns the variance-covariance matrix of the specified random effect.
 #' For the moment, only the spatial effect is of interest.
 #' 
+#' @param object a fitted model of class \code{remlf90}
 #' @param effect the structured random effect of interest
 #' 
-#' @S3method vcov remlf90
+#' @method vcov remlf90
 #' @export
 vcov.remlf90 <- function (object, effect = 'spatial') {
   
@@ -661,7 +662,7 @@ vcov.remlf90 <- function (object, effect = 'spatial') {
 }
 
 
-#' @S3method residuals remlf90
+#' @method residuals remlf90
 #' @export
 residuals.remlf90 <- function (object, ...) {
   # TODO: to be used when na.action is included in remlf90
@@ -671,7 +672,7 @@ residuals.remlf90 <- function (object, ...) {
   object$residuals
 }
 
-#' @S3method summary remlf90
+#' @method summary remlf90
 #' @export
 summary.remlf90 <- function(object, ...) {
   ans <- object

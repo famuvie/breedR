@@ -205,7 +205,7 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   return(ans)
 }
 
-#' @S3method print breedR.variogram
+#' @method print breedR.variogram
 #' @export
 print.breedR.variogram <- function(x) {
   
