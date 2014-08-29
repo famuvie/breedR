@@ -2,7 +2,7 @@
 #' @name simulation
 #' @title Simulation of phenotypes and model components
 #' @export breedR.sample.AR breedR.sample.splines breedR.sample.BV 
-#'   breedR.sample.phenotype
+#' @export  breedR.sample.phenotype
 #' @description These functions allow to draw samples from several models 
 #'   (spatial, genetic, competition, etc.) and to combine them to produce a 
 #'   simulated phenotype. The resulting dataset can then be fitted with breedR 

@@ -3,11 +3,11 @@
 
 #' Control and view a remote breedR-queue of submitted jobs
 #' 
-#' @name breedR.qstat
+#' @name remote
 #' @aliases breedR.qstat breedR.qget breedR.qdel breedR.qnuke summary.breedR.q 
-#'   print.breedR.q
-#' @export breedR.qstat breedR.qget breedR.qdel breedR.qnuke summary.breedR.q 
-#'   print.breedR.q
+#'   print.breedR.q remote submit
+#' @export breedR.qstat breedR.qget breedR.qdel breedR.qnuke summary.breedR.q
+#' @export print.breedR.q
 #'   
 #'   
 #' @param id The job-id which is the output from \code{breedR} when the job is 
@@ -15,27 +15,23 @@
 #'   is optional and if omitted all the jobs will be listed.
 #' @param remove Logical. If FALSE, leave the job on the server after retrival, 
 #'   otherwise remove it (default).
-#' @param x, object An \code{breedR.q}-object which is the output from 
+#' @param object a \code{breedR.q}-object which is the output from 
 #'   \code{breedR.qstat}
-#' @param ... other arguments
 #'   
+#' @details \code{breedR.qstat} shows job(s) on the server, \code{breedR.qget} 
+#'   fetches the results (and by default remove the files on the server), 
+#'   \code{breedR.qdel} removes a job on the server and \code{breedR.qnuke} 
+#'   removes all jobs on the server.
 #'   
-#'   \code{breedR.qstat} show job(s) on the server, \code{breedR.qget} fetch the
-#'   results (and by default remove the files on the server), \code{breedR.qdel}
-#'   removes a job on the server and \code{breedR.qnuke} remove all jobs on the 
-#'   server.
-#'   
-#'   The recommended procedure is to use \code{r=breedR(..., 
-#'   breedR.bin="submit")} and then do \code{r=breedR.qget(r)} at a later stage.
-#'   If the job is not finished, then \code{r} will not be overwritten and this 
-#'   step can be repeated.  The reason for this procedure, is that some 
+#'   The recommended procedure is to use \code{r <- remlf90(..., 
+#'   breedR.bin="submit")} and then do \code{r <- breedR.qget(r)} at a later 
+#'   stage. If the job is not finished, then \code{r} will not be overwritten 
+#'   and this step can be repeated.  The reason for this procedure, is that some
 #'   information usually stored in the result object does not go through the 
 #'   remote server, hence have to be appended to the results that are retrieved 
-#'   from the server. Hence doing \code{r=breedR(..., breedR.bin="submit")} and 
-#'   then later retrive it using \code{r=breedR.qget(1)}, say, then \code{r} 
-#'   does not contain all the usual information.  All the main results are 
-#'   there, but administrative information which is required to call 
-#'   \code{breedR.hyperpar} or \code{breedR.rerun} are not there.
+#'   from the server. Hence doing \code{r <- remlf90(..., breedR.bin="submit")} 
+#'   and then later retrive it using \code{r <- breedR.qget(1)}, say, then 
+#'   \code{r} does not contain all the required information.
 #'   
 #' @section Remote computing under Windows: You need to install \code{cygwin} 
 #'   and \code{ssh} beforehand.
@@ -44,13 +40,10 @@
 #'   passwordless SSH authentication works. See for example 
 #'   \code{\link{http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/}}
 #'   
-#'   
-#'   Furthermore, you need to configure breedR by setting the options
-#'   \code{remote.host}, \code{remote.user}, \code{remote.port} and
-#'   \code{remote.bin}. You can permanently set these options in the file
+#'   Furthermore, you need to configure breedR by setting the options 
+#'   \code{remote.host}, \code{remote.user}, \code{remote.port} and 
+#'   \code{remote.bin}. You can permanently set these options in the file 
 #'   \code{.breedRrc} in your home directory. See ?\code{breedR.setOption}.
-#'   
-#'   
 #'   
 #' @return \code{breedR.qstat} returns an \code{breedR.q}-object with 
 #'   information about current jobs.
@@ -59,21 +52,22 @@
 #' @examples
 #' \dontrun{
 #' r = remlf90(y~1, data = data.frame(y=rnorm(10)), breedR.bin = "submit")
-#' summary(r)   # same as breedR.qstat(r)
-#' breedR.qstat()
+#' summary(r)       # shows its status, same as breedR.qstat(r)
+#' breedR.qstat()   # shows all jobs
 #' r = breedR.qget(r, remove=FALSE)
 #' breedR.qdel(1)
 #' breedR.qnuke()
 #' summary(r)   # results of the analysis
 #' }
 
-#' @rdname breedR.qstat
-`summary.breedR.q` = function(object, ...)
+#' @method summary breedR.q
+summary.breedR.q = function(object)
 {
-  print(object, ...)
+  print(object)
 }
 
-`print.breedR.q` = function(x, ...)
+#' @method print breedR.q
+print.breedR.q = function(x)
 {
   if (length(x) == 0) {
     ##cat("No jobs available\n")
@@ -85,8 +79,8 @@
   return (invisible(x))
 }
 
-#' @rdname breedR.qstat
-`breedR.qget` = function(id, remove = TRUE)
+#' @rdname remote
+breedR.qget = function(id, remove = TRUE)
 {
 
   stopifnot( !missing(id) )
@@ -118,19 +112,19 @@
                        id$mcout)
   class(ans) <- c('breedR', 'remlf90')  
   
-  if( remove ) suppressMessages(breedR.qdel(id, statlst))
+  if( remove ) suppressMessages(breedR.qdel(id))
   
   message('Job retrieved')
   return (ans)
 }
 
-#' @rdname breedR.qstat
-`breedR.qdel` = function(id, statlst)
+#' @rdname remote
+`breedR.qdel` = function(id)
 {
   
   if( missing(id) ) stop('No job specified. To delete all jobs use breedR.qnuke()')
 
-  if( missing(statlst) ) statlst <- breedR.qstat(id)
+  statlst <- breedR.qstat(id)
   if( length(statlst) == 0 ) stop('Job not found')
   if( length(statlst) != 1 ) stop('This should not happen')
   status <- statlst[[1]]
@@ -157,7 +151,7 @@
   message(paste('Deleted job:', status$no, 'Id:', status$id))
 }
 
-#' @rdname breedR.qstat
+#' @rdname remote
 `breedR.qstat` = function(id)
 {
   # id can be a list of class remlf90 widh an item $id with a job id
@@ -241,7 +235,7 @@
   return (output)
 }
 
-#' @rdname breedR.qstat
+#' @rdname remote
 `breedR.qnuke` = function()
 {
   # Remote dir
@@ -336,6 +330,9 @@ breedR.ssh <- function(commands,
 #' Perform a job remotely
 #' 
 #' Assumes that all the relevant files are in the current directory.
+#' @param jobid character. A string uniquely identifying the current job.
+#' @param breedR.call character. A full string path to the executable program in the server.
+#' @param verbose logical. If \code{TRUE} (default) it shows informative messages.
 breedR.remote = function(jobid, breedR.call, verbose = TRUE)
 {
   if( verbose ) {
@@ -407,6 +404,7 @@ breedR.submit <- function(jobid, breedR.call) {
 #' Retrieve results stored in some remote directory
 #' 
 #' Use scp to transfer compressed files. Clean up afterwards.
+#' @param rdir string. Remote directory where the results are stored.
 #' @return dir name where the results are retrieved
 retrieve_remote <- function (rdir) {
   # Compressed filename for storing results remotely
