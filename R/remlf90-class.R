@@ -139,6 +139,7 @@ remlf90 <- function(fixed,
                     spatial = NULL,
                     data, 
                     method = c('ai', 'em'),
+                    breedR.bin = breedR.getOption("breedR.bin"),
                     debug = FALSE) {
   
   ## Assumptions:
@@ -326,7 +327,7 @@ remlf90 <- function(fixed,
   
   # Temporary files
   tmpdir <- tempdir()
-  parameter.file.path <- file.path(tmpdir, 'parameters')
+  #   parameter.file.path <- file.path(tmpdir, 'parameters')
   if(!is.null(genetic)) genetic$tempfile <- file.path(tmpdir, 'pedigree')
   if(!is.null(spatial)) spatial$tempfile <- file.path(tmpdir, 'spatial')
   
@@ -343,30 +344,76 @@ remlf90 <- function(fixed,
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)
 
-  # variance components and BLUPs with REML
-  binary.path <- breedR.call.builtin()
-
+  
   # Change to temporal directory to avoid specification of long paths
   # Avoids Issue #1
   cdir <- setwd(tmpdir)
   on.exit(setwd(cdir))
   
-  reml.out <- switch(method,
-                     ai = system2(file.path(binary.path, 'airemlf90'), 
-                                 input  = parameter.file.path,
-                                 stdout = ifelse(debug, '', TRUE)),
-                     em = system2(file.path(binary.path, 'remlf90'),
-                                 input  = parameter.file.path,
-                                 stdout = ifelse(debug, '', TRUE))
-  )
+  ## Determine the breedR program to use (either local or remote)
+  remote = FALSE
+  submit = FALSE
+  submit.id = ""
+  if ( tolower(breedR.bin) == "remote" || tolower(breedR.bin) == "submit" ) {
+    remote = TRUE
+    submit.id = paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1,min=1E8,max=1E9-1)), sep="")
+    remote.bin = breedR.getOption('remote.bin')
+    if( remote.bin == "path_to/breedR/bin/linux" ) {
+      stop('breedR is not configured for remote computing. See ?breedR.options')
+    }
+    
+    if( breedR.os('windows') ) {
+      if( !breedR.cygwin.check() ) {
+        stop(paste("Cannot find the CYGWIN installation:", breedR.getOption("cygwin")))
+      }
+      
+      # Make sure the binaries are accesible
+      breedR.cygwin.setPATH()
+    }
+    
+    breedR.call = switch(method,
+                         ai = file.path(remote.bin, 'airemlf90'),
+                         em = file.path(remote.bin, 'remlf90'))
+    
+    # Run either breedR.remote or breedR.submit
+    if ( tolower(breedR.bin) == "remote" ) {
+      ldir <- breedR.remote(submit.id, breedR.call)
+
+      if( !identical(normalizePath(ldir), normalizePath(tmpdir)) ) stop('This should not happen')
+      reml.out <- readLines(file.path(ldir, 'LOG'))
+    }
+    
+    if ( tolower(breedR.bin) == "submit" ) {
+      submit = TRUE
+      reml.out <- breedR.submit(submit.id, breedR.call)
+    }
+  } else {
+    breedR.call = switch(method,
+                         ai = file.path(breedR.bin, 'airemlf90'),
+                         em = file.path(breedR.bin, 'remlf90'))
+
+    reml.out <- system2(breedR.call, 
+                        input  = 'parameters',
+                        stdout = ifelse(debug, '', TRUE))
+  }
+  
   
   
   if( !debug ) {
     # Error catching
     stopifnot(is.null(attr(reml.out, 'status')))
     
-    # Parse solutions
-    ans <- parse_results(file.path(tmpdir, 'solutions'), effects, mf, reml.out, method, mcout)
+    if( !submit ) {
+      # Parse solutions
+      ans <- parse_results(file.path(tmpdir, 'solutions'), effects, mf, reml.out, method, mcout)
+    } else {
+      # Submitted job (solutions are parsed later with breedR.qget)
+      ans <- list(id = submit.id,
+                  effects = effects,
+                  mf = mf,
+                  method = method,
+                  mcout = mcout)
+    }
     
     class(ans) <- c('breedR', 'remlf90')  # Update to merMod in newest version of lme4 (?)
   } else {
@@ -675,6 +722,14 @@ residuals.remlf90 <- function (object, ...) {
 #' @method summary remlf90
 #' @export
 summary.remlf90 <- function(object, ...) {
+  
+  # If this is a submitted job, return the corresponding qstat object
+  # instead of a summary.remlf90 object
+  if( exists('id', object) ) {
+    # Submitted Job
+    return(breedR.qstat(object))
+  } 
+  
   ans <- object
   
   # Literal description of the model
@@ -714,6 +769,44 @@ summary.remlf90 <- function(object, ...) {
   class(ans) <- 'summary.remlf90'
   ans
 }
+
+
+
+## This is modeled a bit after  print.summary.lm :
+#' @export
+print.remlf90 <- function(x, digits = max(3, getOption("digits") - 3), ...) {
+  
+  # If this is a submitted job, return the corresponding qstat object
+  # instead of a summary.remlf90 object
+  if( exists('id', x) ) {
+    # Submitted Job
+    return(print(breedR.qstat(x)))
+  } 
+  
+  cat(x$model.description, '\n')
+  if(!is.null(x$call$formula))
+    cat("Formula:", x$formula,"\n")
+  if(!is.null(x$call$data))
+    cat("   Data:", deparse(x$call$data),"\n")
+  if(!is.null(x$call$subset))
+    cat(" Subset:", x$call$subset,"\n")
+  print(x$model.fit, digits = digits)
+  
+  if( x$components$spatial & !is.null(x$spatial$name)) {
+    switch(x$spatial$name,
+           AR = cat(paste("\nAutoregressive parameters for rows and columns: (",
+                          paste(x$spatial$model$param, collapse = ', '),
+                          ")\n", sep = '')),
+           Cappa07 = cat(paste("\nNumber of inner knots for rows and columns: (",
+                               paste(x$spatial$model$param, collapse =', '),
+                               ")\n", sep = ''))
+    )
+  }
+  
+  invisible(x)
+}
+
+
 
 ## This is modeled a bit after  print.summary.lm :
 #' @export

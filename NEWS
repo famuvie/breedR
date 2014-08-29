@@ -1,6 +1,8 @@
 breedR 0.7
 ==========
 
+* Remote computing through ssh
+
 * Convenient scaling of spatial variance components
 
 * Additive genetic competition model

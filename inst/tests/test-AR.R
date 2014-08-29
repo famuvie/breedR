@@ -65,8 +65,8 @@ run.model <- function(dat, method) {
               res = res))
 }
 
-reslist <- c(llply(datlist, run.model, method = 'em'),
-             llply(datlist, run.model, method = 'ai'))
+reslist <- c(lapply(datlist, run.model, method = 'em'),
+             lapply(datlist, run.model, method = 'ai'))
              
 # Check results
 # summary(reslist[[1]])

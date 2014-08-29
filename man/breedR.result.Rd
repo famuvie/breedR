@@ -3,7 +3,7 @@
 \alias{breedR.result}
 \title{Fit some model}
 \usage{
-breedR.result()
+breedR.result(...)
 }
 \description{
 Fit some model

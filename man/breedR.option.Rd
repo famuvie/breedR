@@ -6,8 +6,10 @@
 \alias{breedR.setOption}
 \title{Set and get global options for breedR}
 \usage{
-breedR.getOption(option = c("ar.eval", "splines.nok",
-  "default.initial.variance", "col.seq", "col.div"))
+breedR.getOption(option = c("ar.eval", "breedR.bin", "splines.nok",
+  "default.initial.variance", "col.seq", "col.div", "cygwin", "cygwin.home",
+  "ssh.auth.sock", "remote.host", "remote.user", "remote.port", "remote.bin",
+  "ssh.options"))
 
 breedR.setOption(...)
 }
@@ -22,23 +24,46 @@ value}; see the Examples.}
  \code{ar.eval}: numeric vector of values in (-1, 1) where the autoregressive
  parameters should be evaluated if not otherwise specified
 
+ \code{breedR.bin} path to the breedR binaries
+
  \code{splines.nok}: a function of the number of individuals in a row which
  gives the number of knots (nok) to be used for a splines model, if not
  otherwise specified
 
  \code{default.initial.variance}: a default value for all variance components
 
- \code{col.seq}: a vector with the specification of default extreme
- breedR col for sequential scales in spatial quantitative plots. See
- Details.
+ \code{col.seq}: a vector with the specification of default extreme breedR
+ col for sequential scales in spatial quantitative plots. See Details.
 
- \code{col.div}: a vector with the specification of default extreme
- breedR col for diverging scales in spatial quantitative plots. See
- Details.}
+ \code{col.div}: a vector with the specification of default extreme breedR
+ col for diverging scales in spatial quantitative plots. See Details.
+
+ \code{cygwin}: the home of the Cygwin installation (default "C:/cygwin")
+ [Remote computing for Windows only]
+
+ \code{cygwin.home}: the user's home in the Cygwin installation [Remote
+ computing for Windows only]
+
+ \code{ssh.auth.sock}: the ssh bind-adress (value of $SSH_AUTH_SOCK in the
+ Cygwin-shell). [Remote computing for Windows only]
+
+ \code{remote.host}: (IP or DNS) address of a Linux server for remote
+ computing
+
+ \code{remote.user}: user name with ssh-keys access to the server (see
+ details)
+
+ \code{remote.port}: port for ssh connection
+
+ \code{remote.bin}: path to the binaries directory in the remote installation
+ of breedR. Usually the output of \code{system.file('bin/linux',
+ package='breedR')} in a remote server's R-session.
+
+ \code{ssh.options}: ssh options. You shouldn't need to change this.}
 }
 \description{
 Set and get global options for breedR. The options are stored in the variable
-\code{breedR.options} in the \code{.GlobalEnv}-environment.
+\code{breedR.options} in the \code{.GlobalEnv}-environment, and will therefore persist during the session. If you want to set some options permanently do it in a file names \code{.breedRrc} in your home directory. See Examples.
 }
 \details{
 Sequential scales are used for variables not necessarily centered such as a
@@ -48,9 +73,8 @@ colour names in the option \code{col.seq}.
 
 Diverging scales are used for plots such as residuals, centered (hopefully)
 around zero, with positive and negative values represented with different
-colours whose intensity is linked to the magnitude. The option
-\code{col.div} is a vector of two hex codes or colour names of the most
-intense colours.
+colours whose intensity is linked to the magnitude. The option \code{col.div}
+is a vector of two hex codes or colour names of the most intense colours.
 }
 \examples{
 ## Set default values for the autoregressive parameters
@@ -59,5 +83,12 @@ breedR.setOption("ar.eval", 3*(-3:3)/10)
 breedR.setOption(ar.eval = 3*(-3:3)/10)
 ## check it
 breedR.getOption("ar.eval")
+
+\dontrun{
+# Set up some options permanently by writing the following in $HOME/.breedRc
+remote.host = '123.45.678.999'
+remote.user = 'uname'
+remote.bin  = 'remote/path/to/breedR/bin/linux'
+}
 }
 

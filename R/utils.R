@@ -40,7 +40,7 @@ breedR.get.element <-  function(name, alist) {
 
 
 #' Fit some model
-breedR.result <- function() {
+breedR.result <- function(...) {
   res  <- suppressWarnings(remlf90(fixed  = phe_X ~ gg,
                                    genetic = list(model = 'add_animal', 
                                                   pedigree = globulus[,1:3],
@@ -48,7 +48,8 @@ breedR.result <- function() {
                                    spatial = list(model = 'AR', 
                                                   coord = globulus[, c('x','y')],
                                                   rho = c(.85, .8)), 
-                                   data = globulus))
+                                   data = globulus,
+                                   ...))
   return(res)
 }
 
@@ -69,7 +70,7 @@ gmean <- function(x) {
 #' 
 #' Return the path to breedR binaries.
 #' Path is different in each platform, but not architecture.
-`breedR.call.builtin` = function()
+`breedR.bin.builtin` = function()
 {
   #   if (breedR.os("mac")) {
   #     fnm = system.file(paste("bin/mac/", breedR.os.32or64bit(), "bit/breedR", sep=""), package="breedR")
@@ -92,4 +93,31 @@ gmean <- function(x) {
   } else {
     stop(paste("breedR installation error; no such file", fnm))
   }
+}
+
+
+#' Determine the user's home directory
+#' 
+#' Relies on \code{Sys.getenv('HOME')}, or under windows, on
+#' \code{Sys.getenv("USERPROFILE"))} changing backslashes to slashes.
+`breedR.get.HOME` = function()
+{
+  return (as.character(ifelse(breedR.os("windows"),
+                              gsub("\\\\", "/", Sys.getenv("USERPROFILE")),
+                              Sys.getenv("HOME"))))
+}
+
+#' Determine the user name
+`breedR.get.USER` = function()
+{
+  u = ""
+  for (U in c("USER", "USERNAME", "LOGNAME")) {
+    u = Sys.getenv(U)
+    if (u != "")
+      break;
+  }
+  if (u == "")
+    u = "UnknownUserName"
+  
+  return (as.character(u))
 }
