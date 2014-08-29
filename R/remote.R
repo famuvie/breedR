@@ -306,6 +306,12 @@ breedR.ssh <- function(commands,
                        pre,
                        post,
                        ...) {
+
+  if( breedR:::breedR.os('windows') ) {
+    # Certain characters should not be escaped in Windows
+    commands <- winssh_sanitize(commands)
+  }
+
   cmd_str <- paste(commands, collapse = '; ')
   call_str <- paste('ssh', params, '"', cmd_str, '"')
   if( !missing(pre) ) {
@@ -449,4 +455,17 @@ retrieve_remote <- function (rdir) {
   
   # Return current dir, which was the original dirname(tf)
   return(getwd())
+}
+
+# Sanitize function for ssh commands under Windows
+winssh_sanitize <- function(str) {
+  # characters escaped in Linux,
+  # but not to be escaped in Windows
+  sel_car <- '$"()'
+  
+  # remove scaping
+  str <- gsub(paste('\\\\([', sel_car, '])', sep = ''), '\\1', str)
+  
+  # return string with selected characters unescaped
+  str
 }
