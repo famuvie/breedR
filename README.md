@@ -39,6 +39,7 @@ If you have questions, please join our discussion [group](http://groups.google.c
   library('testthat')
   test_dir(system.file('tests', package = 'breedR'))
   ```
+  
 - Try it with your own data or with provided datasets
 - Report [issues](https://github.com/famuvie/breedR/issues "Issues page")
 
