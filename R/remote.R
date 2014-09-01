@@ -270,7 +270,7 @@ breedR.qget = function(id, remove = TRUE)
 ### non-exported        ###
 
 
-#' Retrieve ssh configuration parameters
+# Retrieve ssh configuration parameters
 breedR.ssh_params <- function(format = c('string', 'list')) {
   
   format <- match.arg(format)
@@ -291,10 +291,10 @@ breedR.ssh_params <- function(format = c('string', 'list')) {
     return(ssh)
 }
 
-#' Perform an SSH system call
-#' 
-#' Use the given connection parameters for and run the given commands remotely. 
-#' It also admits some pre or post strings (pipelines, or other modifications)
+# Perform an SSH system call
+# 
+# Use the given connection parameters for and run the given commands remotely. 
+# It also admits some pre or post strings (pipelines, or other modifications)
 breedR.ssh <- function(commands,
                        params = breedR.ssh_params(),
                        pre,
@@ -373,7 +373,7 @@ breedR.remote = function(jobid, breedR.call, verbose = TRUE)
 }
 
 
-#' Submit a job with a given id and remote program call
+# Submit a job with a given id and remote program call
 breedR.submit <- function(jobid, breedR.call) {
   
   # Remote directory

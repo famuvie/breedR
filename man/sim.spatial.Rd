@@ -3,7 +3,7 @@
 \alias{sim.spatial}
 \title{Simulate a spatial structure}
 \usage{
-\method{sim.spatial}{metagene}(meta, variance, range, ...)
+sim.spatial(meta, variance, range, ...)
 }
 \arguments{
 \item{meta}{A metagene object}
@@ -13,6 +13,8 @@ as a proportion of the non-inheritable pehnotype variance. See Details.}
 
 \item{range}{A number between 0 and 1. The range of the spatial field, as a
 proportion of the region size.}
+
+\item{...}{Arguments to be passed to methods.}
 }
 \value{
 Another metagene object with spatial structure given through an

@@ -5,9 +5,21 @@
 \usage{
 build.splines.model(coord, n.knots = NULL, autofill = TRUE, degree = 3)
 }
+\arguments{
+\item{coord}{matrix(-like) of observation coordinates}
+
+\item{n.knots}{numeric. Vector of length two with an integer number of knots
+in each dimension.}
+
+\item{autofill}{logical. If \code{TRUE} (default) it will try to fill gaps in
+the rows or columns. Otherwise, it will treat gaps the same way as adjacent
+rows or columns.}
+
+\item{degree}{integer. Degree of the B-spline polynomials.}
+}
 \description{
-Given the coordinates of the observations, and the degree,
-this function puts into place a sensible number of spline knots
-and computes the incidence matrix B and the covariance matrix U
+Given the coordinates of the observations, and the degree, this function puts
+into place a sensible number of spline knots and computes the incidence
+matrix B and the covariance matrix U
 }
 

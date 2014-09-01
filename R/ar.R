@@ -1,6 +1,6 @@
-#' Build an autoregressive model
-#' 
-#' Given the coordinates of the observations, ...
+# Build an autoregressive model
+# 
+# Given the coordinates of the observations, ...
 build.ar.model <- function (coord, rho, autofill) {
   
   # Checks
@@ -99,12 +99,12 @@ build.ar.model <- function (coord, rho, autofill) {
               plotting = plotting))
 }
 
-#' Build an evaluation grid for the autoregressive parameters of rows and columns
-#' 
-#' One or both autoregressive parameters may be unknown.
-#' In that case we need to fit the model with several values of rho_r and rho_c,
-#' in order to estimate the most likely values.
-#' This functions provides an evaluation grid of values.
+# Build an evaluation grid for the autoregressive parameters of rows and columns
+# 
+# One or both autoregressive parameters may be unknown.
+# In that case we need to fit the model with several values of rho_r and rho_c,
+# in order to estimate the most likely values.
+# This functions provides an evaluation grid of values.
 build.AR.rho.grid <- function(rho) {
   rho <- as.data.frame(rho)
   # If this function was called, at least one of the parameters is NA (unknown)

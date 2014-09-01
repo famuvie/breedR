@@ -1,10 +1,15 @@
 #' Determine a sensible number of knots
 #' 
-#' This function computes a reasonable number of inner knots
-#' to be used for a basis of unidimensional B-splines
-#' @param n An integer vector of sample sizes
+#' This function computes a reasonable number of inner knots to be used for a 
+#' basis of unidimensional B-splines
+#' @param n an integer vector of sample sizes
+#' @param cutoff a numeric vector of cutoff values
+#' @param rate a numeric vector of rates at which the number of knots increases with
+#'   the sample size
 #' @return An integer vector with the number of knots for each sample size
-#' @references Ruppert, D. (2002). Selecting the number of knots for penalized splines. \emph{Journal of Computational and Graphical Statistics} 11, 735–757.
+#' @references Ruppert, D. (2002). Selecting the number of knots for penalized 
+#'   splines. \emph{Journal of Computational and Graphical Statistics} 11, 
+#'   735–757.
 determine.n.knots <- function(n, cutoff = 4, rate = 0.3) {
   # # Inspired by hisemi::n.knots
   # as.integer(trunc(pmin(n, cutoff + pmax(0, n - cutoff)^rate)))
@@ -17,9 +22,17 @@ determine.n.knots <- function(n, cutoff = 4, rate = 0.3) {
 
 #' Build splines model
 #' 
-#' Given the coordinates of the observations, and the degree,
-#' this function puts into place a sensible number of spline knots
-#' and computes the incidence matrix B and the covariance matrix U
+#' Given the coordinates of the observations, and the degree, this function puts
+#' into place a sensible number of spline knots and computes the incidence 
+#' matrix B and the covariance matrix U
+#' 
+#' @param coord matrix(-like) of observation coordinates
+#' @param n.knots numeric. Vector of length two with an integer number of knots 
+#'   in each dimension.
+#' @param autofill logical. If \code{TRUE} (default) it will try to fill gaps in
+#'   the rows or columns. Otherwise, it will treat gaps the same way as adjacent
+#'   rows or columns.
+#' @param degree integer. Degree of the B-spline polynomials.
 build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree = 3) {
 
   

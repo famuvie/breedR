@@ -5,6 +5,11 @@
 \usage{
 fill_holes(x, label)
 }
+\arguments{
+\item{x}{numeric. Vector of increasing coordinates.}
+
+\item{label}{character. A name like 'rows' or 'x'.}
+}
 \description{
 Find and fill all the holes in a vector
 }

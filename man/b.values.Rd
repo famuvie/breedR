@@ -3,7 +3,10 @@
 \alias{b.values}
 \title{Breeding values}
 \usage{
-b.values(x, ...)
+b.values(x)
+}
+\arguments{
+\item{x}{a metagene object.}
 }
 \description{
 Breeding values

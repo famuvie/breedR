@@ -8,6 +8,8 @@
 #' Identifies host operating system.
 #' 
 #' Relies on \code{.Platform$OS.type}, but distinguishes between linux or mac.
+#' 
+#' @param type character. OS to be checked.
 `breedR.os` = function(type = c("linux", "mac", "windows", "else"))
 {
     if (missing(type)) {

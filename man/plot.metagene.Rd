@@ -5,6 +5,13 @@
 \usage{
 \method{plot}{metagene}(x, type = c("default", "spatial"), ...)
 }
+\arguments{
+\item{x}{a metagene object.}
+
+\item{type}{character. If 'default', the empirical density of the breeding and phenotypical values will be represented by generation. If 'spatial', the map of the spatial component will be plotted.}
+
+\item{...}{Further layers passed to \code{\link[ggplot2]{ggplot}}.}
+}
 \description{
 Plots either genetic and phenotypic values, or the spatial component of the
 phenotype

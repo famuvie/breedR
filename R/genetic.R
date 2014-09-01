@@ -1,5 +1,4 @@
-#' Build additive direct and competition models
-#' 
+# Build additive direct and competition models
 build.genetic.model <- function (genetic) {
   
   # Checks

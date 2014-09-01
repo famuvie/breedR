@@ -1,6 +1,6 @@
-#' Build a blocks model
-#' 
-#' Given the coordinates of the observations, ...
+# Build a blocks model
+# 
+# Given the coordinates of the observations, ...
 build.blocks.model <- function (coord, id, autofill) {
   
   # Original coordinates

@@ -1,8 +1,8 @@
-#' progsf90 class
-#' 
-#' This function parses a model frame and extracts the relevant fields
-#' that are to be written in the parameter, data and auxiliary files
-#' of the progsf90 programs.
+# progsf90 class
+# 
+# This function parses a model frame and extracts the relevant fields
+# that are to be written in the parameter, data and auxiliary files
+# of the progsf90 programs.
 progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   
   
@@ -103,12 +103,12 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
 }
 
 
-#' Build effects parameters
-#' 
-#' This function builds a list of effects parameters
-#' as required by Misztal's progsf90 suite of programs
-#' @references
-#' \url{http://nce.ads.uga.edu/wiki/lib/exe/fetch.php?media=blupf90.pdf}
+# Build effects parameters
+# 
+# This function builds a list of effects parameters
+# as required by Misztal's progsf90 suite of programs
+# @references
+# \url{http://nce.ads.uga.edu/wiki/lib/exe/fetch.php?media=blupf90.pdf}
 build.effects <- function (mf, genetic, spatial, var.ini) {
   
   # Build up effects data (position, levels, type)
@@ -357,7 +357,7 @@ write.progsf90 <- function (pf90, dir) {
 
 
 
-#' Parse results from a progsf90 'solutions' file
+# Parse results from a progsf90 'solutions' file
 parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   
   # Parsing the results
@@ -674,11 +674,11 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
 }
 
 
-#' Build Model Frame
-#' 
-#' Merges fixed and random terms into a single call
-#' and returns the corresponding model frame
-#' optionally removing the intercept term
+# Build Model Frame
+# 
+# Merges fixed and random terms into a single call
+# and returns the corresponding model frame
+# optionally removing the intercept term
 build.mf <- function(call) {
 	terms.list <- list()
 	

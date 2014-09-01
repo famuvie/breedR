@@ -32,6 +32,9 @@ loc_grid <- function (coord, autofill) {
 
 
 #' Find and fill all the holes in a vector
+#' 
+#' @param x numeric. Vector of increasing coordinates.
+#' @param label character. A name like 'rows' or 'x'.
 fill_holes <- function(x, label) {
   
   if(length(x) > 1){
@@ -66,7 +69,7 @@ fill_holes <- function(x, label) {
 }
 
 
-#' Fill a hole in a given position
+# Fill a hole in a given position
 fill_hole <- function(x, idx, n, sep, label) {
   filling <- x[idx] + sep*(1:n)
   if( !isTRUE(all.equal(x[idx + 1], x[idx] + sep*(n+1))) )

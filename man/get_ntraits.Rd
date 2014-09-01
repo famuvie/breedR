@@ -3,7 +3,12 @@
 \alias{get_ntraits}
 \title{Extract the number of traits}
 \usage{
-get_ntraits(x)
+get_ntraits(x, ...)
+}
+\arguments{
+\item{x}{a metagene object.}
+
+\item{...}{Arguments to be passed to methods.}
 }
 \description{
 Extract the number of traits

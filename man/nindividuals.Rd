@@ -5,6 +5,11 @@
 \usage{
 nindividuals(x, ...)
 }
+\arguments{
+\item{x}{a metagene object.}
+
+\item{...}{Arguments to be passed to methods.}
+}
 \description{
 Number of individuals
 }

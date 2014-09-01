@@ -1,10 +1,10 @@
 ## Internal utility functions
 ## Not exported
 
-#' lme4-style formulas
-#' 
-#' Transform the separated fixed and random formulas
-#' into the single formula with lme4 syntaxis
+# lme4-style formulas
+# 
+# Transform the separated fixed and random formulas
+# into the single formula with lme4 syntaxis
 lme4_fml <- function(fix, rnd, rm_int = TRUE) {
   rnd.terms <- attr(terms(rnd), 'term.labels')
   rnd.terms.lme4 <- paste('(1|', rnd.terms, ')', sep ='')
@@ -39,7 +39,7 @@ breedR.get.element <-  function(name, alist) {
 }
 
 
-#' Fit some model
+# Fit some model
 breedR.result <- function(...) {
   res  <- suppressWarnings(remlf90(fixed  = phe_X ~ gg,
                                    genetic = list(model = 'add_animal', 
@@ -53,7 +53,7 @@ breedR.result <- function(...) {
   return(res)
 }
 
-#' Geometric mean
+# Geometric mean
 gmean <- function(x) {
   logx <- log(x)
   finite.logx <- is.finite(logx)
@@ -66,10 +66,10 @@ gmean <- function(x) {
 }
 
 
-#' BreedR binaries
-#' 
-#' Return the path to breedR binaries.
-#' Path is different in each platform, but not architecture.
+# BreedR binaries
+# 
+# Return the path to breedR binaries.
+# Path is different in each platform, but not architecture.
 `breedR.bin.builtin` = function()
 {
   #   if (breedR.os("mac")) {

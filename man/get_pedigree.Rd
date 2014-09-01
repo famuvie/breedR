@@ -10,6 +10,8 @@ get_pedigree(x, ...)
 }
 \arguments{
 \item{x}{object to extract pedigree from}
+
+\item{...}{Arguments to be passed to methods.}
 }
 \description{
 Returns an object from the formal class \code{pedigree}.

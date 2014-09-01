@@ -3,7 +3,12 @@
 \alias{ngenerations}
 \title{Number of generations}
 \usage{
-ngenerations(x)
+ngenerations(x, ...)
+}
+\arguments{
+\item{x}{a metagene object.}
+
+\item{...}{Arguments to be passed to methods.}
 }
 \description{
 Number of generations

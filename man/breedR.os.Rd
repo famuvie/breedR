@@ -5,6 +5,9 @@
 \usage{
 breedR.os(type = c("linux", "mac", "windows", "else"))
 }
+\arguments{
+\item{type}{character. OS to be checked.}
+}
 \description{
 Identifies host operating system.
 }
