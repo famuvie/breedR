@@ -109,7 +109,7 @@ neighbours.at.matrix <-function(x, dir) {
   stopifnot(is.character(dir))
   if( length(dir) == 1 ){
     dimx <- dim(x)
-    switch(dir,
+    switch(EXPR = dir,
            N = rbind(NA, x[-dimx[1], ]),
            S = rbind(x[-1, ], NA),
            E = cbind(x[, -1], NA),

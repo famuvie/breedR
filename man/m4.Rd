@@ -29,6 +29,7 @@ The 6400 individuals from generations 1 to 4 were arranged at random in a \eqn{8
 
   # The phenotypes are noisy observations around the Breeding values
   # with a standard deviation of about 10.
+  library(ggplot2)
   qplot(BV_X, phe_X-BV_X, facets = .~gen, data = as.data.frame(m4)) +
     geom_abline(int=0, sl=0, col='gray')
 }

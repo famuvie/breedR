@@ -96,7 +96,7 @@ build_pedigree <- function(x, self = x[[1]], sire = x[[2]], dam = x[[3]], data) 
   # pedx should pass all checks
   stopifnot(all(check_pedigree(pedx)))
 
-  out <- pedigree(sire = pedx$sire, dam = pedx$dam, label = pedx$self)
+  out <- pedigreemm::pedigree(sire = pedx$sire, dam = pedx$dam, label = pedx$self)
   if( !all(checks)) attr(out, 'map') <- map
   return(out)
 }

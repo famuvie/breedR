@@ -49,6 +49,7 @@ NULL
 #'   
 #'   # The phenotypes are noisy observations around the 
 #'   # true Breeding values with a standard deviation of about 7.3.
+#'   library(ggplot2)
 #'   qplot(BV_X, phe_X-BV_X, colour = dad, data = as.data.frame(m1)) + 
 #'     geom_abline(int=0, sl=0, col='gray')
 NULL
@@ -83,6 +84,7 @@ NULL
 #'   
 #'   # The phenotypes are noisy observations around the Breeding values
 #'   # with a standard deviation of about 10.
+#'   library(ggplot2)
 #'   qplot(BV_X, phe_X-BV_X, facets = .~gen, data = as.data.frame(m4)) + 
 #'     geom_abline(int=0, sl=0, col='gray')
 NULL

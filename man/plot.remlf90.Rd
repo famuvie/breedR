@@ -4,7 +4,7 @@
 \title{Spatial plot of a model's fit components}
 \usage{
 \method{plot}{remlf90}(x, type = c("phenotype", "fitted", "spatial",
-  "fullspatial", "residuals"), z = NULL)
+  "fullspatial", "residuals"), z = NULL, ...)
 }
 \arguments{
 \item{x}{A \code{breedR} object}
@@ -12,7 +12,9 @@
 \item{type}{Character. Which component is to be represented in the map.}
 
 \item{z}{Optional. A numeric vector to be plotted with respect to the spatial
-  coordinates. Overrides \code{type}.}
+coordinates. Overrides \code{type}.}
+
+\item{...}{Further layers passed to \code{\link[ggplot2]{ggplot}}.}
 }
 \description{
 Plots the predicted values of the component effects of the phenotype.

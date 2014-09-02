@@ -424,7 +424,7 @@ remlf90 <- function(fixed,
     
     class(ans) <- c('breedR', 'remlf90')  # Update to merMod in newest version of lme4 (?)
   } else {
-    file.show(parameter.file.path)
+    file.show('parameters')
     ans = NULL
   }
   
@@ -458,6 +458,7 @@ fitted.remlf90 <- function (object, ...) {
   object$mu
 }
   
+#' @importFrom nlme fixef
 #' @method fixef remlf90
 #' @export
 fixef.remlf90 <- function (object, ...) {
@@ -512,8 +513,8 @@ logLik.remlf90 <- function (object, ...) {
 
 #' @method model.frame remlf90
 #' @export
-model.frame.remlf90 <- function (object, ...) {
-  object$mf
+model.frame.remlf90 <- function (formula, ...) {
+  formula$mf
 }
 
 #' @method model.matrix remlf90
@@ -522,6 +523,7 @@ model.matrix.remlf90 <- function (object, ...) {
   object$mm
 }
 
+#' @importFrom stats nobs
 #' @method nobs remlf90
 #' @export
 nobs.remlf90 <- function (object, ...) {
@@ -573,10 +575,11 @@ setMethod('coordinates<-', signature = 'breedR',
 #' @param type Character. Which component is to be represented in the map.
 #' @param z Optional. A numeric vector to be plotted with respect to the spatial
 #'   coordinates. Overrides \code{type}.
+#' @param ... Further layers passed to \code{\link[ggplot2]{ggplot}}.
 #'   
 #' @method plot remlf90
 #' @export
-plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspatial', 'residuals'), z = NULL) {
+plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspatial', 'residuals'), z = NULL, ...) {
   
   type = match.arg(type)
   
@@ -639,6 +642,12 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
       p <- spatial.plot(data.frame(coord, z = residuals(x)), scale = 'div')
     }
   }
+  
+  # Further args
+  if( !missing(...) ) {
+    p <- p + ...
+  }
+  
   p
 }
 
@@ -650,6 +659,7 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
 #   
 # }
 
+#' @importFrom nlme ranef
 #' @method ranef remlf90
 #' @export
 ranef.remlf90 <- function (object, ...) {
@@ -664,10 +674,11 @@ ranef.remlf90 <- function (object, ...) {
 #' 
 #' @param object a fitted model of class \code{remlf90}
 #' @param effect the structured random effect of interest
+#' @param ... Not used.
 #' 
 #' @method vcov remlf90
 #' @export
-vcov.remlf90 <- function (object, effect = 'spatial') {
+vcov.remlf90 <- function (object, effect = 'spatial', ...) {
   
   effect <- match.arg(effect)
   if( !exists(effect, envir = as.environment(object$effects)) )
@@ -679,7 +690,7 @@ vcov.remlf90 <- function (object, effect = 'spatial') {
   dimU <- c(max(Usp[, 1]), max(Usp[, 2]))
   stopifnot(identical(dimU[1], dimU[2]))
   
-  U <- sparseMatrix(i = Usp[, 1], j = Usp[, 2], x = Usp[, 3], symmetric = TRUE)
+  U <- Matrix::sparseMatrix(i = Usp[, 1], j = Usp[, 2], x = Usp[, 3], symmetric = TRUE)
   
   # need to invert?
   if(object$effects[[effect]]$sp$Utype == 'precision')
@@ -691,9 +702,9 @@ vcov.remlf90 <- function (object, effect = 'spatial') {
   
   if( ncol(Bsp) == 1 ) {
     dimB = nrow(Bsp)
-    B <- spMatrix(dimB, dimU[1], i = 1:dimB, j = Bsp[, 1], x = rep(1, dimB))
+    B <- Matrix::spMatrix(dimB, dimU[1], i = 1:dimB, j = Bsp[, 1], x = rep(1, dimB))
   } else {
-    B <- Matrix(Bsp, sparse = TRUE)
+    B <- Matrix::Matrix(Bsp, sparse = TRUE)
   }
 
   # Scaling parameter
@@ -768,6 +779,7 @@ summary.remlf90 <- function(object, ...) {
 
 
 ## This is modeled a bit after  print.summary.lm :
+#' @method print remlf90
 #' @export
 print.remlf90 <- function(x, digits = max(3, getOption("digits") - 3), ...) {
   
@@ -804,6 +816,7 @@ print.remlf90 <- function(x, digits = max(3, getOption("digits") - 3), ...) {
 
 
 ## This is modeled a bit after  print.summary.lm :
+#' @method print summary.remlf90
 #' @export
 print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
                                   correlation = TRUE, symbolic.cor = FALSE,

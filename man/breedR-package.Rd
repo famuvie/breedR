@@ -39,6 +39,7 @@ large datasets (hundreds of thousands of individuals) with complex pedigrees.
   summary(res.f90)
 
   # Observed phenotypes vs. Fitted values
+  library(ggplot2)
   qplot(phe_X, fitted(res.f90), color=gen, data = as.data.frame(m4)) + geom_abline(int=0, slope=1)
 }
 \references{

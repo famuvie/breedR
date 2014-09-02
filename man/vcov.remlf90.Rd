@@ -3,12 +3,14 @@
 \alias{vcov.remlf90}
 \title{Covariance matrix of a fitted remlf90 object}
 \usage{
-\method{vcov}{remlf90}(object, effect = "spatial")
+\method{vcov}{remlf90}(object, effect = "spatial", ...)
 }
 \arguments{
 \item{object}{a fitted model of class \code{remlf90}}
 
 \item{effect}{the structured random effect of interest}
+
+\item{...}{Not used.}
 }
 \description{
 Returns the variance-covariance matrix of the specified random effect.

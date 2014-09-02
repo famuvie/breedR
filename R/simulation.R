@@ -293,7 +293,11 @@ breedR.sample.AR <- function(size, rho, sigma2, N = 1){
   Uinv <- Uinv * scaling
   
   # Simulated samples 
-  # Note: MASS:mvrnorm only draws samples from the covariance Matrix
+  # Note: MASS::mvrnorm only draws samples from the covariance Matrix
+  if( !requireNamespace("spam", quietly = TRUE) ) {
+    stop("Package spam needed for this simulating AR model. Please install.",
+         call. = FALSE)
+  }
   ans <- t(spam::rmvnorm.prec(N, Q = Uinv))
   
   return(as.data.frame(ans))
@@ -310,10 +314,14 @@ breedR.sample.splines <- function(coord, nkn, sigma2, N = 1){
   splines_struct <- build.splines.model(coord, nkn)
 
   Umat <- with(splines_struct,
-               sparseMatrix(i = U[, 1], j = U[, 2], x = U[, 3],
-                            symmetric = TRUE))
+               Matrix::sparseMatrix(i = U[, 1], j = U[, 2], x = U[, 3],
+                                    symmetric = TRUE))
   
   # Simulated samples of effects
+  if( !requireNamespace("MASS", quietly = TRUE) ) {
+    stop("Package MASS needed for this simulating splines. Please install.",
+         call. = FALSE)
+  }
   eff <- t(matrix(MASS::mvrnorm(N, mu = rep(0, dim(Umat)[1]), Sigma = Umat*sigma2),
                   nrow = N))
   
@@ -333,7 +341,7 @@ breedR.sample.splines <- function(coord, nkn, sigma2, N = 1){
 breedR.sample.BV <- function(ped, Sigma, N = 1) {
   
   # Precision matrices are more sparse
-  Ainv <- getAInv(ped)
+  Ainv <- pedigreemm::getAInv(ped)
   Q <- kronecker(solve(Sigma), Ainv)
   
   # number of genetic effects

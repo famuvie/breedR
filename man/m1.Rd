@@ -27,6 +27,7 @@ The 1600 descendants were arranged at random in a \eqn{40\times 40}{40 x 40} spa
 
   # The phenotypes are noisy observations around the
   # true Breeding values with a standard deviation of about 7.3.
+  library(ggplot2)
   qplot(BV_X, phe_X-BV_X, colour = dad, data = as.data.frame(m1)) +
     geom_abline(int=0, sl=0, col='gray')
 }

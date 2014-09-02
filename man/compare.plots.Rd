@@ -11,7 +11,7 @@ compare.plots(plots)
 The names of the objects in the list will be used for facet labels.}
 }
 \description{
-This function presents several ggplots of the same type side to side
+This function presents several ggplots of the same type side by side
 under the same scale, while keeping annotations.
 }
 

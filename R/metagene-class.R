@@ -3,7 +3,6 @@
 #%% Facundo Muñoz  %%#
 #%%%%%%%%%%%%%%%%%%%%#
 
-# require(INLA)         # For simulating a spatial effect
 
 #' Metagene Data Input
 #' 
@@ -137,6 +136,7 @@ summary.metagene <- function(object, ...) {
   return(summeta)
 }
 
+#' @method print summary.metagene
 #' @export
 print.summary.metagene <- function(x, ...) {
   cat('Metagene simulated dataset\n===========================\n')
@@ -175,6 +175,7 @@ print.summary.metagene <- function(x, ...) {
 #' @param type character. If 'default', the empirical density of the breeding and phenotypical values will be represented by generation. If 'spatial', the map of the spatial component will be plotted.
 #' @param ... Further layers passed to \code{\link[ggplot2]{ggplot}}.
 #' @method plot metagene
+#' @import ggplot2
 #' @export
 plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 #   dat <- data(x)
@@ -359,7 +360,7 @@ NULL
   # (coordinates exclude founders)
   coord <- Data.subset[!apply(is.na(Data.subset[, 1:2]), 1, all), 1:2]
   if(nrow(coord) > 0)
-    y$spatial$spatial.points <- SpatialPoints(coord)
+    y$spatial$spatial.points <- sp::SpatialPoints(coord)
   else y$spatial$spatial.points <- list(NULL)
   return(y)
 }
@@ -417,6 +418,12 @@ b.values <- function(x) {
 sim.spatial <- function(meta, variance, range, ...) UseMethod('sim.spatial')
 #' @export
 sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
+  
+  if (!requireNamespace("INLA", quietly = TRUE)) {
+    stop("Pakage INLA needed for this simulating the spatial structure. Please install.",
+         call. = FALSE)
+  }
+  
   #### Distribute the individuals (except founders) randomly in space
 #   meta <- meta[meta$gen!=0,]
   founders.idx <- which(meta$gen==0)
@@ -426,15 +433,15 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   
   # Randomize individuals
   spatial.order <- sample(meta$self[-founders.idx], N)
-  spatial.coord <- head(as.data.frame(inla.node2lattice.mapping(nr, nc)), N)
-  SP <- SpatialPoints(spatial.coord[order(spatial.order), ])
+  spatial.coord <- head(as.data.frame(INLA::inla.node2lattice.mapping(nr, nc)), N)
+  SP <- sp::SpatialPoints(spatial.coord[order(spatial.order), ])
   
   #### Simulate spatial field
   
   # The spatial unit will be the distance between consecutive trees
   
   # Generate INLA mesh
-  mesh <- inla.mesh.2d(loc = coordinates(SP),
+  mesh <- INLA::inla.mesh.2d(loc = coordinates(SP),
                        cutoff = floor(.04*nr),
                        offset = floor(c(.05, .2)*nr),
                        max.edge = floor(c(.05, .1)*nr))
@@ -457,21 +464,21 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   tau0 = 1/(sqrt(4*pi)*kappa0*sigma0)
   
   # SPDE object
-  spde=inla.spde2.matern(mesh,
+  spde=INLA::inla.spde2.matern(mesh,
                          B.tau=cbind(log(tau0),1,0),
                          B.kappa=cbind(log(kappa0),0,1),
                          theta.prior.mean=c(0,0),
                          theta.prior.prec=1)
   
   # Precision matrix (using the prior means of the parameters)
-  Q=suppressMessages(inla.spde2.precision(spde,theta=c(0,0)))
+  Q=suppressMessages(INLA::inla.spde2.precision(spde,theta=c(0,0)))
   
   # Sample
-  x=suppressWarnings(as.vector(inla.qsample(n=1,Q)))
+  x=suppressWarnings(as.vector(INLA::inla.qsample(n=1,Q)))
   # str(x)
   # The mesh vertices don't coincide with the observation locations
   # The A matrix provides a mapping such that y = Ax
-#   A = inla.spde.make.A(mesh, loc = coordinates(SP))
+#   A = INLA::inla.spde.make.A(mesh, loc = coordinates(SP))
   
 #   # Visualize
 #   plot(mesh, rgl=TRUE, col=x,
@@ -479,14 +486,14 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
 #        draw.edges=FALSE, draw.segments=TRUE, draw.vertices=FALSE)
 #   
 #   # Project into a 100x100 matrix (only inner area)
-#   proj.mat = inla.mesh.projector(mesh, xlim=c(1, nr), ylim=c(1,nc))    
+#   proj.mat = INLA::inla.mesh.projector(mesh, xlim=c(1, nr), ylim=c(1,nc))    
     # This contains the A matrix in proj$proj$A
-#   ss.matrix <- inla.mesh.project(proj.mat, field = x)
+#   ss.matrix <- INLA::inla.mesh.project(proj.mat, field = x)
 #   image(ss.matrix)
   
   # Project into the observations locations
-  proj.vec = inla.mesh.projector(mesh, loc=coordinates(SP))    
-  ss.vec <- inla.mesh.project(proj.vec, field = x)
+  proj.vec = INLA::inla.mesh.projector(mesh, loc=coordinates(SP))    
+  ss.vec <- INLA::inla.mesh.project(proj.vec, field = x)
 #   str(ss.vec)       # Value of the simulated spatial field in the obs locs
 #   summary(ss.vec)
 #   var(ss.vec)      # This should be similar  to BV.var
@@ -515,6 +522,7 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
 # sp::coordinates() is an S4 function
 # Register the S3 class 'metagene' as an S4 class
 setOldClass('metagene')
+#' @importMethodsFrom sp coordinates
 setMethod('coordinates', signature = 'metagene', 
           function(obj, ...) {
             if(!('spatial' %in% names(obj)))
@@ -524,3 +532,10 @@ setMethod('coordinates', signature = 'metagene',
           }
 )
 
+# Dummy method (Provide a proper def)
+#' @importMethodsFrom sp coordinates<-
+setMethod('coordinates<-', signature = 'metagene', 
+          function(object, value) {
+            NULL
+          }
+)

@@ -1,7 +1,7 @@
 Package: breedR
 Type: Package
 Title: Statistical methods for forest genetic resources analysts
-Version: 0.7-6
+Version: 0.7-7
 Date: 2014-07-03
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
@@ -21,20 +21,24 @@ Description: This package provides statistical tools to build predictive models
     or other situations as well.
 License: GPL-3 | file LICENSE
 Depends:
-    R (>= 2.15),
-    ggplot2,
-    Matrix,
-    pedigree,
-    pedigreemm,
-    methods,
-    splines,
-    sp
+    R (>= 2.15)
 Imports:
     fields,
-    grid
+    ggplot2,
+    Matrix,
+    methods,
+    nlme,
+    pedigree,
+    pedigreemm,
+    sp,
+    splines
 Suggests:
-    testthat,
-    spam
+    grid,
+    INLA,
+    MASS,
+    plyr,
+    spam,
+    testthat
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR

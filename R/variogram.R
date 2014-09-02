@@ -88,11 +88,11 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
                                  SIMPLIFY = FALSE))
   
   # Matrix of residuals by rows and cols
-  dat <- sparseMatrix(i = as.integer(coord1[[1]]),
-                      j = as.integer(coord1[[2]]),
-                      x = z
-                      , dimnames = lapply(coord1, levels)
-                      )
+  dat <- Matrix::sparseMatrix(i = as.integer(coord1[[1]]),
+                              j = as.integer(coord1[[2]]),
+                              x = z
+                              , dimnames = lapply(coord1, levels)
+  )
   
   # Maximum radius for the variogram (in distance units)
   if( missing(R) ) R <- max(coord/sqrt(2))
@@ -206,8 +206,9 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
 }
 
 #' @method print breedR.variogram
+#' @import ggplot2
 #' @export
-print.breedR.variogram <- function(x) {
+print.breedR.variogram <- function(x, ...) {
   
   # Compute the relevant plots only
   # Except for 'perspective' that connot be precomputed
@@ -228,7 +229,12 @@ print.breedR.variogram <- function(x) {
   }
   
   if(x$plot == 'all') {
-    require(grid)
+
+    # require(grid)
+    if (!requireNamespace("grid", quietly = TRUE)) {
+      stop("Package grid needed for plotting all variograms at once. Please install it, or plot them one by one.",
+           call. = FALSE)
+    }
     
     plot.new()
     # split the graphic window in four and reduce margins
@@ -236,15 +242,18 @@ print.breedR.variogram <- function(x) {
     par(mfg = c(2, 1))
     
     # define vewports
-    vp.BottomRight <- viewport(height=unit(.5, "npc"), width=unit(0.5, "npc"), 
-                               just=c("left","top"), 
-                               y=0.5, x=0.5)
-    vp.TopLeft <- viewport(height=unit(.5, "npc"), width=unit(0.5, "npc"), 
-                           just=c("right","bottom"), 
-                           y=0.5, x=0.5)
-    vp.TopRight <- viewport(height=unit(.5, "npc"), width=unit(0.5, "npc"), 
-                            just=c("left","bottom"), 
-                            y=0.5, x=0.5)
+    vp.BottomRight <- grid::viewport(height = grid::unit(.5, "npc"),
+                                     width = grid::unit(0.5, "npc"), 
+                                     just = c("left","top"), 
+                                     y = 0.5, x = 0.5)
+    vp.TopLeft <- grid::viewport(height = grid::unit(.5, "npc"),
+                                 width = grid::unit(0.5, "npc"), 
+                                 just = c("right","bottom"), 
+                                 y = 0.5, x = 0.5)
+    vp.TopRight <- grid::viewport(height = grid::unit(.5, "npc"),
+                                  width = grid::unit(0.5, "npc"), 
+                                  just=c("left","bottom"), 
+                                  y = 0.5, x = 0.5)
     
     # print the four plots
     suppressMessages(print(p.iso, vp=vp.TopLeft))

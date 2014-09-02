@@ -59,10 +59,10 @@ build.ar.model <- function (coord, rho, autofill) {
   # Caveat: I need to invert the matrix here
   # Is there a way of finding the characteristic marginal variance
   # from the precision matrix? Yes. see below.
-  B <- sparseMatrix(i = 1:length(data.ordering),
-                    j = data.ordering,
-                    x = 1,
-                    dims = c(length(data.ordering), dimUinv[1]))
+  B <- Matrix::sparseMatrix(i = 1:length(data.ordering),
+                            j = data.ordering,
+                            x = 1,
+                            dims = c(length(data.ordering), dimUinv[1]))
   
   
   # In the AR1xAR1 model, B is a permutation matrix, thus 
@@ -80,7 +80,7 @@ build.ar.model <- function (coord, rho, autofill) {
   Uinv <- Uinv * scaling
   
   # Store only the lower triangle of the symmetric matrix Q in triplet form
-  trilUinv <- as(tril(Uinv), 'dgTMatrix')
+  trilUinv <- as(Matrix::tril(Uinv), 'dgTMatrix')
   
   # Coordinates for the full grid
   #   coord.1d <- function(nx, levels) {
@@ -122,5 +122,5 @@ build.AR.rho.grid <- function(rho) {
 build.AR1d <- function(n, x) {
   temp <- diag(c(1, rep(1 + x^2, n-2), 1))
   subdiag <- rbind(0, cbind(diag(-x, n-1), 0))
-  return(as(Matrix(temp + subdiag + t(subdiag), sparse = TRUE), 'dgTMatrix'))
+  return(as(Matrix::Matrix(temp + subdiag + t(subdiag), sparse = TRUE), 'dgTMatrix'))
 }

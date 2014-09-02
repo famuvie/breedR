@@ -91,8 +91,8 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
   # but in fact, we need at least 2*ord unless we set outer.ok = TRUE
   # in splineDesign (which we do not want)
   tensor <- function (knots, xx, ord) {
-    b.x <- splineDesign(knots[[1]], xx[, 1], ord = ord)#, sparse=TRUE)
-    b.y <- splineDesign(knots[[2]], xx[, 2], ord = ord)#, sparse=TRUE)
+    b.x <- splines::splineDesign(knots[[1]], xx[, 1], ord = ord)  #, sparse=TRUE)
+    b.y <- splines::splineDesign(knots[[2]], xx[, 2], ord = ord)  #, sparse=TRUE)
       # sparse argument was introduced between versions 2.15.0
       # and 3.0.2 of the splines package.
       # sparseness is useful but unnecessary. I prefer to keep this
@@ -104,14 +104,14 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
   }
   
   tensor.sparse <- function (knots, xx, ord) {
-    b.x <- as(splineDesign(knots[[1]], xx[, 1], ord = ord), "Matrix")#, sparse=TRUE)
-    b.y <- as(splineDesign(knots[[2]], xx[, 2], ord = ord), "Matrix")#, sparse=TRUE)
+    b.x <- as(splines::splineDesign(knots[[1]], xx[, 1], ord = ord), "Matrix")  #, sparse=TRUE)
+    b.y <- as(splines::splineDesign(knots[[2]], xx[, 2], ord = ord), "Matrix")  #, sparse=TRUE)
     # sparse argument was introduced between versions 2.15.0
     # and 3.0.2 of the splines package.
     # sparseness is useful but unnecessary. I prefer to keep this
     # more widely compatible.
-    ones.y <- Matrix(1, ncol = ncol(b.y))
-    ones.x <- Matrix(1, ncol = ncol(b.x))
+    ones.y <- Matrix::Matrix(1, ncol = ncol(b.y))
+    ones.x <- Matrix::Matrix(1, ncol = ncol(b.x))
     B <- kronecker(b.x, ones.y)*kronecker(ones.x, b.y)
     return(B)
   }
@@ -133,7 +133,7 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
   U <- U/gmean(diag(B %*% U %*% t(B)))
   #   U <- U/gmean(Matrix::diag(B %*% U %*% Matrix::t(B)))
 
-  U.sparse <- as(Matrix(tril(U), sparse = TRUE), 'dgTMatrix')
+  U.sparse <- as(Matrix::Matrix(Matrix::tril(U), sparse = TRUE), 'dgTMatrix')
   # Note: The Matrix package counts rows and columns starting from zero
   # Thus, I add 1 to the corresponding columns
   U.values <- cbind(U.sparse@i + 1, U.sparse@j + 1, U.sparse@x)
@@ -171,11 +171,11 @@ build.splines1d <- function(n, model = 'GreenSilverman2003') {
 build.splines1d.sparse <- function(n, model = 'GreenSilverman2003') {
   
   # U matrix (Green & Silverman, 2003)
-  U <- sparseMatrix(i = c(1:n, 1:(n-1)),
-                    j = c(1:n, 2:n),
-                    x = c(rep(4, n), rep(1, n-1))/6,
-                    dims = c(n, n),
-                    symmetric = TRUE)
+  U <- Matrix::sparseMatrix(i = c(1:n, 1:(n-1)),
+                            j = c(1:n, 2:n),
+                            x = c(rep(4, n), rep(1, n-1))/6,
+                            dims = c(n, n),
+                            symmetric = TRUE)
   
   return(U)
 }

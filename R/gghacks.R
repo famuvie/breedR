@@ -1,14 +1,20 @@
 #' Compare two or more ggplots of the same kind
 #' 
-#' This function presents several ggplots of the same type side to side
+#' This function presents several ggplots of the same type side by side
 #' under the same scale, while keeping annotations.
 #' 
 #' @param plots List of ggplots with meaningful names
 #' 
 #' The names of the objects in the list will be used for facet labels.
+#' @import ggplot2
 #' @export
 compare.plots <- function(plots) {
-  require(plyr)
+  # require(plyr)
+  if (!requireNamespace("plyr", quietly = TRUE)) {
+    stop("Package plyr needed for comparing plots. Please install..",
+         call. = FALSE)
+  }
+  
   # Use the same parameters as one of the plots, and add a facet
   # Thus plots need to have "compatible" names
   p <- plots[[1]]
@@ -59,8 +65,9 @@ compare.plots <- function(plots) {
 #' 
 #' @param dat A 3-column data.frame with names 'x', 'y' and 'z' where the first 
 #'   two are the spatial coordinates, and 'z' is the value to be represented
-#' @param scale Character. 'divergent' represents positive and negative values
+#' @param scale Character. 'divergent' represents positive and negative values 
 #'   with different colours. 'sequential' uses a gradient scale of two colours.
+#' @import ggplot2
 spatial.plot <- function(dat, scale = c('divergent', 'sequential')) {
   
   scale <- match.arg(scale)

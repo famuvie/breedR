@@ -10,7 +10,7 @@
 \alias{summary.breedR.q}
 \title{Control and view a remote breedR-queue of submitted jobs}
 \usage{
-\method{summary}{breedR.q}(object)
+\method{summary}{breedR.q}(object, ...)
 
 breedR.qget(id, remove = TRUE)
 
@@ -29,7 +29,9 @@ is optional and if omitted all the jobs will be listed.}
 otherwise remove it (default).}
 
 \item{object}{a \code{breedR.q}-object which is the output from
-  \code{breedR.qstat}}
+\code{breedR.qstat}}
+
+\item{...}{Other arguments. Not used.}
 }
 \value{
 \code{breedR.qstat} returns an \code{breedR.q}-object with

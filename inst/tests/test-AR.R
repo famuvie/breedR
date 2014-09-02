@@ -43,7 +43,7 @@ datlist <- list(# small square regular grid
 
 # triangular configuration
 datlist <- c(datlist,
-             triang = list(datlist[[1]][which(as.vector(tril(matrix(TRUE, 5, 5)))),]))
+             triang = list(datlist[[1]][which(as.vector(Matrix::tril(matrix(TRUE, 5, 5)))),]))
 
 
 

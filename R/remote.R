@@ -17,6 +17,7 @@
 #'   otherwise remove it (default).
 #' @param object a \code{breedR.q}-object which is the output from 
 #'   \code{breedR.qstat}
+#' @param ... Other arguments. Not used.
 #'   
 #' @details \code{breedR.qstat} shows job(s) on the server, \code{breedR.qget} 
 #'   fetches the results (and by default remove the files on the server), 
@@ -61,13 +62,13 @@
 #' }
 
 #' @method summary breedR.q
-summary.breedR.q = function(object)
+summary.breedR.q = function(object, ...)
 {
-  print(object)
+  print(object, ...)
 }
 
 #' @method print breedR.q
-print.breedR.q = function(x)
+print.breedR.q = function(x, ...)
 {
   if (length(x) == 0) {
     ##cat("No jobs available\n")
@@ -301,7 +302,7 @@ breedR.ssh <- function(commands,
                        post,
                        ...) {
 
-  if( breedR:::breedR.os('windows') ) {
+  if( breedR.os('windows') ) {
     # Certain characters should not be escaped in Windows
     commands <- winssh_sanitize(commands)
   }

@@ -1,6 +1,6 @@
 ## Eucaliptus Globulus dataset
 ## Cappa and Cantet (2007)
-
+library(ggplot2)
 data(globulus)
 cat(paste(comment(globulus), collapse='\n'))
 
