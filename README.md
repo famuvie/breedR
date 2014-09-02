@@ -37,7 +37,7 @@ If you have questions, please join our discussion [group](http://groups.google.c
 - Check the automated tests
   ```R
   library('testthat')
-  test_dir(system.file('tests', package = 'breedR'))
+  test_package('breedR')
   ```
   
 - Try it with your own data or with provided datasets
