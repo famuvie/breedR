@@ -19,8 +19,8 @@
 #' @param breedR.bin character. The local directory where the package binaries 
 #'   are stored, or any of 'remote' or 'submit' for remote computing. See 
 #'   'Details'.
-#' @param debug logical. If \code{TRUE}, only the input files for blupf90
-#'   programs are computed for debugging. REML computations do not take place.
+#' @param debug logical. If \code{TRUE}, the input files for blupf90
+#'   programs and their output are shown, but results are not parsed.
 #'   
 #' @details If either \code{genetic} or \code{spatial} are not \code{NULL}, the 
 #'   model residuals are assumed to have an additive genetic effects or a 

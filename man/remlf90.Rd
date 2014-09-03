@@ -33,8 +33,8 @@ Expectation-Maximization REML respectively}
 are stored, or any of 'remote' or 'submit' for remote computing. See
 'Details'.}
 
-\item{debug}{logical. If \code{TRUE}, only the input files for blupf90
-  programs are computed for debugging. REML computations do not take place.}
+\item{debug}{logical. If \code{TRUE}, the input files for blupf90
+  programs and their output are shown, but results are not parsed.}
 }
 \value{
 An object of class 'remlf90' that can be further questioned by
