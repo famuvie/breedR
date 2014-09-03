@@ -75,7 +75,7 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   if( any(duplicated(coord)) )
     stop('More than one observation detected in at least one spatial unit.\n')
   
-  # A regular grid containind all the location units
+  # A regular grid containing all the location units
   loc.grid <- loc_grid(coord, autofill = TRUE)
   
   # Spacing between rows/columns (in distance units)
@@ -95,17 +95,17 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   )
   
   # Maximum radius for the variogram (in distance units)
-  if( missing(R) ) R <- max(coord/sqrt(2))
+  if( missing(R) ) R <- max(coord)/sqrt(3)
   
   # Variogram computation
-  out <- vgram.matrix(as.matrix(dat), R = R, dx = step[1], dy = step[2])
-
+  out <- fields::vgram.matrix(as.matrix(dat), R = R, dx = step[1], dy = step[2])
   # Anisotropic variogram
   #   plot(out)  # from package fields
   # TODO: change gradient colours.
   dat.aniso <- with(out, data.frame(x = ind[, 1] * dx,
                                     y = ind[, 2] * dy,
-                                    z = vgram.full))
+                                    z = vgram.full,
+                                    n = N))
 
   # Isotropic variogram
   dat.iso <- data.frame(distance = out$d,
