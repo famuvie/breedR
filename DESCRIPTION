@@ -21,7 +21,8 @@ Description: This package provides statistical tools to build predictive models
     or other situations as well.
 License: GPL-3 | file LICENSE
 Depends:
-    R (>= 2.15)
+    R (>= 2.15),
+    sp
 Imports:
     fields,
     ggplot2,
@@ -30,7 +31,6 @@ Imports:
     nlme,
     pedigree,
     pedigreemm,
-    sp,
     splines
 Suggests:
     grid,

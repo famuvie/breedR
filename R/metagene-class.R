@@ -522,7 +522,11 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
 # sp::coordinates() is an S4 function
 # Register the S3 class 'metagene' as an S4 class
 setOldClass('metagene')
-#' @importMethodsFrom sp coordinates
+# @importFrom sp coordinates
+# @importClassesFrom sp Spatial
+# @importMethodsFrom sp coordinates coordinates<-
+# @export
+#' @import sp
 setMethod('coordinates', signature = 'metagene', 
           function(obj, ...) {
             if(!('spatial' %in% names(obj)))
@@ -533,7 +537,7 @@ setMethod('coordinates', signature = 'metagene',
 )
 
 # Dummy method (Provide a proper def)
-#' @importMethodsFrom sp coordinates<-
+# @export
 setMethod('coordinates<-', signature = 'metagene', 
           function(object, value) {
             NULL
