@@ -18,20 +18,22 @@ res.full <- remlf90(fixed   = phe_X ~ sex,
                     genetic = list(model = 'add_animal', 
                                    pedigree = get_pedigree(m1),
                                    id = 'self'), 
-                    spatial = list(model = 'Cappa07', 
-                                   coord = coordinates(m1)), 
+                    spatial = list(model = 'AR', 
+                                   coord = coordinates(m1),
+                                   rho = c(.9, .9)), 
                     data = dat,
-                    method = 'em')
+                    method = 'ai')
 
 # Fit with missings
 res.pred <- remlf90(fixed   = y ~ sex, 
                     genetic = list(model = 'add_animal', 
                                    pedigree = get_pedigree(m1),
                                    id = 'self'), 
-                    spatial = list(model = 'Cappa07', 
-                                   coord = coordinates(m1)), 
+                    spatial = list(model = 'AR', 
+                                   coord = coordinates(m1),
+                                   rho = c(.9, .9)), 
                     data = dat,
-                    method = 'em')
+                    method = 'ai')
 
 
 #### Context: Prediction and cross-validation ####
@@ -39,7 +41,7 @@ context("Prediction")
 
 # For a cross-validation, the results will not be exactly equal
 # but similar up to a given tolerance
-tol = 1.5e-01
+tol = 2e-01
 
 # Variance components
 test_that("Estimated variance components are similar", {

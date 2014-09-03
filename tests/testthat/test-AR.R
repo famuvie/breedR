@@ -47,7 +47,7 @@ datlist <- c(datlist,
 
 
 
-#### Context: AR models with diffferent arrangements of trees ####
+#### Context: AR models with different arrangements of trees ####
 context("AR models with diffferent arrangements of trees")
 
 

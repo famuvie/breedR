@@ -14,8 +14,8 @@ fit.model <- function(vi, vigen, random, ...) {
                              var.ini = vigen,
                              pedigree = ped,
                              id = 'self'), 
-              data    = globulus)
-    , silent = TRUE)
+              data    = globulus),
+      silent = TRUE)
   res
 }
 
@@ -69,6 +69,8 @@ context("Variance components specifications")
 
 # reml results
 # fit.model(vi=list(resid = 1), vigen=1, random = NULL)
+# do.call('fit.model', testdat[[1]])
+# do.call('fit.model', testdat[[7]])
 reslst <- mapply(function(x) do.call(fit.model, x), testdat)
 
 
