@@ -47,8 +47,6 @@ breedR 0.2
 
 * Unstructured Random effects
 
-* Pedigree checking, completing, sorting and recoding
-
 * Simple simulation of spatially structured effects
 
 * Spatial module following Cappa and Cantet (2007) splines model

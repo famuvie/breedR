@@ -1,0 +1,25 @@
+---
+title: "BreedR Overview"
+author: "Facundo Muñoz"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown:::html_vignette:
+    fig.caption: yes
+vignette: >
+  %\VignetteIndexEntry{BreedR Overview}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+---
+
+BreedR is an R-package that provides statistical models specifically suited for forest genetic resources analysts.
+All of these models can be ultimately seen as a [Mixed Model](https://en.wikipedia.org/wiki/Mixed_model), however they are not necessarily easy to implement and use for real data analysis.
+BreedR acts as an interface which provides the means to:
+1. Combine any number of these models as components of a larger model
+2. Compute automatically incidence and covariance matrices from a few input parameters
+3. Fit the model
+4. Plot data and results, and perform model diagnostics
+
+The following is a conceptual map of breedR's functionality (future functionalities greyed-out):
+
+<img src="http://previews.figshare.com/1660760/preview_1660760.png" width="700px"/>
+

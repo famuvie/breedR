@@ -20,10 +20,10 @@ Description: This package provides statistical tools to build predictive models
     developed having forest genetic trials in mind. But can be used for animals
     or other situations as well.
 License: GPL-3 | file LICENSE
-Depends:
+Depends: 
     R (>= 2.15),
     sp
-Imports:
+Imports: 
     fields,
     ggplot2,
     Matrix,
@@ -32,14 +32,16 @@ Imports:
     pedigree,
     pedigreemm,
     splines
-Suggests:
+Suggests: 
     grid,
     INLA,
     MASS,
     plyr,
     spam,
-    testthat
+    testthat,
+    knitr
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
 BugReports: https://github.com/famuvie/breedR
+VignetteBuilder: knitr
