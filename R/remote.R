@@ -5,9 +5,9 @@
 #' 
 #' @name remote
 #' @aliases breedR.qstat breedR.qget breedR.qdel breedR.qnuke summary.breedR.q 
-#'   print.breedR.q remote submit
+#'   print.breedR.q breedR.remote_load remote submit
 #' @export breedR.qstat breedR.qget breedR.qdel breedR.qnuke summary.breedR.q
-#' @export print.breedR.q
+#' @export print.breedR.q breedR.remote_load
 #'   
 #'   
 #' @param id The job-id which is the output from \code{breedR} when the job is 
@@ -23,6 +23,10 @@
 #'   fetches the results (and by default remove the files on the server), 
 #'   \code{breedR.qdel} removes a job on the server and \code{breedR.qnuke} 
 #'   removes all jobs on the server.
+#'   
+#'   Finally, \code{breedR.remote_load} returns the current load in the server, 
+#'   as a percent. This should be used to check whether jobs can be safely
+#'   submitted, and this is left to the user.
 #'   
 #'   The recommended procedure is to use \code{r <- remlf90(..., 
 #'   breedR.bin="submit")} and then do \code{r <- breedR.qget(r)} at a later 
@@ -40,6 +44,9 @@
 #' @section Setup: You need to configure the client and server machines so that 
 #'   passwordless SSH authentication works. See for example 
 #'   \href{http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/}{here}
+#'   
+#'   
+#'   
 #'   
 #'   Furthermore, you need to configure breedR by setting the options 
 #'   \code{remote.host}, \code{remote.user}, \code{remote.port} and 
@@ -61,24 +68,6 @@
 #' summary(r)   # results of the analysis
 #' }
 
-#' @method summary breedR.q
-summary.breedR.q = function(object, ...)
-{
-  print(object, ...)
-}
-
-#' @method print breedR.q
-print.breedR.q = function(x, ...)
-{
-  if (length(x) == 0) {
-    ##cat("No jobs available\n")
-  } else {
-    for(k in seq_along(x)) {
-      cat("\t Job:", x[[k]]$no, "\tId:", x[[k]]$id, "\tStatus:", x[[k]]$status, "\n")
-    }
-  }
-  return (invisible(x))
-}
 
 #' @rdname remote
 breedR.qget = function(id, remove = TRUE)
@@ -265,6 +254,32 @@ breedR.qget = function(id, remove = TRUE)
   message('NUKE')
 }
 
+#' @rdname remote
+breedR.remote_load <- function() {
+  ssh_commands <- paste('mpstat 2 1',
+                        'awk \'\\$11 ~ /[0-9.]+/ { print 100 - \\$11 }\'',
+                        'tail -n 1', sep = ' | ')
+  as.numeric(breedR.ssh(ssh_commands, intern = TRUE))
+}
+
+#' @method summary breedR.q
+summary.breedR.q = function(object, ...)
+{
+  print(object, ...)
+}
+
+#' @method print breedR.q
+print.breedR.q = function(x, ...)
+{
+  if (length(x) == 0) {
+    ##cat("No jobs available\n")
+  } else {
+    for(k in seq_along(x)) {
+      cat("\t Job:", x[[k]]$no, "\tId:", x[[k]]$id, "\tStatus:", x[[k]]$status, "\n")
+    }
+  }
+  return (invisible(x))
+}
 
 
 ### Ancillary functions ###
@@ -315,7 +330,7 @@ breedR.ssh <- function(commands,
   if( !missing(post) ) {
     call_str <- paste(call_str, post)
   }
-  
+
   if( breedR.os('windows') ) {
     # This is needed in Winblows to run things under a shell
     # so to be able to use pipes and stuff

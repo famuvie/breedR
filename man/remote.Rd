@@ -4,14 +4,13 @@
 \alias{breedR.qget}
 \alias{breedR.qnuke}
 \alias{breedR.qstat}
+\alias{breedR.remote_load}
 \alias{print.breedR.q}
 \alias{remote}
 \alias{submit}
 \alias{summary.breedR.q}
 \title{Control and view a remote breedR-queue of submitted jobs}
 \usage{
-\method{summary}{breedR.q}(object, ...)
-
 breedR.qget(id, remove = TRUE)
 
 breedR.qdel(id)
@@ -19,6 +18,8 @@ breedR.qdel(id)
 breedR.qstat(id)
 
 breedR.qnuke()
+
+breedR.remote_load()
 }
 \arguments{
 \item{id}{The job-id which is the output from \code{breedR} when the job is
@@ -46,6 +47,10 @@ Control and view a remote breedR-queue of submitted jobs
   \code{breedR.qdel} removes a job on the server and \code{breedR.qnuke}
   removes all jobs on the server.
 
+  Finally, \code{breedR.remote_load} returns the current load in the server,
+  as a percent. This should be used to check whether jobs can be safely
+  submitted, and this is left to the user.
+
   The recommended procedure is to use \code{r <- remlf90(...,
   breedR.bin="submit")} and then do \code{r <- breedR.qget(r)} at a later
   stage. If the job is not finished, then \code{r} will not be overwritten
@@ -65,6 +70,9 @@ Control and view a remote breedR-queue of submitted jobs
  You need to configure the client and server machines so that
   passwordless SSH authentication works. See for example
   \href{http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/}{here}
+
+
+
 
   Furthermore, you need to configure breedR by setting the options
   \code{remote.host}, \code{remote.user}, \code{remote.port} and
