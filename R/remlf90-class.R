@@ -188,8 +188,8 @@ remlf90 <- function(fixed,
   # Initial variances specification
   # Either all initial variances specified, or no specification at all
   random.terms <- switch( is.null(random) + 1,
-                          c(attr(terms(random), 'term.labels'), 'resid'),
-                          'resid')
+                          c(attr(terms(random), 'term.labels'), 'residuals'),
+                          'residuals')
   check.var.ini <- function(eff) {
     ans = FALSE
     if( is.null(eff) ) ans = NA
@@ -204,9 +204,15 @@ remlf90 <- function(fixed,
                       genetic = check.var.ini(genetic),
                       pec     = check.var.ini(genetic$pec),
                       spatial = check.var.ini(spatial))
+  
   if( !missing(var.ini) ) {
     if( !is.null(var.ini) ) {
-      if( identical(names(var.ini), random.terms) ) {
+      # normalize names
+      names(var.ini) <- match.arg(tolower(names(var.ini)),
+                                  random.terms,
+                                  several.ok = TRUE)
+      # check that all the required variances are given
+      if( setequal(names(var.ini), random.terms) ) {
         if( all(sapply(var.ini, is.numeric)) & all(var.ini > 0) )
           var.ini.checks[1] = TRUE
         else stop('Initial variances in var.ini must be > 0.\n')
