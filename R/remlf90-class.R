@@ -465,7 +465,7 @@ fitted.remlf90 <- function (object, ...) {
 }
   
 #' @importFrom nlme fixef
-#' @method fixef remlf90
+#' @export fixef
 #' @export
 fixef.remlf90 <- function (object, ...) {
       object$fixed
@@ -666,7 +666,7 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
 # }
 
 #' @importFrom nlme ranef
-#' @method ranef remlf90
+#' @export ranef
 #' @export
 ranef.remlf90 <- function (object, ...) {
   object$ranef

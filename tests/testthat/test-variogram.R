@@ -37,7 +37,8 @@ truepar <- list(n = 1, s = 5, r = 20)
 coord <- expand.grid(x = 0:49, y = 0:49)
 D <- dist(coord)
 Slt <- spam::as.spam(truecov.iso(D, par = truepar))
-S <- Slt + t(Slt) + diag.spam(truecov.iso(spam::diag(Slt), par = truepar))
+S <- Slt + spam::t(Slt) + spam::diag.spam(truecov.iso(spam::diag(Slt),
+                                                      par = truepar))
 z <- as.vector(spam::rmvnorm.spam(1, Sigma = S))
 
 # Distances, true and estimated variograms
