@@ -11,9 +11,16 @@ vignette: >
   %\usepackage[utf8]{inputenc}
 ---
 
+
+```{r setup, include = FALSE}
+library(breedR)
+library(ggplot2)
+```
+
 BreedR is an R-package that provides statistical models specifically suited for forest genetic resources analysts.
 All of these models can be ultimately seen as a [Mixed Model](https://en.wikipedia.org/wiki/Mixed_model), however they are not necessarily easy to implement and use for real data analysis.
 BreedR acts as an interface which provides the means to:
+
 1. Combine any number of these models as components of a larger model
 2. Compute automatically incidence and covariance matrices from a few input parameters
 3. Fit the model
@@ -21,5 +28,145 @@ BreedR acts as an interface which provides the means to:
 
 The following is a conceptual map of breedR's functionality (future functionalities greyed-out):
 
-<img src="http://previews.figshare.com/1660760/preview_1660760.png" width="700px"/>
+[<img src="http://previews.figshare.com/1660760/preview_1660760.png" width="700px"/>](http://previews.figshare.com/1660760/preview_1660760.png)
+
+
+Inference with breedR
+---------------------
+
+Currently, only frequentist inference is supported via REML estimation of variance components.
+
+Use the function `remlf90()`, which provides an interface to both `REMLF90` and `AIREMLF90` functions in the [BLUPF90](http://nce.ads.uga.edu/wiki/doku.php) suite of programs.
+
+
+Mixed Models
+------------
+
+Let's simulate some data to work with.
+We will include a global intercept of $5$, a fixed effect $x$ with a coefficient of 2, and one random factor $f_3$ with three independent levels. We fix the level values at `r -1:1`.
+
+```{r simulate-data}
+n  <- 1e3      # dataset size
+mu <- 5        # a global mean
+x <- runif(n)  # a covariate
+# a factor with 3 levels and associated values
+f3 <- factor(sample(letters[1:3], n, replace = TRUE))
+f3.val <- (-1:1)[f3]
+sigma2 <- .5   # residual variance
+# linear predictor
+eta    <- mu + 2*x + f3.val
+# Simulated data
+dat <- data.frame(eta, x, f3,
+                  y = eta + rnorm(n, sd = sqrt(sigma2)))
+```
+
+Here is how the simulated dataset looks like
+
+```{r dataset, results = 'asis', echo = FALSE}
+knitr::kable(head(dat))
+```
+
+We fit the corresponding model
+$$
+\begin{aligned}
+y & = \mu + \beta x + f + \varepsilon \\
+f & \sim N(0, \sigma_f^2) \\
+\varepsilon & \sim N(0, \sigma_e^2)
+\end{aligned}
+$$
+
+to the dataset by using `formula`s for the fixed and random terms.
+
+```{r mixed-model}
+res <- remlf90(fixed = y ~ x,
+               random = ~ f3,
+               data = dat)
+```
+
+Note that the intercept is automatically included (as usual in `R`), and that the LHS of the random formula should be empty.
+The dataset must be always explicitly added.
+
+To avoid the warning, initial values for *all* the variance components must be made explicit using the argument `var.ini`:
+
+```{r mixed-model-varini}
+res <- remlf90(fixed = y ~ x,
+               random = ~ f3,
+               var.ini = list(f3 = 2, resid = 10),
+               data = dat)
+```
+
+Although in most cases the results will not change at all, we encourage to give explicit initial values for variance components.
+Specially when some estimate can be [artifact](http://nce.ads.uga.edu/wiki/doku.php?id=readme.reml#does_remlf90_always_converge).
+This is also useful for checking sensitivity to initial values.
+
+
+### Exploring the results
+
+The basic function is `summary` as usual in `R`.
+
+```{r summary}
+summary(res)
+```
+
+Note that `AI-REML` has been used by default. 
+You can also specify `method = 'em'`.
+Learn about the [difference](https://github.com/famuvie/breedR/wiki/Available-components-and-inference-methods).
+
+Further functions give access to more specific results.
+Some are already in the summary, some not.
+
+```{r extraction}
+fixef(res)
+ranef(res)
+extractAIC(res)
+logLik(res)
+str(resid(res))
+qplot(dat$eta, fitted(res)) + 
+  geom_abline(int = 0, sl = 1, col = 'darkgrey')
+```
+
+
+
+Additive genetic effect
+-----------------------
+
+We will use a [`metagene`](http://www.igv.fi.cnr.it/noveltree/) simulated dataset with known additive genetic variance and Breeding Values, for the purpose of demonstration.
+
+```{r metagene}
+data(m1)
+summary(m1)
+```
+
+
+```{r genetic}
+dat <- as.data.frame(m1)  # m1 has lots of info, which usually is not there
+ped <- get_pedigree(m1)   # this works only for metagene objects
+
+# this is the usual way to build a pedigree from an observed dataset
+# build_pedigree completes the missing information (e.g. founders)
+ped <- build_pedigree(c('self', 'dad', 'mum'), 
+                      data = dat)
+
+check_pedigree(ped)  # performs pedigree sanity checks
+str(ped)
+
+# Fit an animal model with sex as a fixed effect
+# Note that sex must be a *factor*
+# otherwise, it would be interpreted as a regressor
+res <- remlf90(fixed  = phe_X ~ sex,
+               genetic = list(model = 'add_animal', 
+                              pedigree = ped,
+                              id = 'self'), 
+               data = dat)
+summary(res)
+
+PBV <- res$genetic$fit  # Predicted Breeding Values
+
+# Predicted genetic values vs. true Breeding values by sex
+qplot(BV_X, PBV, color = sex, data = dat) +
+  geom_abline(int = 0, slope = 1, col = 'gray')
+
+# Linear correlation between true and fitted breeding values
+cor(dat$BV_X, PBV)
+```
 

@@ -29,11 +29,11 @@ FO  <- fitted(res.f90)          # Fitted Observations
 PBV <- res.f90$genetic$fit      # Predicted Breeding Values
 PSE <- res.f90$spatial$fit$z    # Predicted Spatial Effect
 
-# Fitted values vs. Observed phenotypes by generation
+# Fitted values vs. Observed phenotypes by sex
 qplot(phe_X, FO, color = sex, data = dat) +
   geom_abline(int=0, slope=1)
 
-# Predicted genetic values vs. true Breeding values by generation
+# Predicted genetic values vs. true Breeding values by sex
 qplot(BV_X, PBV, color = sex, data = dat) +
   geom_abline(int = 0, slope = 1, col = 'gray')
 
