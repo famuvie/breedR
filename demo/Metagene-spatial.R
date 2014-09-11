@@ -6,6 +6,10 @@ data(m1)
 summary(m1)
 plot(m1)
 
+if( !require('ggplot2') ) {
+  stop('This demo requires package ggplot2. Please install.')
+}
+
 # Fit Mixed Model using EM-REML
 # The formula specifies fixed effects 
 # the genetic and spatial effects are optional
@@ -48,8 +52,7 @@ plot(m1, 'spatial')
 
 # Estimated surface 
 # The splines interpolation smoothes out many details.
-qplot(irow, icol, fill = PSE, geom = 'tile', data = dat) + 
-  scale_fill_gradient(low = 'green', high = 'red')
+plot(res.f90, 'spatial')
 
 # Globally, however, the predictions are around the true values:
 # Predicted Spatial effect vs. true spatial structure
@@ -58,8 +61,7 @@ qplot(sp_X, PSE, data = dat) +
 
 # Do the differences have any spatial pattern?
 # They shouldn't:
-qplot(irow, icol, fill = sp_X - PSE, geom = 'tile', data = dat) + 
-  scale_fill_gradient(low = 'green', high = 'red')
+plot(res.f90, z = dat$sp_X - PSE)
 
 # Notice that there is some shorter-range spatial pattern
 # It might be worth trying with more knots, but be careful!
