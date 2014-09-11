@@ -33,8 +33,8 @@ Expectation-Maximization REML respectively}
 are stored, or any of 'remote' or 'submit' for remote computing. See
 'Details'.}
 
-\item{debug}{logical. If \code{TRUE}, the input files for blupf90
-  programs and their output are shown, but results are not parsed.}
+\item{debug}{logical. If \code{TRUE}, the input files for blupf90 programs
+  and their output are shown, but results are not parsed.}
 }
 \value{
 An object of class 'remlf90' that can be further questioned by
@@ -55,13 +55,13 @@ If either \code{genetic} or \code{spatial} are not \code{NULL}, the
   model with a given pedigree. }
 
   \subsection{Spatial effects}{ The available models for the spatial effect
-  are \code{Cappa07} and \code{AR1}. \code{Cappa07} uses a  two-dimensional
+  are \code{splines} and \code{AR1}. \code{splines} uses a  two-dimensional
   tensor product of B-splines to represent the smooth spatially structured
-  effect. \code{AR1} uses a kronecker product of autoregressive models for
-  the rows and columns.
+  effect (Cappa and Cantet, 2007). \code{AR1} uses a kronecker product of
+  autoregressive models for the rows and columns.
 
   In both cases, the minimum necessary components in the list are \itemize{
-  \item \code{model} a string, either \code{Cappa07} or \code{AR} \item
+  \item \code{model} a string, either \code{splines} or \code{AR} \item
   \code{coord} a matrix, list or data.frame with two columns for the rows and
   columns respectively. }
 
@@ -69,7 +69,7 @@ If either \code{genetic} or \code{spatial} are not \code{NULL}, the
   initial value for the variance component }
 
   Finally, optional model-dependent components are \itemize{ \item For model
-  \code{Cappa07} \itemize{ \item \code{n.knots} a vector of two integers with
+  \code{splines} \itemize{ \item \code{n.knots} a vector of two integers with
   the number of \emph{internal} knots for the rows and columns of the spline
   design } \item For model \code{AR} \itemize{ \item \code{rho} a vector of
   two numbers strictly between -1 and 1 with the autoregressive parameters
@@ -134,7 +134,7 @@ If either \code{genetic} or \code{spatial} are not \code{NULL}, the
   it provides more results. Namely, standard errors of the variance
   components estimates, and covariances as well. On the other hand, is less
   robust than EM-REML and it usually gives extreme results when used with the
-  splines spatial model (as in \code{spatial = list(model ='Cappa07', ...)}).
+  splines spatial model (as in \code{spatial = list(model ='splines', ...)}).
 
   Even when an effect accounts for no variance at all, EM-REML will always
   estimate a positive variance which will be determined by the starting

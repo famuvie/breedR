@@ -53,7 +53,7 @@ dat <- as.data.frame(m1)
 
 # Use a different number of knots for rows and columns
 res <- try(remlf90(fixed = phe_X ~ sex, 
-                                    spatial = list(model = 'Cappa07', 
+                                    spatial = list(model = 'splines', 
                                                    coord = coordinates(m1),
                                                    n.knots = c(2, 3)), 
                                     data = dat,
@@ -61,6 +61,6 @@ res <- try(remlf90(fixed = phe_X ~ sex,
            silent = TRUE)
 
 
-test_that("The Cappa07 model runs with EM-REML without errors", {
+test_that("The splines model runs with EM-REML without errors", {
   expect_that(!inherits(res, "try-error"), is_true())
 })

@@ -241,7 +241,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     }
     
     # Splines model from Cappa & Cantet (2007)
-    if(spatial$model == 'Cappa07') {
+    if(spatial$model == 'splines') {
       sp <- build.splines.model(spatial$coord,
                                 spatial$n.knots,
                                 spatial$autofill,

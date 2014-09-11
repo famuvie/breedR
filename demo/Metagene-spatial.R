@@ -17,7 +17,7 @@ res.f90 <- remlf90(fixed   = phe_X ~ sex,
                    genetic = list(model = 'add_animal', 
                                   pedigree = get_pedigree(m1),
                                   id = 'self'), 
-                   spatial = list(model = 'Cappa07', 
+                   spatial = list(model = 'splines', 
                                   coord = coordinates(m1)), 
                    data = dat,
                    method = 'em')

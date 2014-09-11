@@ -11,7 +11,7 @@ res.blk <- remlf90(fixed  = phe_X ~ 1,
                    data = globulus)
 
 res.spl  <- remlf90(fixed  = phe_X ~ 1,
-                    spatial = list(model = 'Cappa07', 
+                    spatial = list(model = 'splines', 
                                    coord = globulus[, c('x','y')], 
                                    n.knots = c(2, 2)), 
                     data = globulus,
