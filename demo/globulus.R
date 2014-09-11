@@ -10,13 +10,16 @@ str(globulus)
   # Notice that 'Factor' variables take a discrete number of values
   # and can be used either as fixed or random effects
 
+# The genetic component
+gen.globulus <- list(model    = 'add_animal', 
+                     pedigree = globulus[,1:3],
+                     id       = 'self')
+
 ### Blocks ###
 # Fit a model with genetic group as a fixed effect, block as a spatial random
 # effect and the pedigree-based additive genetic effect.
 res.blk <- remlf90(fixed  = phe_X ~ gg,
-                   genetic = list(model = 'add_animal', 
-                                  pedigree = globulus[,1:3],
-                                  id = 'self'), 
+                   genetic = gen.globulus, 
                    spatial = list(model = 'blocks', 
                                   coord = globulus[, c('x','y')],
                                   id = 'bl'),
@@ -27,9 +30,7 @@ res.blk <- remlf90(fixed  = phe_X ~ gg,
 # continuous spatial effect instead of using discrete blocks.
 # We use 'em' method as AI-REML doesn't mix well with splines.
 res.spl  <- remlf90(fixed  = phe_X ~ gg,
-                    genetic = list(model = 'add_animal', 
-                                   pedigree = globulus[,1:3],
-                                   id = 'self'), 
+                    genetic = gen.globulus, 
                     spatial = list(model = 'splines', 
                                    coord = globulus[, c('x','y')], 
                                    n.knots = c(7, 7)), 
@@ -42,9 +43,7 @@ res.spl  <- remlf90(fixed  = phe_X ~ gg,
 # You can fix the values of the autocorrelation parameters, 
 # or let the program try several combinations and select the most likely.
 res.ar  <- remlf90(fixed  = phe_X ~ gg,
-                   genetic = list(model = 'add_animal', 
-                                  pedigree = globulus[,1:3],
-                                  id = 'self'), 
+                   genetic = gen.globulus, 
                    spatial = list(model = 'AR', 
                                   coord = globulus[, c('x','y')],
                                   rho = c(.85, .8)), 
