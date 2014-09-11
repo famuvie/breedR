@@ -24,7 +24,7 @@ compare.plots <- function(plots) {
   if( is.null(names(plots)) ) {
     names(plots) <- paste('p', 1:length(plots), sep = '')
   }
-  tmpdat <- ldply(plots, function(x) x$data)
+  tmpdat <- plyr::ldply(plots, function(x) x$data)
   # Keep the order of the plots
   tmpdat <- transform(tmpdat,
                       .id = factor(.id, levels = unique(tmpdat$.id)))
@@ -32,14 +32,14 @@ compare.plots <- function(plots) {
   # Annotations
   extract.text.data <- function(plot) {
     # identify the geom_text layer
-    lab.idx <- which(laply(plot$layers,
+    lab.idx <- which(plyr::laply(plot$layers,
                            function(x) x$geom$objname == 'text'))
     if(length(lab.idx) == 0) return(NULL)
     data.frame(layer = lab.idx,
                plot$layers[[lab.idx]]$data,
                parse = plot$layers[[lab.idx]]$geom_params$parse)
   }
-  text.data <- ldply(plots, extract.text.data)
+  text.data <- plyr::ldply(plots, extract.text.data)
 
   # If there are annotations ...
   if( nrow(text.data) > 0 ) {
