@@ -17,6 +17,8 @@
 #'   otherwise remove it (default).
 #' @param object a \code{breedR.q}-object which is the output from 
 #'   \code{breedR.qstat}
+#' @param retry numeric. In case of connection failure, number of times to retry
+#'   before giving up and returning \code{NA}.
 #' @param ... Other arguments. Not used.
 #'   
 #' @details \code{breedR.qstat} shows job(s) on the server, \code{breedR.qget} 
@@ -25,7 +27,7 @@
 #'   removes all jobs on the server.
 #'   
 #'   Finally, \code{breedR.remote_load} returns the current load in the server, 
-#'   as a percent. This should be used to check whether jobs can be safely
+#'   as a percent. This should be used to check whether jobs can be safely 
 #'   submitted, and this is left to the user.
 #'   
 #'   The recommended procedure is to use \code{r <- remlf90(..., 
@@ -44,6 +46,7 @@
 #' @section Setup: You need to configure the client and server machines so that 
 #'   passwordless SSH authentication works. See for example 
 #'   \href{http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/}{here}
+#'   
 #'   
 #'   
 #'   
@@ -255,11 +258,23 @@ breedR.qget = function(id, remove = TRUE)
 }
 
 #' @rdname remote
-breedR.remote_load <- function() {
+breedR.remote_load <- function(retry = 5) {
   ssh_commands <- paste('mpstat 2 1',
                         'awk \'\\$11 ~ /[0-9.]+/ { print 100 - \\$11 }\'',
                         'tail -n 1', sep = ' | ')
-  as.numeric(breedR.ssh(ssh_commands, intern = TRUE))
+  
+  # ans is of type character (output)
+  ans <- try(breedR.ssh(ssh_commands, intern = TRUE))
+  
+  # ssh might fail
+  if( inherits(ans, 'try-error') | length(ans) != 1) {
+    if( retry > 0 ) {
+      Sys.sleep(1)
+      ans <- breedR.remote_load(retry - 1)
+    } else ans <- NA
+  }
+  
+  return(as.numeric(ans))
 }
 
 #' @method summary breedR.q

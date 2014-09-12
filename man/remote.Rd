@@ -19,7 +19,7 @@ breedR.qstat(id)
 
 breedR.qnuke()
 
-breedR.remote_load()
+breedR.remote_load(retry = 5)
 }
 \arguments{
 \item{id}{The job-id which is the output from \code{breedR} when the job is
@@ -31,6 +31,9 @@ otherwise remove it (default).}
 
 \item{object}{a \code{breedR.q}-object which is the output from
 \code{breedR.qstat}}
+
+\item{retry}{numeric. In case of connection failure, number of times to retry
+before giving up and returning \code{NA}.}
 
 \item{...}{Other arguments. Not used.}
 }
@@ -70,6 +73,7 @@ Control and view a remote breedR-queue of submitted jobs
  You need to configure the client and server machines so that
   passwordless SSH authentication works. See for example
   \href{http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/}{here}
+
 
 
 
