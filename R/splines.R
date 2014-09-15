@@ -99,7 +99,7 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
       # more widely compatible.
     ones.y <- matrix(1, ncol = ncol(b.y))
     ones.x <- matrix(1, ncol = ncol(b.x))
-    B <- kronecker(b.x, ones.y)*kronecker(ones.x, b.y)
+    B <- suppressMessages(kronecker(b.x, ones.y)*kronecker(ones.x, b.y))
     return(B)
   }
   
@@ -112,7 +112,7 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
     # more widely compatible.
     ones.y <- Matrix::Matrix(1, ncol = ncol(b.y))
     ones.x <- Matrix::Matrix(1, ncol = ncol(b.x))
-    B <- kronecker(b.x, ones.y)*kronecker(ones.x, b.y)
+    B <- suppressMessages(kronecker(b.x, ones.y)*kronecker(ones.x, b.y))
     return(B)
   }
   
