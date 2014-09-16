@@ -184,8 +184,10 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
   if(type == 'spatial') {
     stopifnot('spatial' %in% names(x))
     spdat <- with(as.data.frame(x),
-                  data.frame(x = irow, y = icol, z = sp_X))
-    p <- spatial.plot(spdat, scale = 'div')
+                  data.frame(irow, icol, z = sp_X,
+                             model = 'spatial'))
+    p <- spatial.plot(spdat, scale = 'div') + 
+      facet_wrap(~ model)
   }
   else {
     dat <- data.frame(label=rep(c('genotype', 'phenotype'),
