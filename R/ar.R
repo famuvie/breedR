@@ -7,6 +7,9 @@ build.ar.model <- function (coord, rho, autofill) {
   if( !all(abs(rho) < 1) )
     stop('The autoregressive parameters rho must be strictly in (-1, 1).\n')
   
+  # Consider matrix-like coordinates
+  coord <- as.data.frame(coord)
+  
   # Original coordinates
   coord0 <- as.data.frame(sapply(coord, as.numeric))
     
@@ -16,7 +19,7 @@ build.ar.model <- function (coord, rho, autofill) {
   
   # The coordinates as factors allows to find easily the number of 
   # different x and y positions, and the ordering
-  coord <- as.data.frame(mapply(factor, as.data.frame(coord), pos, SIMPLIFY = FALSE))
+  coord <- as.data.frame(mapply(factor, coord, pos, SIMPLIFY = FALSE))
   
   # Number of different locations in rows and cols
   pos.length <- sapply(pos, length)
