@@ -1,6 +1,11 @@
 # Build an autoregressive model
 # 
-# Given the coordinates of the observations, ...
+# Given the coordinates of the observations, the autocorrelation parameters
+# and the autofill logical value, return a list with
+# - the autocorrelation parameters
+# - the coordinates original coordinates as a data frame
+# - the incidence matrix (encoded as a vector)
+# - the covariance matrix (of the full grid, in triplet form)
 build.ar.model <- function (coord, rho, autofill) {
   
   # Checks

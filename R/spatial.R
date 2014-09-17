@@ -42,11 +42,11 @@ fill_holes <- function(x, label) {
     dif <- diff(x)
     
     # Check whether there is a "regular spacing"
-    # defined as the spacing between at least 80% of the individuals
-    if( !all.equal(diff(quantile(dif, probs = c(.1, .8))), 0, check.attributes = FALSE) )
+    # defined as the spacing between at least 60% of the individuals
+    if( !isTRUE(all.equal(diff(quantile(dif, probs = c(.1, .6))), 0, check.attributes = FALSE)) )
       stop("This does not seem to be a regular grid.\n",
-           "The spacing between", label, "should be the same for",
-           "at least the 80% of the cases.\n",
+           "The spacing between", label, "should be the same for ",
+           "at least the 60% of the cases.\n",
            "You can override this check with autofill = FALSE.\n")
     
     # Otherwise, the grid spacing can be defined as the median sepparation

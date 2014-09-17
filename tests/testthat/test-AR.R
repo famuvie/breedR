@@ -1,6 +1,40 @@
 old.op <- options(warn = -1)  # suppressWarnings
 on.exit(options(old.op))
 
+
+#### Context: build.ar.model() ####
+context("build.ar.model()")
+
+# Some coordinates, with a whole row and some points missing
+# with non-integer and non-positive value
+test.pos <- list(x = c(-2, 0:3), y = 5:8/2)
+test.coord <- as.matrix(expand.grid(test.pos$x, test.pos$y))[-8, ]
+  # plot(test.coord, pch = 19)
+test.rho <- c(.8, .8)
+reslst <- list(build.ar.model(test.coord, test.rho, TRUE),
+               build.ar.model(test.coord, test.rho, FALSE))
+
+check_build.ar.model <- function(x) {
+  test_that("build.ar.model() returns a list with the right elements", {
+    expect_is(x, 'list')
+    expect_equal(length(x), 6)
+    expect_equal(names(x),
+                 c('param', 'coord', 'B', 'U', 'Utype', 'plotting'))
+    expect_equal(x$param, test.rho)
+    expect_equal(x$coord, as.data.frame(test.coord))
+    # Incidence matrix
+    expect_is(x$B, 'integer') # a vector of indices
+    expect_equal(length(x$B), nrow(test.coord))
+    # Covariance matrix
+    expect_is(x$U, 'matrix') 
+    expect_equal(ncol(x$U), 3)  # a triplet
+    expect_true(max(x$B) <= max(x$U[, 1:2]))
+  })
+}
+
+for( x in reslst) check_build.ar.model(x)
+
+
 #### Build small testbeds ####
 build.testbed <- function(corner = c(0, 0), size, treesep = c(1, 1), beta){
   n = size[1] * size[2]

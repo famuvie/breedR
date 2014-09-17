@@ -24,7 +24,7 @@ test_that("build.splines.model gives a list with six elements of correct sizes",
   x.loc <- 1:100
   y.loc <- seq(1000, by = 5, length = 51)
   coord <- expand.grid(x.loc, y.loc)
-  result <- breedR:::build.splines.model(coord)
+  result <- build.splines.model(coord)
   n.knots <- ncol(result$B)
   
   expect_that(result, is_a('list'))
