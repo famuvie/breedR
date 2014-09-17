@@ -716,7 +716,7 @@ vcov.remlf90 <- function (object, effect = 'spatial', ...) {
   # Scaling parameter
   sigma2 <- object$var[effect, 1]
   
-  V <- sigma2 * B %*% U %*% Matrix::t(B)
+  V <- suppressMessages(sigma2 * B %*% U %*% Matrix::t(B))
   return(V)
 }
 
