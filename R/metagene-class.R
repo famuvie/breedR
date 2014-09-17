@@ -372,7 +372,7 @@ NULL
 #' @export
 b.values <- function(x) {
   stopifnot(inherits(x, 'metagene'))
-  dat <- data(x)[,c('self', 'gen', 'sex', 'BV_X')]
+  dat <- x$Data[,c('self', 'gen', 'sex', 'BV_X')]
   return(dat)
 }
 
