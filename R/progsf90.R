@@ -285,8 +285,11 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     # re-use the already detected random effect from the model-frame
     # change its name, and complete fields
     if(spatial$model == 'blocks') {
+      # spatial$id is always a factor at this point
+      stopifnot(is.factor(spatial$id))
+      
       sp <- build.blocks.model(spatial$coord,
-                               as.numeric(spatial$id),
+                               spatial$id,
                                spatial$autofill)
 
       effect.item <- list(name   = spatial$model,

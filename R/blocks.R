@@ -1,7 +1,10 @@
 # Build a blocks model
 # 
-# Given the coordinates of the observations, ...
+# Given the coordinates of the observations,
+# the *factor* identifying blocks, and the logical autofill
 build.blocks.model <- function (coord, id, autofill) {
+  
+  stopifnot(is.factor(id))  # This should not happen
   
   # Original coordinates
   coord0 <- as.data.frame(sapply(coord, as.numeric))
@@ -12,7 +15,9 @@ build.blocks.model <- function (coord, id, autofill) {
   
   # The coordinates as factors allows to find easily the number of 
   # different x and y positions, and the ordering
-  coord <- as.data.frame(mapply(factor, as.data.frame(coord), pos, SIMPLIFY = FALSE))
+  coord <- as.data.frame(mapply(factor,
+                                as.data.frame(coord),
+                                pos, SIMPLIFY = FALSE))
   
   # Number of different locations in rows and cols
   pos.length <- sapply(pos, length)
@@ -29,14 +34,14 @@ build.blocks.model <- function (coord, id, autofill) {
   
   # Structure matrix for the blocks (identity)
   # (needed by vcov())
-  n.blocks <- length(unique(id))
+  n.blocks <- nlevels(id)
   U <- cbind(1:n.blocks, 1:n.blocks, 1)
   
   plot.grid <- expand.grid(pos)
   plotting <- list(grid = plot.grid)
   return(list(coord = coord0,
               map = data.ordering,
-              B = id,
+              B = as.numeric(id),
               U = U,
               Utype = 'covariance',
               plotting = plotting))

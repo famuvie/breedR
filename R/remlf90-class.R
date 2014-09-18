@@ -295,7 +295,21 @@ remlf90 <- function(fixed,
     
     # If blocks model, include the values of the relevant covariate
     if( spatial$model == "blocks" ) {
+      
+      # Check that block id is found in data
+      if( !spatial$id %in% names(data) ) {
+        stop(paste('Block id variable', spatial$id,
+                   'not found in data'))
+      }
+
       spatial$id <- data[, spatial$id]
+      
+      # Only factors make sense for blocks
+      # If it is already a factor, it may have
+      # unobserved levels. Otherwise, make it a factor.
+      if( !is.factor(spatial$id) )
+        spatial$id <- as.factor(spatial$id)
+      
     }
     
     # If AR model without rho specified
