@@ -244,7 +244,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
     }
     # Include in the phenotype the corresponding components
     phenotype <- phenotype +
-      apply(as.matrix(components[,names(components) %in% c('BV1', 'wnc', 'wnp')]),
+      apply(as.matrix(components[,names(components) %in% c('BV', 'BV1', 'wnc', 'wnp')]),
             1, sum)
 
   } else genetic$Nparents = 0
