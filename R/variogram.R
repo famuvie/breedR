@@ -36,6 +36,7 @@
 #'   
 #'   
 #' @importFrom fields vgram.matrix
+#' @seealso \code{\link[fields]{vgram.matrix}}
 #' @export
 variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspective', 'heat', 'none'), R, coord, z) {
   

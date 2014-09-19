@@ -43,4 +43,7 @@ This function assumes that there is at most one observation per spatial
 location. Otherwise, are observations measured at different times? should a
 spatial-temporal variogram be fitted?
 }
+\seealso{
+\code{\link[fields]{vgram.matrix}}
+}
 

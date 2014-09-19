@@ -15,8 +15,6 @@
 #'   is optional and if omitted all the jobs will be listed.
 #' @param remove Logical. If FALSE, leave the job on the server after retrival, 
 #'   otherwise remove it (default).
-#' @param object a \code{breedR.q}-object which is the output from 
-#'   \code{breedR.qstat}
 #' @param retry numeric. In case of connection failure, number of times to retry
 #'   before giving up and returning \code{NA}.
 #' @param ... Other arguments. Not used.
