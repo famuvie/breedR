@@ -19,7 +19,7 @@
 #' @param breedR.bin character. The local directory where the package binaries 
 #'   are stored, or any of 'remote' or 'submit' for remote computing. See 
 #'   'Details'.
-#' @param debug logical. If \code{TRUE}, the input files for blupf90 programs
+#' @param debug logical. If \code{TRUE}, the input files for blupf90 programs 
 #'   and their output are shown, but results are not parsed.
 #'   
 #' @details If either \code{genetic} or \code{spatial} are not \code{NULL}, the 
@@ -29,13 +29,52 @@
 #'   parameters.
 #'   
 #'   \subsection{Genetic effect}{ The available models for the genetic effect 
-#'   are \code{add_animal}. \code{add_animal} stands for an additive animal 
-#'   model with a given pedigree. }
+#'   are \code{add_animal} and \code{competition}. \code{add_animal} stands for 
+#'   an additive animal model with a given pedigree. \code{competition} includes
+#'   the \emph{direct} additive genetic effect and also a \emph{competition} 
+#'   additive genetic effect possibly correlated with the former.
+#'   
+#'   The minimum elements in the list of the \code{genetic} component are: 
+#'   \itemize{\item \code{model} a string, either \code{add_animal} or 
+#'   \code{competition} \item \code{pedigree} either an object of class 
+#'   \code{pedigree} (see \code{\link{build_pedigree}}) or a \emph{data.frame} 
+#'   with exactly three columns identifying the individual, his parent and his 
+#'   mother respectively \item \code{id} a string, the name of the variable with
+#'   the individual identifyer in the \code{data}}
+#'   
+#'   Optional common components are:
+#'   
+#'   \itemize{ \item \code{var.ini} a positive initial value for the variance 
+#'   component(s). For a \code{competition} model, the same initial value is 
+#'   used for both effects, with a negative initial correlation between them of 
+#'   half this value.}
+#'   
+#'   Finally, for model \code{competition} there are further mandatory and 
+#'   optional elements:
+#'   
+#'   \itemize{ \item mandatory elements \itemize{ \item \code{coord} a matrix, 
+#'   list or data.frame with two columns for the rows and columns of the 
+#'   observations, respectively. This element is necessary even if duplicated in
+#'   a \code{spatial} component. \item \code{competition_decay} a positive 
+#'   number. The intensity of competition is weighted by the distance acording 
+#'   to \eqn{1/d^\alpha}. This element specifies the exponent \eqn{\alpha} to be
+#'   used. Typically \eqn{1} or \eqn{2}. }
+#'   
+#'   \item optional elements \itemize{ \item \code{pec} Permanent Environmental 
+#'   Competition effect. If present, this must be a named list with elements 
+#'   \code{present} wich is either \code{TRUE} or \code{FALSE} and (optionally) 
+#'   \code{var.ini} specifying the initial variance for this effect. } }
+#'   
+#'   The Permanent Environmental Competition (\code{pec}) effect is actually 
+#'   non-genetic in nature. However, it was included as an option to the 
+#'   (genetic) competition effect as it is usually used in conjunction with it. 
+#'   }
+#'   
 #'   
 #'   \subsection{Spatial effects}{ The available models for the spatial effect 
 #'   are \code{splines} and \code{AR1}. \code{splines} uses a  two-dimensional 
 #'   tensor product of B-splines to represent the smooth spatially structured 
-#'   effect (Cappa and Cantet, 2007). \code{AR1} uses a kronecker product of
+#'   effect (Cappa and Cantet, 2007). \code{AR1} uses a kronecker product of 
 #'   autoregressive models for the rows and columns.
 #'   
 #'   In both cases, the minimum necessary components in the list are \itemize{ 
@@ -138,6 +177,74 @@
 #'   account for a spatial trend using penalized splines in an individual-tree 
 #'   mixed model. \emph{Canadian Journal of Forest Research} 
 #'   \strong{37}(12):2677-2688.
+#'   
+#' @examples
+#' ## Linear model
+#' n <- 1e3
+#' dat <- transform(data.frame(x = runif(n)),
+#'                  y = 1 + 2*x + rnorm(n, sd = sqrt(3)))
+#' res.lm <- remlf90(fixed = y ~ x, data = dat)
+#' summary(res.lm)
+#' 
+#' ## Animal model
+#' ped <- build_pedigree(c('self', 'dad', 'mum'),
+#'                       data = as.data.frame(m1))
+#' res.am <- remlf90(fixed   = phe_X ~ sex,
+#'                   genetic = list(model    = 'add_animal',
+#'                                  pedigree = ped,
+#'                                  id       = 'self'),
+#'                   data    = as.data.frame(m1))
+#'                   
+#' \dontrun{
+#' ## Same model with specification of initial variances
+#' res.am <- remlf90(fixed   = phe_X ~ sex,
+#'                   genetic = list(model    = 'add_animal',
+#'                                  pedigree = ped,
+#'                                  id       = 'self',
+#'                                  var.ini  = 1),
+#'                   data    = as.data.frame(m1),
+#'                   var.ini = list(resid = 1))
+#'  
+#' ## Animal-spatial models
+#' gen.globulus <- list(model    = 'add_animal',
+#'                      pedigree = globulus[, 1:3],
+#'                      id       = 'self')
+#' res.bm <- remlf90(fixed   = phe_X ~ gg,
+#'                   genetic = gen.globulus,
+#'                   spatial = list(model = 'blocks', 
+#'                                  coord = globulus[, c('x','y')],
+#'                                  id    = 'bl'),
+#'                   data    = globulus)
+#'                   
+#' res.am <- remlf90(fixed   = phe_X ~ gg,
+#'                   genetic = gen.globulus,
+#'                   spatial = list(model = 'AR', 
+#'                                  coord = globulus[, c('x','y')],
+#'                                  rho   = c(.85, .8)),
+#'                   data    = globulus)
+#' 
+#' res.sm <- remlf90(fixed   = phe_X ~ gg,
+#'                   genetic = gen.globulus,
+#'                   spatial = list(model = 'splines', 
+#'                                  coord = globulus[, c('x','y')],
+#'                                  n.knots = c(5, 5)),
+#'                   data    = globulus,
+#'                   method  = 'em')   # Necessary for splines models!!!
+#' 
+#' 
+#' ## Competition models
+#' 
+#' # This may take some minutes...
+#' res.cm <- remlf90(fixed   = phe_X ~ 1,
+#'                  genetic = list(model = 'competition',
+#'                                 pedigree = globulus[, 1:3],
+#'                                 id = 'self',
+#'                                 coord = globulus[, c('x','y')],
+#'                                 competition_decay = 1,
+#'                                 pec = list(present = TRUE)),
+#'                  data = globulus)
+#' }
+#' 
 #' @export
 remlf90 <- function(fixed, 
                     random = NULL,
