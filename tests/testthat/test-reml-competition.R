@@ -59,7 +59,7 @@ gen_a_c <- matrix(spam::rmvnorm.prec(n = 1,
 dat <- data.frame(coord[sample(Nobs),],
                   ped.obs,
                   tail(gen_a_c, Nobs),
-                  pef = rnorm(Nobs, sd = sqrt(sigma2_p)),
+                  pec = rnorm(Nobs, sd = sqrt(sigma2_p)),
                   e = rnorm(Nobs, sd = sqrt(sigma2)))
 
 # check
@@ -80,7 +80,7 @@ X <- local({
 
   # It is convenient to work with matrices representing the spatial arrangement
   ord <- order(dat$x, dat$y)
-  matlst <- lapply(dat[ord, c('id', 'a', 'c', 'e', 'pef')],
+  matlst <- lapply(dat[ord, c('id', 'a', 'c', 'e', 'pec')],
                    function(x) matrix(x, nrow = grid.size['y']))
   
   rect <- breedR:::neighbours.at.list(matlst, c('N', 'S', 'E', 'W'))
@@ -92,8 +92,8 @@ X <- local({
            ifelse(is.na(diag$id), NA, 1/diag.dist),
            rect$c,
            diag$c,
-           rect$pef,
-           diag$pef)
+           rect$pec,
+           diag$pec)
 
   # Four-dimensional array
   # two first dimensions are spatial
@@ -102,7 +102,7 @@ X <- local({
   # 1 = neighbour idx
   # 2 = neighbour IFC
   # 3 = neighbour c
-  # 4 = neighbour pef
+  # 4 = neighbour pec
   x <- array(dat, dim = c(rev(grid.size), 8, 4))
   
   # normalize to make all squared-coefficients add up to one throughout dim. 3
@@ -120,7 +120,7 @@ X <- local({
                      paste('n', 1:8, sep = ''),
                      paste('ifc', 1:8, sep = ''),
                      paste('c', 1:8, sep = ''),
-                     paste('pef', 1:8, sep = ''))
+                     paste('pec', 1:8, sep = ''))
   rownames(res) <- NULL
   
   # check
@@ -133,10 +133,10 @@ X <- local({
 # Contribution to phenotype of neighbouring genetic-competition effects
 dat$wnc <- rowSums(X[,10:17] * X[,17+1:8], na.rm = TRUE)
 
-dat$pef <- rowSums(X[,10:17] * X[,25+1:8], na.rm = TRUE)
+dat$pec <- rowSums(X[,10:17] * X[,25+1:8], na.rm = TRUE)
 
-# Simulated phenotype (with or without pef)
-dat <- transform(dat, z = a + wnc + pef + e)
+# Simulated phenotype (with or without pec)
+dat <- transform(dat, z = a + wnc + pec + e)
 # dat <- transform(dat, z = a + wnc + e)
 
 

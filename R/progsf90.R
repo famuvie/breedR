@@ -600,7 +600,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                                      varsd.idx-1,
                                      rangroup.sizes),
                               function(x) reml.out[x])
-        varsd <- lapply(varsd.str, parse.varmat)
+        varsd <- mapply(parse.varmat, varsd.str, subnames)
         names(varsd) <- c(names(effects)[random.effects.idx], 'Residual')
       }
   }
