@@ -124,7 +124,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
     components$X <- as.data.frame(X)
     if( is.null(names(fixed)) ) {
       if( length(fixed) == 1 ) names(fixed) <- 'X'
-      else names(fixed) <- paste('X', 1:length(fixed)-1, sep = '')
+      else names(fixed) <- paste('X', seq_along(fixed)-1, sep = '')
     }
     names(components$X) <- names(fixed)
   }

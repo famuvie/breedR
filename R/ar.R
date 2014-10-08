@@ -67,7 +67,7 @@ build.ar.model <- function (coord, rho, autofill) {
   # Caveat: I need to invert the matrix here
   # Is there a way of finding the characteristic marginal variance
   # from the precision matrix? Yes. see below.
-  B <- Matrix::sparseMatrix(i = 1:length(data.ordering),
+  B <- Matrix::sparseMatrix(i = seq_along(data.ordering),
                             j = data.ordering,
                             x = 1,
                             dims = c(length(data.ordering), dimUinv[1]))

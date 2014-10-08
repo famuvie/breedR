@@ -147,18 +147,18 @@ print.summary.metagene <- function(x, ...) {
   cat('Selection strategy: (Warning: fixed info)\t
       diagonal; 10+10 descendants per mating; select best 80+80\n')
   cat('\nBreeding values: ##########################\n')
-  for(i in 1:length(x$breeding.values)){
+  for(i in seq_along(x$breeding.values)){
     cat(names(x$breeding.values)[i], ':\n')
     print(x$breeding.values[[i]])
   }
   cat('\nPhenotypic values: ########################\n')
-  for(i in 1:length(x$phenotype)){
+  for(i in seq_along(x$phenotype)){
     cat(names(x$phenotype)[i], ':\n')
     print(x$phenotype[[i]])
   }
   cat('\nHeritability: #############################\n')
 #   browser()
-  for(i in 1:length(x$phenotype)){
+  for(i in seq_along(x$phenotype)){
     cat(names(x$phenotype)[i], ':\n')
     if(is.null(dim(x$phenotype[[i]])))
       print(x$breeding.values[[i]][,'Var']/x$phenotype[[i]][,'Var'])

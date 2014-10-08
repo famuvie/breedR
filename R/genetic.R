@@ -81,7 +81,7 @@ build.genetic.model <- function (genetic) {
     
     # IC of neighbouring trees at each direction
     # normalize to make all coefficients-squared add up to one
-    BIC <- sapply(1:length(dirs),
+    BIC <- sapply(seq_along(dirs),
                   function(dir) ifelse(is.na(Bneigh[, dir]), NA, wdir.dist[dir]))
     BIC <- BIC / sqrt(apply(BIC**2, 1, sum, na.rm = TRUE))
     

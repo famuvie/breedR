@@ -386,7 +386,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     }
     return(names(effects)[idx])
   }
-  names(result) <- unlist(sapply(1:length(effects), get.effect.name))
+  names(result) <- unlist(sapply(seq_along(effects), get.effect.name))
   
   # Identify factors in model terms
   mt <- attr(mf, 'terms')
