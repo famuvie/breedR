@@ -56,7 +56,7 @@ fill_holes <- function(x, label) {
     if( !isTRUE(all.equal(min(dif), max(dif))) ) {
       holes <- which(dif > sep)
       # The hole can be either larger or shorter than the standard sep
-      hole_sizes <- dif[holes] - 1
+      hole_sizes <- dif[holes]/sep - 1
       
       for( i in seq_along(holes) ) {
         x <- fill_hole(x, holes[i], hole_sizes[i] , sep, label)
