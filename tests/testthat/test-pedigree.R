@@ -4,6 +4,26 @@ on.exit(options(old.op))
 
 context("Pedigree")
 
+# Retrieve pedigree from remlf90 objects
+res.lm <- remlf90(y~1, dat = data.frame(y=rnorm(100)))
+test_that('get_pedigree() returns NULL when there is no genetic effect', {
+  expect_true(is.null(get_pedigree(res.lm)))
+})
+
+# Toy dataset with silly pedigree
+test.dat <- data.frame(matrix(sample(100, 15), 5, 3,
+                              dimnames = list(NULL, c('self', 'sire', 'dam'))),
+                       y = rnorm(5))
+ped.fix <- build_pedigree(1:3, data = test.dat)
+test.res <- remlf90(y~1,
+                    genetic = list(model = 'add_animal',
+                                   pedigree = test.dat[, 1:3],
+                                   id = 'self'),
+                    data = test.dat)
+test_that('get_pedigree() returns the recoded pedigree', {
+  expect_identical(ped.fix, get_pedigree(test.res))
+})
+
 # Use the pedigree in data(m4) and shuffle the codes
 data(m4)
 ped <- as.data.frame(m4)[, c('self', 'dad', 'mum')]

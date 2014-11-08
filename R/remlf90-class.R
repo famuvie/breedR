@@ -367,8 +367,9 @@ remlf90 <- function(fixed,
     genetic$model <- match.arg(genetic$model,
                                choices = c('add_animal', 'competition'))
 
-    if( !all(check_pedigree(genetic$pedigree)) )
+    if( !all(check_pedigree(genetic$pedigree)) ) {
       genetic$pedigree <- build_pedigree(1:3, data = genetic$pedigree)
+    }
     
     if( length(genetic$id)==1 ) {
       genetic$id <- data[, genetic$id]
@@ -568,6 +569,18 @@ remlf90 <- function(fixed,
 #### Interface methods ####
 #%%%%%%%%%%%%%%%%%%%%%%%%%#
 
+#' @describeIn get_pedigree Get the pedigree from a remlf90 object
+#' @export
+get_pedigree.remlf90 <- function(x, ...) {
+  ped <- x$effects$genetic$ped
+  if( !is.null(ped) ) {
+    map <- attr(ped, 'map')
+    ped <- with(ped,
+                pedigreemm::pedigree(sire=sire, dam=dam, label=self))
+    attr(ped, 'map') <- map
+  }
+  return(ped)
+}
 
 #' @export
 coef.remlf90 <- function(object, ...) { 

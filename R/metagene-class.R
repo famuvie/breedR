@@ -242,15 +242,6 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   return(N)
 }
 
-#' Get the Pedigree from an object
-#' 
-#' Returns an object from the formal class \code{pedigree}.
-#' @param x object to extract pedigree from
-#' @param ... Arguments to be passed to methods.
-#' @references \code{\link[pedigreemm]{pedigree-class}} from package
-#'   \code{pedigreemm}
-#' @export
-get_pedigree <- function(x, ...) UseMethod('get_pedigree')
 #' @describeIn get_pedigree Get the pedigree from a metagene object
 #' @export
 get_pedigree.metagene <- function(x, ...) {

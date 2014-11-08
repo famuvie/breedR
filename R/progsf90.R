@@ -182,7 +182,9 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     
     # Initial values for the add-animal model, which
     # are present also in the competition model
-    gen.levels <- nrow(as.data.frame(genetic$pedigree))
+    ped.dat <- as.data.frame(genetic$pedigree)
+    attr(ped.dat, 'map') <- attr(genetic$pedigree, 'map')
+    gen.levels <- nrow(ped.dat)
     gen.type   <- 'cross'
 
     # max n of competitors (0 under no competition)
@@ -207,7 +209,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
                         type   = gen.type,
                         model  = 'add_animal', # both add_animal or competition
                         file   = 'pedigree',
-                        ped    = as.data.frame(genetic$pedigree),
+                        ped    = ped.dat,
                         var    = genetic$var.ini,
                         gen    = gen)))
     
