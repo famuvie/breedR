@@ -1,3 +1,6 @@
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 ## Plotting and diagnostics tools in breedR
 
 data(globulus)

@@ -1,3 +1,6 @@
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 # We use a simulated dataset with known parameters
 # which we try to infer from phenotype observations
 data(m1)

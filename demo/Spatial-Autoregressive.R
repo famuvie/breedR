@@ -1,9 +1,16 @@
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 ### Spatial-Autoregressive model for spatially correlated traits ###
 
 # Eucaliptus Globulus dataset
 # Cappa and Cantet (2007)
 data(globulus)
 cat(paste(comment(globulus), collapse='\n'))
+
+if( !require('ggplot2') ) {
+  stop('This demo requires package ggplot2. Please install.')
+}
 
 # Variables and structure:
 head(globulus)
