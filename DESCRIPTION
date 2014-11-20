@@ -31,7 +31,8 @@ Imports:
     nlme,
     pedigree,
     pedigreemm,
-    splines
+    splines,
+    reshape2
 Suggests:
     grid,
     INLA,

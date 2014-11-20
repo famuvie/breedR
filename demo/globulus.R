@@ -67,7 +67,7 @@ spatial.dat <- transform(globulus,
                          AR1xAR1 = res.ar$spatial$fit$z)
 ord <- with(spatial.dat, order(Blocks, Splines))
 
-ggplot(cbind(melt(spatial.dat, id = 1:9), Ind = order(ord)),
+ggplot(cbind(reshape2::melt(spatial.dat, id = 1:9), Ind = order(ord)),
        aes(Ind, value)) + 
   geom_point(aes(col = variable))
 
