@@ -609,12 +609,6 @@ logLik.remlf90 <- function (object, ...) {
                  as.numeric(strsplit(reml.out[npar.idx],
                                      split=' # parameters= +')[[1]][2]),
                  'unknown')
-  if(any(identical(rank, 'unknown') | identical(npar, 'unknown')))
-    warning(paste('Could not deduce the', 
-                  paste(c('rank', 'number of parameters')
-                        [which(c(rank, npar)=='unknown')],
-                        collapse = ' and '),
-                  'from REMLF90 output'))
   
   res <- object$residual
   N <- length(res)
