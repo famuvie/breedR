@@ -625,9 +625,15 @@ logLik.remlf90 <- function (object, ...) {
       w <- w[!excl]
     }
   }
+  N0 <- N
+  if( REML & rank != 'unknown' ) {
+    N <- N - rank
+  }
+  
   ans = -object$fit[['-2logL']]/2
-  attr(ans, 'df') <- npar
+  attr(ans, 'nall') <- N0
   attr(ans, 'nobs') <- N
+  attr(ans, 'df') <- npar
   class(ans) ='logLik'
   ans
 }
