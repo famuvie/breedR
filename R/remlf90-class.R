@@ -315,7 +315,7 @@ remlf90 <- function(fixed,
   if( !missing(var.ini) ) {
     if( !is.null(var.ini) ) {
       # normalize names
-      names(var.ini) <- match.arg(tolower(names(var.ini)),
+      names(var.ini) <- match.arg(names(var.ini),
                                   random.terms,
                                   several.ok = TRUE)
       # check that all the required variances are given
