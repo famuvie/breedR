@@ -366,7 +366,31 @@ write.progsf90 <- function (pf90, dir) {
 parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   
   # Parsing the results
-  sol.file <- read.table(solfile, header=FALSE, skip=1)
+  sol.file <- try(read.table(solfile, header=FALSE, skip=1))
+  if( inherits(sol.file, 'try-error') ) {
+    ## The output file is formatted with fixed-width columns
+    ## leaving 4 spaces between the columns trait and effect
+    ## If there are more than 999 total random effects (e.g.
+    ## in a splines model with 30x30 knots), this two columns
+    ## become one.
+    ## The following is a workaround treating it as one column
+    ## filling the last with NA and then rearranging
+    ## Fixes #24
+    sol.file <- read.table(solfile, header=FALSE, skip=1, fill=TRUE)
+    bug.idx <- which(is.na(sol.file[, 5]))
+    
+    ## check that only one column was lost
+    stopifnot(all(!is.na(sol.file[bug.idx, -5])))
+    
+    ## check that the first digit of the trait/effect code is 1
+    stopifnot(all(substr(sol.file[bug.idx, 1], 1, 1) == "1"))
+    
+    ## correct the code of the effect by removing the leading 1
+    sol.file[bug.idx, 1] <- sol.file[bug.idx, 1] - 1e4
+    
+    ## shift all the columns to the right
+    sol.file[bug.idx, ] <- cbind(1, sol.file[bug.idx, 1:4])
+  }
   colnames(sol.file) <- c('trait', 'effect', 'level', 'value', 's.e.')
   
   # Assuming one trait only
