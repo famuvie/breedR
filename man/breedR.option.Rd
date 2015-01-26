@@ -14,9 +14,6 @@ breedR.getOption(option = c("ar.eval", "breedR.bin", "splines.nok",
 breedR.setOption(...)
 }
 \arguments{
-\item{...}{Option and value,  like \code{option=value} or \code{option,
-value}; see the Examples.}
-
 \item{option}{The option to get. If missing or \code{NULL}, then
  \code{breedR.getOption} will display the current defaults, otherwise,
  \code{option} must be one of
@@ -60,6 +57,9 @@ value}; see the Examples.}
  package='breedR')} in a remote server's R-session.
 
  \code{ssh.options}: ssh options. You shouldn't need to change this.}
+
+\item{...}{Option and value,  like \code{option=value} or \code{option,
+value}; see the Examples.}
 }
 \description{
 Set and get global options for breedR. The options are stored in the variable
@@ -85,10 +85,11 @@ breedR.setOption(ar.eval = 3*(-3:3)/10)
 breedR.getOption("ar.eval")
 
 \dontrun{
-# Set up some options permanently by writing the following in $HOME/.breedRc
-remote.host = '123.45.678.999'
-remote.user = 'uname'
-remote.bin  = 'remote/path/to/breedR/bin/linux'
+# Set up some options permanently in $HOME/.breedRrc
+writeLines(c("remote.host = '123.45.678.999'",
+             "remote.user = 'uname'",
+             "remote.bin  = 'remote/path/to/breedR/bin/linux'"),
+           con = file.path(Sys.getenv('HOME'), '.breedRrc')
 }
 }
 

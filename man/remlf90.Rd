@@ -198,6 +198,15 @@ dat <- transform(data.frame(x = runif(n)),
 res.lm <- remlf90(fixed = y ~ x, data = dat)
 summary(res.lm)
 
+## Linear Mixed model
+f3 = factor(sample(letters[1:3], n, replace = TRUE))
+dat <- transform(dat,
+                 f3 = f3,
+                 y = y + (-1:1)[f3])
+res.lmm <- remlf90(fixed  = y ~ x,
+                  random = ~ f3,
+                  data   = dat)
+
 ## Animal model
 ped <- build_pedigree(c('self', 'dad', 'mum'),
                       data = as.data.frame(m1))
@@ -247,6 +256,7 @@ res.sm <- remlf90(fixed   = phe_X ~ gg,
 ## Competition models
 
 # This may take some minutes...
+# and need to be fitted with 'em'
 res.cm <- remlf90(fixed   = phe_X ~ 1,
                  genetic = list(model = 'competition',
                                 pedigree = globulus[, 1:3],
@@ -254,6 +264,7 @@ res.cm <- remlf90(fixed   = phe_X ~ 1,
                                 coord = globulus[, c('x','y')],
                                 competition_decay = 1,
                                 pec = list(present = TRUE)),
+                 method = 'em',
                  data = globulus)
 }
 }
