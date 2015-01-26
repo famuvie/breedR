@@ -865,6 +865,15 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
   p
 }
 
+
+
+##' @importFrom graphics plot
+##' @export
+plot.ranef.breedR <- function(x, y, ...) {
+  ## TODO
+}
+
+
 # predict.remlf90 <- function (object, ...) {
 #   
 # }
@@ -873,11 +882,95 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
 #   
 # }
 
+
+#' Extract the modes of the random effects
+#' 
+#' Extract the conditional modes of the random effects from a fitted model
+#' object.  For linear mixed models the conditional modes of the random effects
+#' are also the conditional means.
+#' 
+#' This method is modeled a bit after \code{\link[lme4]{ranef}}. However, it is
+#' independent and does not inherit from it. In particular, it always returns
+#' the conditional variance (argument condVar in lme4).
+#' 
+#' @param object a fitted models with random effects of class
+#'   \code{\link{remlf90}}.
+#' @return An object of class \code{ranef.breedR} composed of a list of 
+#'   vectors, one for each random effect. The length of the vectors are the 
+#'   number of levels of the corresponding random effect.
+#'   
+#'   Each random effect has an attribute called \code{"se"} which is a vector 
+#'   with the standard errors.
+#'   
+#'   Additionally, depending of the nature of the random effect, there may be 
+#'   further attributes. The pedigree will be given for genetic random effects 
+#'   and the spatial prediction grid for the spatial random effects
+#'   
+#' @note To produce a (list of) \dQuote{caterpillar plots} of the random effects apply
+#' \code{\link{plot}} to the result of a call to \code{ranef}.
+#' @examples
+#' res <- remlf90(phe_X ~ bl,
+#'                genetic = list(model = 'add_animal',
+#'                               pedigree = globulus[, 1:3],
+#'                               id = 'self'),
+#'                data = globulus)
+#' str(rr <- ranef(res))
+#' plot(rr)
 #' @importFrom nlme ranef
 #' @export ranef
 #' @export
 ranef.remlf90 <- function (object, ...) {
-  object$ranef
+  
+  ## List of random effects
+  ranef <- object$ranef
+  
+  ## TODO: Unstructured random effects (and 'pec')
+  
+  ## ranef() will provide the model's random effects
+  ## and further methods to let the user compute their 'projection'
+  ## onto observed individuals (fit) or predict over unobserved individuals (pred)
+  ans <- list()
+
+  ## Genetic component
+  if( object$components$pedigree ){
+    
+    # Indices (in ranef) of genetic-related effects (direct and/or competition)
+    gen.idx <- grep('genetic', names(ranef))
+    gl <- lapply(ranef[gen.idx], function(x) structure(x$value,
+                                                       se = x$s.e.))
+    if( length(gl) > 1 ) {
+      names(gl) <- gsub('^genetic-', '', names(gl))
+      gl <- list(genetic = gl)
+    }
+    
+    ranef <- ranef[-gen.idx]
+    ans$genetic <- gl$genetic
+  }
+  
+  ## Spatial component
+  if ( object$components$spatial ) {
+    ## Depending on the spatial model, we return the coordinates
+    ## of the corresponding effects
+    coord <- with(object$effects$spatial,
+                  switch(name,
+                         splines = sp$param,
+                         AR      = sp$plotting$grid,
+                         blocks  = NULL)
+    )
+    ranef$spatial <- NULL
+    ans$spatial <- with(ranef$spatial,
+                        structure(value,
+                                  se = s.e.,
+                                  coordinates = coord))
+  }
+  
+  ## Other random effects with no particular treatment
+  other.ranef <- lapply(ranef,
+                        function(x) structure(x$value,
+                                              se = x$s.e.))
+  ans <- c(ans, other.ranef)
+  class(ans) <- 'ranef.breedR'
+  return(ans)
 }
 
 
