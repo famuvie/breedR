@@ -761,12 +761,17 @@ nobs.remlf90 <- function (object, ...) {
 setOldClass('breedR')
 setMethod('coordinates', signature = 'breedR', 
           function(obj, ...) {
+            err_msg <- "This breedR object has no spatial structure.\n"
             if( !obj$components$spatial ) {
+              ## If there is no explicit spatial structure
+              ## we can check for coordinates in the genetic effect
+              ## in case it was a competition model, which requires coords.
               if( !obj$components$pedigree ) {
-                stop("This breedR object has no spatial structure.\n")
+                stop(err_msg)
               } else {
-                stopifnot(exists('coord', obj$effects$genetic$gen))
-                return(obj$effects$genetic$gen$coord)
+                if( exists('coord', obj$effects$genetic$gen) ) {
+                  return(obj$effects$genetic$gen$coord)
+                } else stop(err_msg)
               }
             }
             return(obj$effects$spatial$sp$coord)
