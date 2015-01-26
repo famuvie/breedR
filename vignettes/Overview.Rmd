@@ -3,8 +3,7 @@ title: "BreedR Overview"
 author: "Facundo Muñoz"
 date: "`r Sys.Date()`"
 output:
-  rmarkdown:::html_vignette:
-    fig.caption: yes
+  rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{BreedR Overview}
   %\VignetteEngine{knitr::rmarkdown}
@@ -168,5 +167,89 @@ qplot(BV_X, PBV, color = sex, data = dat) +
 
 # Linear correlation between true and fitted breeding values
 cor(dat$BV_X, PBV)
+```
+
+
+
+Spatial autocorrelation
+-----------------------
+
+There are many ways to take into account the spatial autocorrelation due to environmental conditions.
+
+```{r spatial}
+data(globulus)
+str(globulus)
+
+# The genetic component
+gen.globulus <- list(model    = 'add_animal', 
+                     pedigree = globulus[,1:3],
+                     id       = 'self')
+### Blocks ###
+# Fit a model with genetic group as a fixed effect, block as a spatial random
+# effect and the pedigree-based additive genetic effect.
+res.blk <- remlf90(fixed   = phe_X ~ gg,
+                   genetic = gen.globulus, 
+                   spatial = list(model = 'blocks', 
+                                  coord = globulus[, c('x','y')],
+                                  id    = 'bl'),
+                   data    = globulus)
+
+### Splines ###
+# Alternativelly, account for the environmental variation with a
+# continuous spatial effect instead of using discrete blocks.
+# We use 'em' method as AI-REML doesn't mix well with splines.
+res.spl  <- remlf90(fixed   = phe_X ~ gg,
+                    genetic = gen.globulus, 
+                    spatial = list(model    = 'splines', 
+                                   coord    = globulus[, c('x','y')], 
+                                   n.knots  = c(7, 7)), 
+                    data    = globulus,
+                    method  = 'em')
+
+### AR1 x AR1 ###
+# A further spatial approach with a separable First order Autoregressive
+# process on the rows and colums.
+# You can fix the values of the autocorrelation parameters, 
+# or let the program try several combinations and select the most likely.
+res.ar1  <- remlf90(fixed   = phe_X ~ gg,
+                    genetic = gen.globulus, 
+                    spatial = list(model    = 'AR', 
+                                   coord    = globulus[, c('x','y')],
+                                   rho      = c(.85, .8)), 
+                    data    = globulus)
+
+```
+
+Comparison of variance component estimates
+```{r spatial-results, echo = FALSE, results = 'asis'}
+# Variance component estimates
+knitr::kable(cbind(blocks  = res.blk$var[,1],
+                   splines = res.spl$var[,1],
+                   AR1     = res.ar1$var[,1]),
+             digits = 2)
+```
+
+For models with specific spatial effects, breedR provides convenience plotting methods.
+
+```{r spatial-plots, fig.width=5}
+(p.blk <- plot(res.blk, type = 'spatial'))
+(p.spl <- plot(res.spl, type = 'spatial'))
+(p.ar1 <- plot(res.ar1,  type = 'spatial'))
+
+
+# We can compare the results under the same scale with the convenience function 
+# compare.plots()
+compare.plots(list(Blocks  = p.blk,
+                   Splines = p.spl,
+                   AR1xAR1 = p.ar1))
+
+
+### Prediction of the spatial effect in unobserved locations ###
+
+# We can use the 'fullspatial' plot type instead
+compare.plots(list(Blocks  = plot(res.blk, type = 'fullspatial'),
+                   Splines = plot(res.spl, type = 'fullspatial'),
+                   AR1xAR1 = plot(res.ar1, type = 'fullspatial')))
+
 ```
 
