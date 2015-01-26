@@ -326,7 +326,7 @@ remlf90 <- function(fixed,
   if( !missing(var.ini) ) {
     if( !is.null(var.ini) ) {
       # normalize names
-      names(var.ini) <- match.arg(tolower(names(var.ini)),
+      names(var.ini) <- match.arg(names(var.ini),
                                   random.terms,
                                   several.ok = TRUE)
       # check that all the required variances are given
@@ -360,18 +360,6 @@ remlf90 <- function(fixed,
   ### Parse arguments
   method <- tolower(method)
   method <- match.arg(method)
-  
-    
-
-  # Builds model frame by joining the fixed and random terms
-  # and translating the intercept (if appropriate) to a fake covariate
-  # Add an additional 'term.types' attribute within 'terms'
-  # indicating whether the term is 'fixed' or 'random'
-	# progsf90 don't allow for custom model parameterizations
-	# and they don't use intercepts
-  mf <- build.mf(mc)
-  mt <- attr(mf, 'terms')
-
   
   # Genetic effect
   if( !is.null(genetic) ) {
@@ -476,7 +464,18 @@ remlf90 <- function(fixed,
   if(!is.null(genetic)) genetic$tempfile <- file.path(tmpdir, 'pedigree')
   if(!is.null(spatial)) spatial$tempfile <- file.path(tmpdir, 'spatial')
   
- 
+
+  
+  
+  # Builds model frame by joining the fixed and random terms
+  # and translating the intercept (if appropriate) to a fake covariate
+  # Add an additional 'term.types' attribute within 'terms'
+  # indicating whether the term is 'fixed' or 'random'
+  # progsf90 don't allow for custom model parameterizations
+  # and they don't use intercepts
+  mf <- build.mf(mc)
+  mt <- attr(mf, 'terms')
+  
   # Build a list of parameters and information for each effect
   effects <- build.effects(mf, genetic, spatial, var.ini)
   
