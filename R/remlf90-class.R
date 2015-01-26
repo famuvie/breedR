@@ -644,11 +644,87 @@ model.frame.remlf90 <- function (formula, ...) {
   formula$mf
 }
 
-#' @method model.matrix remlf90
+#' @importFrom stats model.matrix
 #' @export
 model.matrix.remlf90 <- function (object, ...) {
-  object$mm
+  
+  ## mm and mf for fixed and diagonal effects only
+  mf <- object$mf
+  mm.fd <- object$mm
+  
+  # terms in the formula that are fixed
+  fixterm.bol <- attr(attr(mf, 'terms'), 'term.types') == 'fixed'
+  
+  # columns in the mm corresponding to fixed and diagonal terms
+  fixcol.bol <- attr(mm.fd, 'assign') %in% which(fixterm.bol)
+  diacol.bol <- attr(mm.fd, 'assign') %in% which(!fixterm.bol)
+  stopifnot(all(xor(fixcol.bol, diacol.bol)))  # check they are complementary
+
+  
+  # preallocate
+  fixed  <- random <- NULL
+  
+  
+  ## mm for fixed effects and corresponding attributes
+  if( any(fixcol.bol) ) {
+    fixed <- mm.fd[, fixcol.bol, drop = FALSE]
+    attr(fixed, 'assign') <- attr(mm.fd, 'assign')[fixcol.bol]
+    ff.bol <- names(attr(mm.fd, 'contrasts')) %in% names(which(fixterm.bol))
+    if( any(ff.bol) )
+      attr(fixed, 'contrasts') <- attr(mm.fd, 'contrasts')[ff.bol]
+  }
+  
+  ## mm for diagonal effects and corresponding attributes
+  if( any(diacol.bol) ) {
+    random$diagonal <- mm.fd[, diacol.bol, drop = FALSE]
+    attr(random$diagonal, 'assign') <- attr(mm.fd, 'assign')[diacol.bol]
+    df.bol <- !ff.bol
+    stopifnot(identical(df.bol,
+                        names(attr(mm.fd, 'contrasts')) %in% 
+                          names(which(!fixterm.bol))))
+    if( any(df.bol) )
+      attr(random$diagonal, 'contrasts') <- attr(mm.fd, 'contrasts')[df.bol]
+  }
+  
+  
+  ## mm for genetic effects
+  if( object$components$pedigree ) {
+    # Indices (in ranef) of genetic-related effects (direct and/or competition)
+    gen.idx <- grep('genetic', names(object$ranef))
+    
+    # Incidence vector for the direct effect
+    # First column of incidence matrix (and only, if model = add_animal)
+    Z.direct <- as(object$effects$genetic$gen$B[,1],
+                   'indMatrix')
+    
+    random <- c(random,
+                structure(list(Z.direct),
+                          names = names(object$ranef)[gen.idx[1]]))
+    
+    if( length(gen.idx) > 1 ) {
+      
+      ## model = 'competition'
+      stopifnot(length(gen.idx) == 2)
+
+      # Incidence matrix of competition effect is in short 16-column format
+      # needs to be converted
+      Z.comp <- matrix.short16(object$effects$genetic$gen$B[, 1+1:16])
+      
+      random <- c(random,
+                  structure(list(Z.comp),
+                            names = names(object$ranef)[gen.idx[2]]))
+      
+    }
+    
+  }
+  
+  
+  return(list(fixed  = fixed,
+              random = random))
 }
+
+
+
 
 #' @importFrom stats nobs
 #' @method nobs remlf90
