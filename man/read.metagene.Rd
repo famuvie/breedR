@@ -20,4 +20,16 @@ Metagene program, and build an object of class metagene.
 \references{
 \url{http://www.igv.fi.cnr.it/noveltree/}
 }
+\seealso{
+Other metagene: \code{\link{$.metagene}},
+  \code{\link{$<-.metagene}},
+  \code{\link{Extract.metagene}}, \code{\link{[.metagene}};
+  \code{\link{as.data.frame.metagene}};
+  \code{\link{as.data.frame.pedigree}};
+  \code{\link{get_ntraits}}; \code{\link{get_pedigree}},
+  \code{\link{get_pedigree.breedR}},
+  \code{\link{get_pedigree.metagene}};
+  \code{\link{ngenerations}}; \code{\link{nindividuals}};
+  \code{\link{plot.metagene}}
+}
 

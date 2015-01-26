@@ -13,4 +13,16 @@ nindividuals(x, ...)
 \description{
 Number of individuals
 }
+\seealso{
+Other metagene: \code{\link{$.metagene}},
+  \code{\link{$<-.metagene}},
+  \code{\link{Extract.metagene}}, \code{\link{[.metagene}};
+  \code{\link{as.data.frame.metagene}};
+  \code{\link{as.data.frame.pedigree}};
+  \code{\link{get_ntraits}}; \code{\link{get_pedigree}},
+  \code{\link{get_pedigree.breedR}},
+  \code{\link{get_pedigree.metagene}};
+  \code{\link{ngenerations}}; \code{\link{plot.metagene}};
+  \code{\link{read.metagene}}
+}
 

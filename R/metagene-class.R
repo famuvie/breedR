@@ -73,6 +73,7 @@ read.metagene <- function(fname) {
 
 
 #' @method summary metagene
+#' @family metagene
 #' @export
 summary.metagene <- function(object, ...) {
 #   attach(x)
@@ -137,6 +138,7 @@ summary.metagene <- function(object, ...) {
 }
 
 #' @method print summary.metagene
+#' @family metagene
 #' @export
 print.summary.metagene <- function(x, ...) {
   cat('Metagene simulated dataset\n===========================\n')
@@ -176,6 +178,7 @@ print.summary.metagene <- function(x, ...) {
 #' @param ... Further layers passed to \code{\link[ggplot2]{ggplot}}.
 #' @method plot metagene
 #' @import ggplot2
+#' @family metagene
 #' @export
 plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 #   dat <- data(x)
@@ -213,6 +216,7 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 #' Extract the number of traits
 #' @param x a metagene object.
 #' @param ... Arguments to be passed to methods.
+#' @family metagene
 #' @export
 get_ntraits <- function(x, ...) UseMethod('get_ntraits')
 #' @export
@@ -223,6 +227,7 @@ get_ntraits.metagene <- function(x, ...) {
 #' Number of generations
 #' @param x a metagene object.
 #' @param ... Arguments to be passed to methods.
+#' @family metagene
 #' @export
 ngenerations <- function(x, ...) UseMethod('ngenerations')
 #' @export
@@ -233,6 +238,7 @@ ngenerations.metagene <- function(x, ...) {
 #' Number of individuals
 #' @param x a metagene object.
 #' @param ... Arguments to be passed to methods.
+#' @family metagene
 #' @export
 nindividuals <- function(x, ...) UseMethod('nindividuals')
 #' @export
@@ -242,20 +248,12 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   return(N)
 }
 
-#' Get the Pedigree from an object
-#' 
-#' Returns an object from the formal class \code{pedigree}.
-#' @param x object to extract pedigree from
-#' @param ... Arguments to be passed to methods.
-#' @references \code{\link[pedigreemm]{pedigree-class}} from package
-#'   \code{pedigreemm}
-#' @export
-get_pedigree <- function(x, ...) UseMethod('get_pedigree')
-#' @describeIn get_pedigree Get the pedigree from a metagene object
-#' @export
+#' @describeIn get_pedigree Get the pedigree from a \code{metagene} object
 get_pedigree.metagene <- function(x, ...) {
   return(with(x$Data, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))
 }
+
+
 
 #' Coerce to a data.frame
 #' 
@@ -269,6 +267,7 @@ get_pedigree.metagene <- function(x, ...) {
 #' @return returns a data frame with one row per individual, the first column
 #'   being the identification code, and the other two columns are dad and mum
 #'   codes respectively.
+#' @family metagene
 #' @export
 as.data.frame.pedigree <- function(x, ...) {
   y <- as(x, 'data.frame')
@@ -292,6 +291,7 @@ as.data.frame.pedigree <- function(x, ...) {
 #'   coordinates if applicable, the pedigree information, the generation, the
 #'   true breeding value, the phenotype, the sex, the spatially structured
 #'   component of the phenotype and other internal metagene variables.
+#' @family metagene
 #' @export
 as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   # Exclude founders if appropriate
@@ -316,6 +316,7 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 #' @param name character. A varaible name.
 #' @param value a vector.
 #' @param ... a vector of integer indices or names of columns in the dataset.
+#' @family metagene
 NULL
 
 #' Extract columns directly from the dataframe

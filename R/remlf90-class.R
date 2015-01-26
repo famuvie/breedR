@@ -592,6 +592,17 @@ fixef.remlf90 <- function (object, ...) {
       object$fixed
 }
 
+
+#' @describeIn get_pedigree Get the pedigree from a \code{breedR} object
+get_pedigree.breedR <- function(x, ...) {
+  if( !x$components$pedigree )
+    stop(paste('No genetic component in', substitute(x)))
+  
+  return(with(x$effects$genetic$ped,
+              pedigreemm::pedigree(sire=sire, dam=dam, label=self)))
+}
+
+
 #' @method logLik remlf90
 #' @export
 logLik.remlf90 <- function (object, ...) {
