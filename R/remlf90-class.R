@@ -636,26 +636,27 @@ get_pedigree.breedR <- function(x, ...) {
 
 #' @method logLik remlf90
 #' @export
-logLik.remlf90 <- function (object, ...) {
+logLik.remlf90 <- function (object, REML = TRUE, ...) {
   # TODO: Revise this, N parameters, df, N obs.
   # I set up things such that the AIC gives what REMLF90 says
   # But I am not sure if it is the right way.
   reml.out <- object$reml$output
-  rank.idx <- grep('RANK', reml.out)
-  npar.idx <- grep('parameters=', reml.out)
-  rank <- ifelse(identical(length(rank.idx), 1L),
-                 as.numeric(strsplit(reml.out[rank.idx],
-                                     split=' +RANK += +')[[1]][2]),
-                 'unknown')
+
+  ## Number of (estimated) parameters (a.k.a. degrees of freedom)
+  npar.idx <- grep('# parameters=', reml.out)
   npar <- ifelse(identical(length(npar.idx), 1L),
                  as.numeric(strsplit(reml.out[npar.idx],
                                      split=' # parameters= +')[[1]][2]),
                  'unknown')
   
-  res <- object$residual
-  N <- length(res)
-#   rank <- object$fit$rank
+  ## Rank
+  ## From stats:::logLik.lm it turns out that 
+  ## df = rank + 1
+  rank <- ifelse( npar != 'unknown', npar - 1, 'unknown')
   
+  ## Number of obervations
+  res <- residuals(object)
+  N   <- length(res)
   if (is.null(w <- object$weights)) {
     w <- rep.int(1, N)
   }
