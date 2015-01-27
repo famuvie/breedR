@@ -908,7 +908,7 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
 
 
 
-##' @importFrom graphics plot
+##' @method plot ranef.breedR
 ##' @export
 plot.ranef.breedR <- function(x, y, ...) {
   ## TODO
