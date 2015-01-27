@@ -655,19 +655,7 @@ logLik.remlf90 <- function (object, REML = TRUE, ...) {
   rank <- ifelse( npar != 'unknown', npar - 1, 'unknown')
   
   ## Number of obervations
-  res <- residuals(object)
-  N   <- length(res)
-  if (is.null(w <- object$weights)) {
-    w <- rep.int(1, N)
-  }
-  else {
-    excl <- w == 0
-    if (any(excl)) {
-      res <- res[!excl]
-      N <- length(res)
-      w <- w[!excl]
-    }
-  }
+  N  <- nobs(object)
   N0 <- N
   if( REML & rank != 'unknown' ) {
     N <- N - rank
@@ -790,7 +778,10 @@ model.matrix.remlf90 <- function (object, ...) {
 #' @method nobs remlf90
 #' @export
 nobs.remlf90 <- function (object, ...) {
-  nrow(as.matrix(object$y))
+  if(!is.null(w <- object$weights))
+    sum(w != 0)
+  else
+    NROW(model.response(object$mf))
 }
 
 
@@ -874,11 +865,7 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
     
     if(type == 'phenotype') {
       
-      mf <- x$mf
-      mt <- attr(mf, 'terms')
-      resp.idx <- attr(mt, 'response')
-      if( resp.idx == 0L ) stop('There is no response in the model frame')
-      resp <- with(mf, eval(attr(mt, 'variables'))[[resp.idx]])
+      resp <- model.response(x$mf)
       
       p <- spatial.plot(data.frame(coord, z = resp), scale = 'seq')
     }
@@ -1078,7 +1065,7 @@ residuals.remlf90 <- function (object, ...) {
   #   naresid(object$na.action, res)
   # TODO: add a scale parameter to allow studentization
   #     first need to determine the right sigma for each residual
-  object$residuals
+  model.response(object$mf) - fitted(object)
 }
 
 #' @method summary remlf90

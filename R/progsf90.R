@@ -558,8 +558,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     AIC = last.fit[2]
   )
 
-  # Observed response
-  y <- model.response(mf, "numeric")
   
   #   # Response in the linear predictor scale
   #   # TODO: apply link
@@ -577,7 +575,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     effects = effects,
     mf = mf,
     mm = mm,
-    y = y,
     fixed = result[which(fixed.effects.idx)],
     ranef = ranef,
 #     eta = eta,
