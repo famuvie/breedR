@@ -592,9 +592,29 @@ extractAIC.remlf90 <- function(fit, scale, k, ...) {
 #' @method fitted remlf90
 #' @export
 fitted.remlf90 <- function (object, ...) {
-  object$mu
-}
+
+  fixed.part <- model.matrix(object)$fixed %*%
+    sapply(fixef(object), function(x) x$value)
   
+  
+  mm.names <- names(model.matrix(object)$random)
+  stopifnot(mm.names == names(ranef(object)))
+  silent.matmult.drop <- function(x, y) {
+    suppressMessages(drop(as.matrix(x %*% y)))
+  }
+  random.part <- 
+    mapply(silent.matmult.drop, model.matrix(object)$random, ranef(object)[mm.names],
+           SIMPLIFY = TRUE)
+  
+  # Linear Predictor / Fitted Values
+  eta <- rowSums(cbind(fixed.part, random.part))
+  
+  return(eta)
+}
+
+
+
+
 #' @importFrom nlme fixef
 #' @export fixef
 #' @export
@@ -727,7 +747,7 @@ model.matrix.remlf90 <- function (object, ...) {
       
       ## model = 'competition'
       stopifnot(length(gen.idx) == 2)
-
+      
       # Incidence matrix of competition effect is in short 16-column format
       # needs to be converted
       Z.comp <- matrix.short16(object$effects$genetic$gen$B[, 1+1:16])
@@ -736,8 +756,25 @@ model.matrix.remlf90 <- function (object, ...) {
                   structure(list(Z.comp),
                             names = names(object$ranef)[gen.idx[2]]))
       
+      ## Optional pec effect
+      ## shares the same incidende matrix as the genetic competition effect
+      if( exists('pec', object$ranef) ) {
+        random$pec <- Z.comp
+      }
+      
     }
     
+  }
+  
+  ## mm for spatial effects
+  if( object$components$spatial ) {
+    
+    Z <- object$effects$spatial$sp$B
+    
+    if( !is.matrix(Z) ) # case AR or blocks
+      Z <- as(Z, 'indMatrix')
+    
+    random$spatial <- Z
   }
   
   
@@ -954,13 +991,8 @@ ranef.remlf90 <- function (object, ...) {
     gen.idx <- grep('genetic', names(ranef))
     gl <- lapply(ranef[gen.idx], function(x) structure(x$value,
                                                        se = x$s.e.))
-    if( length(gl) > 1 ) {
-      names(gl) <- gsub('^genetic-', '', names(gl))
-      gl <- list(genetic = gl)
-    }
-    
     ranef <- ranef[-gen.idx]
-    ans$genetic <- gl$genetic
+    ans <- c(ans, gl)
   }
   
   ## Spatial component
@@ -973,11 +1005,11 @@ ranef.remlf90 <- function (object, ...) {
                          AR      = sp$plotting$grid,
                          blocks  = NULL)
     )
-    ranef$spatial <- NULL
     ans$spatial <- with(ranef$spatial,
                         structure(value,
                                   se = s.e.,
                                   coordinates = coord))
+    ranef$spatial <- NULL
   }
   
   ## Other random effects with no particular treatment
