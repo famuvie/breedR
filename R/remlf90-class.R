@@ -581,7 +581,8 @@ remlf90 <- function(fixed,
 
 #' @export
 coef.remlf90 <- function(object, ...) { 
-  c(fixef(object), ranef(object))
+  unlist(c(lapply(fixef(object),
+                  function(x) x$value), ranef(object)))
 }
 
 #' @export
@@ -594,7 +595,7 @@ extractAIC.remlf90 <- function(fit, scale, k, ...) {
 fitted.remlf90 <- function (object, ...) {
 
   fixed.part <- model.matrix(object)$fixed %*%
-    sapply(fixef(object), function(x) x$value)
+    unlist(sapply(fixef(object), function(x) x$value))
   
   
   mm.names <- names(model.matrix(object)$random)
@@ -605,6 +606,15 @@ fitted.remlf90 <- function (object, ...) {
   random.part <- 
     mapply(silent.matmult.drop, model.matrix(object)$random, ranef(object)[mm.names],
            SIMPLIFY = TRUE)
+  
+  if( !is.matrix(random.part) ) {
+    if( is.list(random.part) ) {
+      if( length(random.part) == 0 )
+        random.part <- NULL
+    } else {
+      stop('This should not happen.')
+    }
+  }
   
   # Linear Predictor / Fitted Values
   eta <- rowSums(cbind(fixed.part, random.part))
@@ -706,16 +716,20 @@ model.matrix.remlf90 <- function (object, ...) {
   }
   
   ## mm for diagonal effects and corresponding attributes
-  if( any(diacol.bol) ) {
-    random$diagonal <- mm.fd[, diacol.bol, drop = FALSE]
-    attr(random$diagonal, 'assign') <- attr(mm.fd, 'assign')[diacol.bol]
-    df.bol <- !ff.bol
-    stopifnot(identical(df.bol,
-                        names(attr(mm.fd, 'contrasts')) %in% 
-                          names(which(!fixterm.bol))))
+  for ( de.idx in which(!fixterm.bol) ) {
+    de.nm <- names(fixterm.bol)[de.idx]
+    decol.bol <- attr(mm.fd, 'assign') == de.idx
+    stopifnot( any(decol.bol) )
+    
+    random[[de.nm]] <- structure(mm.fd[, decol.bol, drop = FALSE],
+                                 assign = attr(mm.fd, 'assign')[decol.bol])
+    
+    df.bol <- names(attr(mm.fd, 'contrasts')) %in% de.nm
     if( any(df.bol) )
-      attr(random$diagonal, 'contrasts') <- attr(mm.fd, 'contrasts')[df.bol]
+      attr(random[[de.nm]], 'contrasts') <- attr(mm.fd, 'contrasts')[df.bol]
+    
   }
+  
   
   
   ## mm for genetic effects
