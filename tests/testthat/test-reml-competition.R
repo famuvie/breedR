@@ -1,3 +1,6 @@
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 ### For testing competition, we perform a simulation excercise ###
 
 set.seed(12345)

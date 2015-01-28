@@ -35,6 +35,11 @@ check_build.ar.model <- function(x) {
 for( x in reslst) check_build.ar.model(x)
 
 
+
+#### Context: AR models with different arrangements of trees ####
+context("AR models with diffferent arrangements of trees")
+
+
 #### Build small testbeds ####
 build.testbed <- function(corner = c(0, 0), size, treesep = c(1, 1), beta){
   n = size[1] * size[2]
@@ -81,9 +86,6 @@ datlist <- c(datlist,
 
 
 
-#### Context: AR models with different arrangements of trees ####
-context("AR models with diffferent arrangements of trees")
-
 
 # Fit models both with EM and AI-REML
 run.model <- function(dat, method) {
@@ -113,12 +115,14 @@ check.result <- function(m, datlabel, debug.plot = FALSE) {
   })
   
   if( !inherits(m$res, 'try-error') ){
-    # Mean Square Error for the spatial effect
+    fit.s <- fixef(m$res)$Intercept$value +
+      model.matrix(m$res)$random$spatial %*% ranef(m$res)$spatial
     if(debug.plot) {
-      print(qplot(as.vector(m$dat$true.s), fixef(m$res)$Intercept$value + m$res$spatial$fit$z) +
+      print(qplot(as.vector(m$dat$true.s), fit.s) +
               geom_abline(int = 0, sl = 1))
     }
-    mse <- mean((as.vector(m$dat$true.s) - fixef(m$res)$Intercept$value + m$res$spatial$fit$z)^2)
+    # Mean Square Error for the spatial effect
+    mse <- mean((as.vector(m$dat$true.s) - fit.s)^2)
     test_that(paste("MSE of the spatial effect estimation is reasonable for dataset",
                     datlabel, "and method", m$method), {
       expect_that(mse, is_less_than(1))

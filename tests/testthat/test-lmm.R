@@ -63,13 +63,13 @@ run_expectations <- function(m, data = dat, method) {
   
   if( n.cov == 1) {
     # equal fixed effects estimates
-    pf90.beta <- coef(res[[1]])[[1]]$value
+    pf90.beta <- coef(res[[1]])
     lm.beta   <- coef(res[[2]])
     expect_that(pf90.beta,
                 equals(lm.beta, check.attributes = FALSE))
     
     # equal standard errors (with more tolerance)
-    pf90.se <- coef(res[[1]])[[1]]$'s.e.'
+    pf90.se <- drop(unlist(sapply(fixef(res[[1]]), function(x) x$'s.e.')))
     lm.se   <- coef(summary(res[[2]]))[, 'Std. Error']
     expect_that(pf90.se,
                 equals(lm.se, check.attributes = FALSE, tolerance = 1e-05))
@@ -99,11 +99,11 @@ test_that("Character variables are treated as factors", {
   expect_that(is.factor(res_ai.f3_char$mf$f3), is_true())
 })
 
-test_that("remlf90() estimates matches lm()'s", {
+test_that("remlf90() estimates matches lm()'s using EM", {
   lapply(lm_models, run_expectations, method = 'em')
 })
 
-test_that("airemlf90() estimates matches lm()'s", {
+test_that("airemlf90() estimates matches lm()'s using AI", {
   lapply(lm_models, run_expectations, method = 'ai')
 })
 
@@ -166,7 +166,7 @@ run_lmmexpectations <- function(m, data = dat, method, tol = 1e-03) {
   
   # equal fixed and random effects estimates
   # note that the order of the components might differ
-  pf90.beta <- do.call(rbind, coef(res[[1]]))$value
+  pf90.beta <- coef(res[[1]])
   ranef_order <- names(ranef(res[[1]]))
   lmm.beta   <- c(fixef(res[[2]]), 
                   do.call(rbind, 
