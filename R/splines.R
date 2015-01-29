@@ -147,7 +147,7 @@ build.splines.model <- function (coord, n.knots = NULL, autofill = TRUE, degree 
   #   if(!is.null(colnames(coord))) 
   #     colnames(plot.grid) <- colnames(coord)
   plotting <- list(grid = plot.grid,
-                   B = tensor.sparse(knots, plot.grid, degree + 1))
+                   inc.mat = tensor.sparse(knots, plot.grid, degree + 1))
   
   return(list(param       = knots,
               coord       = coord,

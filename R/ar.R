@@ -98,7 +98,9 @@ build.ar.model <- function (coord, rho, autofill) {
   #   plot.grid <- expand.grid(mapply(coord.1d, pos.length, lapply(coord, levels),
   #                                   SIMPLIFY = FALSE))
   plot.grid <- expand.grid(pos)
-  plotting <- list(grid = plot.grid)
+  inc.mat <- as(seq.int(prod(pos.length)), 'indMatrix')
+  plotting <- list(grid = plot.grid,
+                   inc.mat = inc.mat)
   return(list(param = rho,
               coord = coord0,
               B = data.ordering,

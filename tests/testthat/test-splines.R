@@ -41,7 +41,7 @@ test_that("build.splines.model gives a list with six elements of correct sizes",
   # and the corresponding incidence matrix
   # for plotting purposes
   expect_that(result$plotting, is_a('list'))
-  expect_that(dim(result$plotting$B), 
+  expect_that(dim(result$plotting$inc.mat), 
               equals(c(nrow(result$plotting$grid), n.knots)))
 })
 
