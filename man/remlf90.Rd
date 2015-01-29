@@ -97,7 +97,7 @@ If either \code{genetic} or \code{spatial} are not \code{NULL}, the
   are \code{splines} and \code{AR1}. \code{splines} uses a  two-dimensional
   tensor product of B-splines to represent the smooth spatially structured
   effect (Cappa and Cantet, 2007). \code{AR1} uses a kronecker product of
-  autoregressive models for the rows and columns.
+  autoregressive models for the rows and columns (Dutkowski et al., 2002).
 
   In both cases, the minimum necessary components in the list are \itemize{
   \item \code{model} a string, either \code{splines} or \code{AR} \item
@@ -273,8 +273,13 @@ progsf90 wiki page: \url{http://nce.ads.uga.edu/wiki/doku.php}
 
   E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to
   account for a spatial trend using penalized splines in an individual-tree
-  mixed model. \emph{Canadian Journal of Forest Research}
-  \strong{37}(12):2677-2688.
+  mixed model. \href{http://dx.doi.org/10.1139/x07-116}{\emph{Canadian
+  Journal of Forest Research} \strong{37}(12):2677-2688}.
+
+  G. W. Dutkowski, J. Costa e Silva, A. R. Gilmour, G. A. López (2002).
+  Spatial analysis methods for forest genetic trials.
+  \href{http://dx.doi.org/10.1139/x02-111}{\emph{Canadian Journal of Forest
+  Research} \strong{32}(12):2201-2214}.
 }
 \seealso{
 \code{\link[pedigreemm]{pedigree}}
