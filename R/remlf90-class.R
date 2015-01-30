@@ -728,11 +728,13 @@ model.matrix.remlf90 <- function (object, ...) {
     
     random[[de.nm]] <- structure(mm.fd[, decol.bol, drop = FALSE],
                                  assign = attr(mm.fd, 'assign')[decol.bol])
-    
-    df.bol <- names(attr(mm.fd, 'contrasts')) %in% de.nm
-    if( any(df.bol) )
-      attr(random[[de.nm]], 'contrasts') <- attr(mm.fd, 'contrasts')[df.bol]
-    
+
+    ## Here, df.bol is TRUE at most in one element
+    df.bol <- names(attr(mm.fd, 'contrasts')) %in% de.nm 
+    if( any(df.bol) ) {
+      cnt <- attr(mm.fd, 'contrasts')[[which(df.bol)]]
+      attr(random[[de.nm]], 'contrasts') <- cnt
+    }
   }
   
   
@@ -933,7 +935,40 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
 ##' @method plot ranef.breedR
 ##' @export
 plot.ranef.breedR <- function(x, y, ...) {
-  ## TODO
+  ## dotplot for each random effect
+  ## only makes sense for random effects with a few levels
+  ## thus we exclude from the plot genetic, spatial or other 
+  ## random effects with many levels
+  max.nl <- 30
+  x <- x[sapply(x, length) < 30]
+  
+  ranef2df <- function(x) {
+    if( is.null(nm <- names(x)) ) nm <- seq.int(x)
+    data.frame(level= nm,
+               BLUP = as.vector(x),
+               ymin = as.vector(x) - 1.96*attr(x, 'se'),
+               ymax = as.vector(x) + 1.96*attr(x, 'se'))
+  }
+  
+  if( length(x) ) {
+    pl <- lapply(seq.int(x), function(i) data.frame(effect = names(x)[i],
+                                                    ranef2df(x[[i]])))
+    pd <- do.call(rbind, pl)
+    
+    ggplot(pd, aes(x = level, y = BLUP, ymin = ymin, ymax = ymax)) + 
+      geom_pointrange() + 
+      coord_flip()
+  } else message('No suitable random effects to plot')
+}
+
+
+print.ranef.breedR <- function(x, ...) {
+  attr2df <- function(x) {
+    data.frame(value = x, `s.e.` = attr(x, 'se'))
+  }
+  ans <- lapply(x, attr2df)
+  print(ans, ...)
+  invisible(x)
 }
 
 
@@ -987,10 +1022,8 @@ ranef.remlf90 <- function (object, ...) {
   ## List of random effects
   ranef <- object$ranef
   
-  ## TODO: Unstructured random effects (and 'pec')
-  
   ## ranef() will provide the model's random effects
-  ## and further methods to let the user compute their 'projection'
+  ## and further methods will let the user compute their 'projection'
   ## onto observed individuals (fit) or predict over unobserved individuals (pred)
   ans <- list()
 
@@ -999,8 +1032,10 @@ ranef.remlf90 <- function (object, ...) {
     
     # Indices (in ranef) of genetic-related effects (direct and/or competition)
     gen.idx <- grep('genetic', names(ranef))
+    nm <- get_pedigree(object)@label
     gl <- lapply(ranef[gen.idx], function(x) structure(x$value,
-                                                       se = x$s.e.))
+                                                       se = x$s.e.,
+                                                       names = nm))
     ranef <- ranef[-gen.idx]
     ans <- c(ans, gl)
   }
@@ -1022,10 +1057,16 @@ ranef.remlf90 <- function (object, ...) {
     ranef$spatial <- NULL
   }
   
+  
   ## Other random effects with no particular treatment
   other.ranef <- lapply(ranef,
                         function(x) structure(x$value,
                                               se = x$s.e.))
+  for(x in names(other.ranef)) {
+    attr(other.ranef[[x]], 'names') <- 
+      colnames(attr(model.matrix(object)$random[[x]], 'contrasts'))
+  }
+  
   ans <- c(ans, other.ranef)
   class(ans) <- 'ranef.breedR'
   return(ans)
