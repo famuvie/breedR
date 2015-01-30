@@ -826,16 +826,23 @@ setOldClass('breedR')
 setMethod('coordinates', signature = 'breedR', 
           function(obj, ...) {
             err_msg <- "This breedR object has no spatial structure.\n"
-            if( !obj$components$spatial ) {
+            # if( !obj$components$spatial ) {
+              ## Watch out. It can be not spatial, but have coordinates
+              ## assigned with coordinates <- 
+            if( is.null(obj$effects$spatial$sp$coord) ) {
               ## If there is no explicit spatial structure
               ## we can check for coordinates in the genetic effect
               ## in case it was a competition model, which requires coords.
               if( !obj$components$pedigree ) {
-                stop(err_msg)
+                message(err_msg)
+                return(invisible(NULL))
               } else {
                 if( exists('coord', obj$effects$genetic$gen) ) {
                   return(obj$effects$genetic$gen$coord)
-                } else stop(err_msg)
+                } else {
+                  message(err_msg)
+                  return(invisible(NULL))
+                }
               }
             }
             return(obj$effects$spatial$sp$coord)
@@ -851,8 +858,11 @@ setMethod('coordinates<-', signature = 'breedR',
               object$effects$spatial <- list(name = 'none',
                                              sp = list(coord = cc))
               # Now it is a "spatial" object, although there is no
-              # spatial model
-              object$components$spatial = TRUE
+              # spatial model.
+              # Not a good idea. It then confuses other methods that assume
+              # that if it is 'spatial' then it has further things like
+              # an incidence matrix (e.g. model.matrix)
+              # object$components$spatial = TRUE
             } else {
               object$effects$spatial$sp$coord = cc
             }
