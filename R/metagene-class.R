@@ -231,6 +231,7 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
 }
 
 #' @describeIn get_pedigree Get the pedigree from a \code{metagene} object
+#' @export
 get_pedigree.metagene <- function(x, ...) {
   return(with(x$Data, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))
 }
