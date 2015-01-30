@@ -604,7 +604,7 @@ fitted.remlf90 <- function (object, ...) {
   
   
   mm.names <- names(model.matrix(object)$random)
-  stopifnot(mm.names == names(ranef(object)))
+  stopifnot(setequal(mm.names, names(ranef(object))))
   silent.matmult.drop <- function(x, y) {
     suppressMessages(drop(as.matrix(x %*% y)))
   }
