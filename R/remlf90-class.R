@@ -629,7 +629,21 @@ fitted.remlf90 <- function (object, ...) {
 
 
 
-
+#' Extract the fixed-effects estimates
+#'
+#' Extract the estimates of the fixed-effects parameters from a fitted model.
+#' @name fixef
+#' @title Extract fixed-effects estimates
+#' @aliases fixef fixed.effects fixef.remlf90 fixef.breedR
+#' @param object any fitted model object from which fixed effects estimates can
+#' be extracted.
+#' @param \dots not used
+#' @return a named list of dataframes with the estimated coefficients and their
+#'   standard error
+#' @keywords models
+#' @examples
+#'     res <- remlf90(phe_X ~ gg + bl, data = globulus)
+#'     fixef(res)
 #' @importFrom nlme fixef
 #' @export fixef
 #' @export
@@ -983,7 +997,7 @@ print.ranef.breedR <- function(x, ...) {
 
 #' Extract the modes of the random effects
 #' 
-#' Extract the conditional modes of the random effects from a fitted model
+#' Extract the conditional modes of the random effects from a fitted model 
 #' object.  For linear mixed models the conditional modes of the random effects
 #' are also the conditional means.
 #' 
@@ -991,11 +1005,14 @@ print.ranef.breedR <- function(x, ...) {
 #' independent and does not inherit from it. In particular, it always returns
 #' the conditional variance (argument condVar in lme4).
 #' 
-#' @param object a fitted models with random effects of class
+#' @name ranef
+#' @aliases ranef ranef.remlf90 ranef.breedR
+#' @param object a fitted models with random effects of class 
 #'   \code{\link{remlf90}}.
-#' @return An object of class \code{ranef.breedR} composed of a list of 
-#'   vectors, one for each random effect. The length of the vectors are the 
-#'   number of levels of the corresponding random effect.
+#' @param ... not used
+#' @return An object of class \code{ranef.breedR} composed of a list of vectors,
+#'   one for each random effect. The length of the vectors are the number of
+#'   levels of the corresponding random effect.
 #'   
 #'   Each random effect has an attribute called \code{"se"} which is a vector 
 #'   with the standard errors.
@@ -1004,8 +1021,8 @@ print.ranef.breedR <- function(x, ...) {
 #'   further attributes. The pedigree will be given for genetic random effects 
 #'   and the spatial prediction grid for the spatial random effects
 #'   
-#' @note To produce a (list of) \dQuote{caterpillar plots} of the random effects apply
-#' \code{\link{plot}} to the result of a call to \code{ranef}.
+#' @note To produce a (list of) \dQuote{caterpillar plots} of the random effects
+#'   apply \code{\link{plot}} to the result of a call to \code{ranef}.
 #' @examples
 #' res <- remlf90(phe_X ~ bl,
 #'                genetic = list(model = 'add_animal',
