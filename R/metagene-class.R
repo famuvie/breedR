@@ -73,6 +73,7 @@ read.metagene <- function(fname) {
 
 
 #' @method summary metagene
+#' @family metagene
 #' @export
 summary.metagene <- function(object, ...) {
 #   attach(x)
@@ -137,6 +138,7 @@ summary.metagene <- function(object, ...) {
 }
 
 #' @method print summary.metagene
+#' @family metagene
 #' @export
 print.summary.metagene <- function(x, ...) {
   cat('Metagene simulated dataset\n===========================\n')
@@ -147,18 +149,18 @@ print.summary.metagene <- function(x, ...) {
   cat('Selection strategy: (Warning: fixed info)\t
       diagonal; 10+10 descendants per mating; select best 80+80\n')
   cat('\nBreeding values: ##########################\n')
-  for(i in 1:length(x$breeding.values)){
+  for(i in seq_along(x$breeding.values)){
     cat(names(x$breeding.values)[i], ':\n')
     print(x$breeding.values[[i]])
   }
   cat('\nPhenotypic values: ########################\n')
-  for(i in 1:length(x$phenotype)){
+  for(i in seq_along(x$phenotype)){
     cat(names(x$phenotype)[i], ':\n')
     print(x$phenotype[[i]])
   }
   cat('\nHeritability: #############################\n')
 #   browser()
-  for(i in 1:length(x$phenotype)){
+  for(i in seq_along(x$phenotype)){
     cat(names(x$phenotype)[i], ':\n')
     if(is.null(dim(x$phenotype[[i]])))
       print(x$breeding.values[[i]][,'Var']/x$phenotype[[i]][,'Var'])
@@ -176,6 +178,7 @@ print.summary.metagene <- function(x, ...) {
 #' @param ... Further layers passed to \code{\link[ggplot2]{ggplot}}.
 #' @method plot metagene
 #' @import ggplot2
+#' @family metagene
 #' @export
 plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 #   dat <- data(x)
@@ -210,31 +213,16 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 
 #### Interface functions ####
 
-#' Extract the number of traits
-#' @param x a metagene object.
-#' @param ... Arguments to be passed to methods.
-#' @export
-get_ntraits <- function(x, ...) UseMethod('get_ntraits')
 #' @export
 get_ntraits.metagene <- function(x, ...) {
   return(x$n.traits)
 }
 
-#' Number of generations
-#' @param x a metagene object.
-#' @param ... Arguments to be passed to methods.
-#' @export
-ngenerations <- function(x, ...) UseMethod('ngenerations')
 #' @export
 ngenerations.metagene <- function(x, ...) {
   return(x$n.generations)
 }
 
-#' Number of individuals
-#' @param x a metagene object.
-#' @param ... Arguments to be passed to methods.
-#' @export
-nindividuals <- function(x, ...) UseMethod('nindividuals')
 #' @export
 nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   N <- x$n.individuals
@@ -242,11 +230,13 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   return(N)
 }
 
-#' @describeIn get_pedigree Get the pedigree from a metagene object
+#' @describeIn get_pedigree Get the pedigree from a \code{metagene} object
 #' @export
 get_pedigree.metagene <- function(x, ...) {
   return(with(x$Data, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))
 }
+
+
 
 #' Coerce to a data.frame
 #' 
@@ -260,6 +250,7 @@ get_pedigree.metagene <- function(x, ...) {
 #' @return returns a data frame with one row per individual, the first column
 #'   being the identification code, and the other two columns are dad and mum
 #'   codes respectively.
+#' @family metagene
 #' @export
 as.data.frame.pedigree <- function(x, ...) {
   y <- as(x, 'data.frame')
@@ -283,6 +274,7 @@ as.data.frame.pedigree <- function(x, ...) {
 #'   coordinates if applicable, the pedigree information, the generation, the
 #'   true breeding value, the phenotype, the sex, the spatially structured
 #'   component of the phenotype and other internal metagene variables.
+#' @family metagene
 #' @export
 as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   # Exclude founders if appropriate
@@ -307,6 +299,7 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 #' @param name character. A varaible name.
 #' @param value a vector.
 #' @param ... a vector of integer indices or names of columns in the dataset.
+#' @family metagene
 NULL
 
 #' Extract columns directly from the dataframe
@@ -382,33 +375,6 @@ b.values <- function(x) {
 
 #### Simulate spatial structure ####
 
-#' Simulate a spatial structure
-#' 
-#' Takes a metagene simulated dataset and distributes its individuals randomly 
-#' into a more or less square spatial region. Furthermore, it takes part of the 
-#' phenotypic noise and puts some spatial structure into it.
-#' 
-#' Founders are not put into place, as they don't have phenotypic values. 
-#' Therefore, they are returned without coordinates nor spatial values.
-#' 
-#' The variance of the spatial field is given as a proportion of the variance of
-#' the random noise that was added to the Breeding Values to produce the 
-#' phenotypes. The phenotypes are afterwards recalculated to preserve the 
-#' heritability.
-#' 
-#' The spatial unit is the distance between consecutive trees.
-#' @param meta A metagene object
-#' @param variance A number between 0 and 1. The variance of the spatial field 
-#'   as a proportion of the non-inheritable pehnotype variance. See Details.
-#' @param range A number between 0 and 1. The range of the spatial field, as a 
-#'   proportion of the region size.
-#' @param ... Arguments to be passed to methods.
-#' @return Another metagene object with spatial structure given through an 
-#'   additional column \code{sp_X} with the spatially structured component of 
-#'   the phenotype, and a 'spatial' list element with coordinates and simulation
-#'   information
-#' @export
-sim.spatial <- function(meta, variance, range, ...) UseMethod('sim.spatial')
 #' @export
 sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   

@@ -1,6 +1,11 @@
+old.op <- options(warn = -1)  # suppressWarnings
+on.exit(options(old.op))
+
 ## Eucaliptus Globulus dataset
 ## Cappa and Cantet (2007)
-library(ggplot2)
+if( !require('ggplot2') ) {
+  stop('This demo requires package ggplot2. Please install.')
+}
 data(globulus)
 cat(paste(comment(globulus), collapse='\n'))
 
@@ -67,7 +72,7 @@ spatial.dat <- transform(globulus,
                          AR1xAR1 = res.ar$spatial$fit$z)
 ord <- with(spatial.dat, order(Blocks, Splines))
 
-ggplot(cbind(melt(spatial.dat, id = 1:9), Ind = order(ord)),
+ggplot(cbind(reshape2::melt(spatial.dat, id = 1:9), Ind = order(ord)),
        aes(Ind, value)) + 
   geom_point(aes(col = variable))
 

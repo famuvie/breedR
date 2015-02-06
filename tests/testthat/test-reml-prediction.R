@@ -49,11 +49,16 @@ test_that("Estimated variance components are similar", {
 })
 
 # Prediction of the spatial effect
+# qplot(ranef(res.full)$spatial,
+#       ranef(res.pred)$spatial) +
+#   geom_abline(int=0, sl=1)
 test_that("Predicted spatial effects are similar everywhere", {
-  expect_equal(res.full$spatial$prediction$z,
-            res.pred$spatial$prediction$z,
-            tolerance = tol)
+  expect_equal(ranef(res.full)$spatial,
+               ranef(res.pred)$spatial,
+               tolerance = tol)
 })
+
+
 
 # Prediction of the genetic effect
 # plotdat <- data.frame(fullBV = ranef(res.full)$genetic,
@@ -63,15 +68,15 @@ test_that("Predicted spatial effects are similar everywhere", {
 # qplot(fullBV, predBV, data = plotdat, color = miss) + 
 #   geom_abline(int = 0, sl = 1, col ='darkgray')
 test_that("Predicted Breeding Values are similar in observed individuals", {
-  expect_equal(ranef(res.full)$genetic[-sel.idx, ],
-            ranef(res.pred)$genetic[-sel.idx, ],
+  expect_equal(ranef(res.full)$genetic[-sel.idx],
+            ranef(res.pred)$genetic[-sel.idx],
             tolerance = tol)
 })
 
 test_that("Predicted Breeding Values of missings are still similar 
           up to one additional order of magnitude", {
-  expect_equal(ranef(res.full)$genetic[sel.idx, ],
-               ranef(res.pred)$genetic[sel.idx, ],
+  expect_equal(ranef(res.full)$genetic[sel.idx],
+               ranef(res.pred)$genetic[sel.idx],
                tolerance = 10*tol)
 })
 

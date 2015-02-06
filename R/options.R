@@ -74,10 +74,11 @@
 #' breedR.getOption("ar.eval")
 #' 
 #' \dontrun{
-#' # Set up some options permanently by writing the following in $HOME/.breedRc
-#' remote.host = '123.45.678.999'
-#' remote.user = 'uname'
-#' remote.bin  = 'remote/path/to/breedR/bin/linux'
+#' # Set up some options permanently in $HOME/.breedRrc
+#' writeLines(c("remote.host = '123.45.678.999'",
+#'              "remote.user = 'uname'",
+#'              "remote.bin  = 'remote/path/to/breedR/bin/linux'"),
+#'            con = file.path(Sys.getenv('HOME'), '.breedRrc')
 #' }
 #' @export breedR.setOption breedR.getOption
 

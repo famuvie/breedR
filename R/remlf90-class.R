@@ -75,7 +75,7 @@
 #'   are \code{splines} and \code{AR1}. \code{splines} uses a  two-dimensional 
 #'   tensor product of B-splines to represent the smooth spatially structured 
 #'   effect (Cappa and Cantet, 2007). \code{AR1} uses a kronecker product of 
-#'   autoregressive models for the rows and columns.
+#'   autoregressive models for the rows and columns (Dutkowski et al., 2002).
 #'   
 #'   In both cases, the minimum necessary components in the list are \itemize{ 
 #'   \item \code{model} a string, either \code{splines} or \code{AR} \item 
@@ -175,8 +175,13 @@
 #'   
 #'   E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to
 #'   account for a spatial trend using penalized splines in an individual-tree 
-#'   mixed model. \emph{Canadian Journal of Forest Research} 
-#'   \strong{37}(12):2677-2688.
+#'   mixed model. \href{http://dx.doi.org/10.1139/x07-116}{\emph{Canadian
+#'   Journal of Forest Research} \strong{37}(12):2677-2688}.
+#'   
+#'   G. W. Dutkowski, J. Costa e Silva, A. R. Gilmour, G. A. López (2002). 
+#'   Spatial analysis methods for forest genetic trials.
+#'   \href{http://dx.doi.org/10.1139/x02-111}{\emph{Canadian Journal of Forest
+#'   Research} \strong{32}(12):2201-2214}.
 #'   
 #' @examples
 #' ## Linear model
@@ -186,6 +191,15 @@
 #' res.lm <- remlf90(fixed = y ~ x, data = dat)
 #' summary(res.lm)
 #' 
+#' ## Linear Mixed model
+#' f3 = factor(sample(letters[1:3], n, replace = TRUE))
+#' dat <- transform(dat,
+#'                  f3 = f3,
+#'                  y = y + (-1:1)[f3])
+#' res.lmm <- remlf90(fixed  = y ~ x,
+#'                   random = ~ f3,
+#'                   data   = dat)
+#'                
 #' ## Animal model
 #' ped <- build_pedigree(c('self', 'dad', 'mum'),
 #'                       data = as.data.frame(m1))
@@ -235,6 +249,7 @@
 #' ## Competition models
 #' 
 #' # This may take some minutes...
+#' # and need to be fitted with 'em'
 #' res.cm <- remlf90(fixed   = phe_X ~ 1,
 #'                  genetic = list(model = 'competition',
 #'                                 pedigree = globulus[, 1:3],
@@ -242,6 +257,7 @@
 #'                                 coord = globulus[, c('x','y')],
 #'                                 competition_decay = 1,
 #'                                 pec = list(present = TRUE)),
+#'                  method = 'em',
 #'                  data = globulus)
 #' }
 #' 
@@ -350,18 +366,6 @@ remlf90 <- function(fixed,
   method <- tolower(method)
   method <- match.arg(method)
   
-    
-
-  # Builds model frame by joining the fixed and random terms
-  # and translating the intercept (if appropriate) to a fake covariate
-  # Add an additional 'term.types' attribute within 'terms'
-  # indicating whether the term is 'fixed' or 'random'
-	# progsf90 don't allow for custom model parameterizations
-	# and they don't use intercepts
-  mf <- build.mf(mc)
-  mt <- attr(mf, 'terms')
-
-  
   # Genetic effect
   if( !is.null(genetic) ) {
     genetic$model <- match.arg(genetic$model,
@@ -466,7 +470,18 @@ remlf90 <- function(fixed,
   if(!is.null(genetic)) genetic$tempfile <- file.path(tmpdir, 'pedigree')
   if(!is.null(spatial)) spatial$tempfile <- file.path(tmpdir, 'spatial')
   
- 
+
+  
+  
+  # Builds model frame by joining the fixed and random terms
+  # and translating the intercept (if appropriate) to a fake covariate
+  # Add an additional 'term.types' attribute within 'terms'
+  # indicating whether the term is 'fixed' or 'random'
+  # progsf90 don't allow for custom model parameterizations
+  # and they don't use intercepts
+  mf <- build.mf(mc)
+  mt <- attr(mf, 'terms')
+  
   # Build a list of parameters and information for each effect
   effects <- build.effects(mf, genetic, spatial, var.ini)
   
@@ -584,7 +599,8 @@ get_pedigree.remlf90 <- function(x, ...) {
 
 #' @export
 coef.remlf90 <- function(object, ...) { 
-  c(fixef(object), ranef(object))
+  unlist(c(lapply(fixef(object),
+                  function(x) x$value), ranef(object)))
 }
 
 #' @export
@@ -595,9 +611,52 @@ extractAIC.remlf90 <- function(fit, scale, k, ...) {
 #' @method fitted remlf90
 #' @export
 fitted.remlf90 <- function (object, ...) {
-  object$mu
-}
+
+  fixed.part <- model.matrix(object)$fixed %*%
+    unlist(sapply(fixef(object), function(x) x$value))
   
+  
+  mm.names <- names(model.matrix(object)$random)
+  stopifnot(setequal(mm.names, names(ranef(object))))
+  silent.matmult.drop <- function(x, y) {
+    suppressMessages(drop(as.matrix(x %*% y)))
+  }
+  random.part <- 
+    mapply(silent.matmult.drop, model.matrix(object)$random, ranef(object)[mm.names],
+           SIMPLIFY = TRUE)
+  
+  if( !is.matrix(random.part) ) {
+    if( is.list(random.part) ) {
+      if( length(random.part) == 0 )
+        random.part <- NULL
+    } else {
+      stop('This should not happen.')
+    }
+  }
+  
+  # Linear Predictor / Fitted Values
+  eta <- rowSums(cbind(fixed.part, random.part))
+  
+  return(eta)
+}
+
+
+
+#' Extract the fixed-effects estimates
+#'
+#' Extract the estimates of the fixed-effects parameters from a fitted model.
+#' @name fixef
+#' @title Extract fixed-effects estimates
+#' @aliases fixef fixed.effects fixef.remlf90 fixef.breedR
+#' @param object any fitted model object from which fixed effects estimates can
+#' be extracted.
+#' @param \dots not used
+#' @return a named list of dataframes with the estimated coefficients and their
+#'   standard error
+#' @keywords models
+#' @examples
+#'     res <- remlf90(phe_X ~ gg + bl, data = globulus)
+#'     fixef(res)
 #' @importFrom nlme fixef
 #' @export fixef
 #' @export
@@ -605,48 +664,49 @@ fixef.remlf90 <- function (object, ...) {
       object$fixed
 }
 
+
+#' @describeIn get_pedigree Get the pedigree from a \code{breedR} object
+#' @export
+get_pedigree.breedR <- function(x, ...) {
+  if( !x$components$pedigree )
+    stop(paste('No genetic component in', substitute(x)))
+  
+  return(with(x$effects$genetic$ped,
+              pedigreemm::pedigree(sire=sire, dam=dam, label=self)))
+}
+
+
 #' @method logLik remlf90
 #' @export
-logLik.remlf90 <- function (object, ...) {
+logLik.remlf90 <- function (object, REML = TRUE, ...) {
   # TODO: Revise this, N parameters, df, N obs.
   # I set up things such that the AIC gives what REMLF90 says
   # But I am not sure if it is the right way.
   reml.out <- object$reml$output
-  rank.idx <- grep('RANK', reml.out)
-  npar.idx <- grep('parameters=', reml.out)
-  rank <- ifelse(identical(length(rank.idx), 1L),
-                 as.numeric(strsplit(reml.out[rank.idx],
-                                     split=' +RANK += +')[[1]][2]),
-                 'unknown')
+
+  ## Number of (estimated) parameters (a.k.a. degrees of freedom)
+  npar.idx <- grep('# parameters=', reml.out)
   npar <- ifelse(identical(length(npar.idx), 1L),
                  as.numeric(strsplit(reml.out[npar.idx],
                                      split=' # parameters= +')[[1]][2]),
                  'unknown')
-  if(any(identical(rank, 'unknown') | identical(npar, 'unknown')))
-    warning(paste('Could not deduce the', 
-                  paste(c('rank', 'number of parameters')
-                        [which(c(rank, npar)=='unknown')],
-                        collapse = ' and '),
-                  'from REMLF90 output'))
   
-  res <- object$residual
-  N <- length(res)
-#   rank <- object$fit$rank
+  ## Rank
+  ## From stats:::logLik.lm it turns out that 
+  ## df = rank + 1
+  rank <- ifelse( npar != 'unknown', npar - 1, 'unknown')
   
-  if (is.null(w <- object$weights)) {
-    w <- rep.int(1, N)
+  ## Number of obervations
+  N  <- nobs(object)
+  N0 <- N
+  if( REML & rank != 'unknown' ) {
+    N <- N - rank
   }
-  else {
-    excl <- w == 0
-    if (any(excl)) {
-      res <- res[!excl]
-      N <- length(res)
-      w <- w[!excl]
-    }
-  }
+  
   ans = -object$fit[['-2logL']]/2
-  attr(ans, 'df') <- npar
+  attr(ans, 'nall') <- N0
   attr(ans, 'nobs') <- N
+  attr(ans, 'df') <- npar
   class(ans) ='logLik'
   ans
 }
@@ -657,17 +717,119 @@ model.frame.remlf90 <- function (formula, ...) {
   formula$mf
 }
 
-#' @method model.matrix remlf90
+#' @importFrom stats model.matrix
 #' @export
 model.matrix.remlf90 <- function (object, ...) {
-  object$mm
+  
+  ## mm and mf for fixed and diagonal effects only
+  mf <- object$mf
+  mm.fd <- object$mm
+  
+  # terms in the formula that are fixed
+  fixterm.bol <- attr(attr(mf, 'terms'), 'term.types') == 'fixed'
+  
+  # columns in the mm corresponding to fixed and diagonal terms
+  fixcol.bol <- attr(mm.fd, 'assign') %in% which(fixterm.bol)
+  diacol.bol <- attr(mm.fd, 'assign') %in% which(!fixterm.bol)
+  stopifnot(all(xor(fixcol.bol, diacol.bol)))  # check they are complementary
+
+  
+  # preallocate
+  fixed  <- random <- NULL
+  
+  
+  ## mm for fixed effects and corresponding attributes
+  if( any(fixcol.bol) ) {
+    fixed <- mm.fd[, fixcol.bol, drop = FALSE]
+    attr(fixed, 'assign') <- attr(mm.fd, 'assign')[fixcol.bol]
+    ff.bol <- names(attr(mm.fd, 'contrasts')) %in% names(which(fixterm.bol))
+    if( any(ff.bol) )
+      attr(fixed, 'contrasts') <- attr(mm.fd, 'contrasts')[ff.bol]
+  }
+  
+  ## mm for diagonal effects and corresponding attributes
+  for ( de.idx in which(!fixterm.bol) ) {
+    de.nm <- names(fixterm.bol)[de.idx]
+    decol.bol <- attr(mm.fd, 'assign') == de.idx
+    stopifnot( any(decol.bol) )
+    
+    random[[de.nm]] <- structure(mm.fd[, decol.bol, drop = FALSE],
+                                 assign = attr(mm.fd, 'assign')[decol.bol])
+
+    ## Here, df.bol is TRUE at most in one element
+    df.bol <- names(attr(mm.fd, 'contrasts')) %in% de.nm 
+    if( any(df.bol) ) {
+      cnt <- attr(mm.fd, 'contrasts')[[which(df.bol)]]
+      attr(random[[de.nm]], 'contrasts') <- cnt
+    }
+  }
+  
+  
+  
+  ## mm for genetic effects
+  if( object$components$pedigree ) {
+    # Indices (in ranef) of genetic-related effects (direct and/or competition)
+    gen.idx <- grep('genetic', names(object$ranef))
+    
+    # Incidence vector for the direct effect
+    # First column of incidence matrix (and only, if model = add_animal)
+    Z.direct <- as(object$effects$genetic$gen$B[,1],
+                   'indMatrix')
+    
+    random <- c(random,
+                structure(list(Z.direct),
+                          names = names(object$ranef)[gen.idx[1]]))
+    
+    if( length(gen.idx) > 1 ) {
+      
+      ## model = 'competition'
+      stopifnot(length(gen.idx) == 2)
+      
+      # Incidence matrix of competition effect is in short 16-column format
+      # needs to be converted
+      Z.comp <- matrix.short16(object$effects$genetic$gen$B[, 1+1:16])
+      
+      random <- c(random,
+                  structure(list(Z.comp),
+                            names = names(object$ranef)[gen.idx[2]]))
+      
+      ## Optional pec effect
+      ## shares the same incidende matrix as the genetic competition effect
+      if( exists('pec', object$ranef) ) {
+        random$pec <- Z.comp
+      }
+      
+    }
+    
+  }
+  
+  ## mm for spatial effects
+  if( object$components$spatial ) {
+    
+    Z <- object$effects$spatial$sp$B
+    
+    if( !is.matrix(Z) ) # case AR or blocks
+      Z <- as(Z, 'indMatrix')
+    
+    random$spatial <- Z
+  }
+  
+  
+  return(list(fixed  = fixed,
+              random = random))
 }
+
+
+
 
 #' @importFrom stats nobs
 #' @method nobs remlf90
 #' @export
 nobs.remlf90 <- function (object, ...) {
-  nrow(as.matrix(object$y))
+  if(!is.null(w <- object$weights))
+    sum(w != 0)
+  else
+    NROW(model.response(object$mf))
 }
 
 
@@ -676,12 +838,24 @@ nobs.remlf90 <- function (object, ...) {
 setOldClass('breedR')
 setMethod('coordinates', signature = 'breedR', 
           function(obj, ...) {
-            if( !obj$components$spatial ) {
+            err_msg <- "This breedR object has no spatial structure.\n"
+            # if( !obj$components$spatial ) {
+              ## Watch out. It can be not spatial, but have coordinates
+              ## assigned with coordinates <- 
+            if( is.null(obj$effects$spatial$sp$coord) ) {
+              ## If there is no explicit spatial structure
+              ## we can check for coordinates in the genetic effect
+              ## in case it was a competition model, which requires coords.
               if( !obj$components$pedigree ) {
-                stop("This breedR object has no spatial structure.\n")
+                message(err_msg)
+                return(invisible(NULL))
               } else {
-                stopifnot(exists('coord', obj$effects$genetic$gen))
-                return(obj$effects$genetic$gen$coord)
+                if( exists('coord', obj$effects$genetic$gen) ) {
+                  return(obj$effects$genetic$gen$coord)
+                } else {
+                  message(err_msg)
+                  return(invisible(NULL))
+                }
               }
             }
             return(obj$effects$spatial$sp$coord)
@@ -697,8 +871,11 @@ setMethod('coordinates<-', signature = 'breedR',
               object$effects$spatial <- list(name = 'none',
                                              sp = list(coord = cc))
               # Now it is a "spatial" object, although there is no
-              # spatial model
-              object$components$spatial = TRUE
+              # spatial model.
+              # Not a good idea. It then confuses other methods that assume
+              # that if it is 'spatial' then it has further things like
+              # an incidence matrix (e.g. model.matrix)
+              # object$components$spatial = TRUE
             } else {
               object$effects$spatial$sp$coord = cc
             }
@@ -746,11 +923,7 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
     
     if(type == 'phenotype') {
       
-      mf <- x$mf
-      mt <- attr(mf, 'terms')
-      resp.idx <- attr(mt, 'response')
-      if( resp.idx == 0L ) stop('There is no response in the model frame')
-      resp <- with(mf, eval(attr(mt, 'variables'))[[resp.idx]])
+      resp <- model.response(x$mf)
       
       p <- spatial.plot(data.frame(coord, z = resp), scale = 'seq')
     }
@@ -766,11 +939,14 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
       if( x$components$spatial ) {
         
         if( type == 'spatial' ) {
+          sfit <- model.matrix(x)$random$spatial %*% ranef(x)$spatial
           spdat <- data.frame(coord,
-                              z = x$spatial$fit$z,
+                              z = sfit,
                               model = x$call$spatial$model)
         } else {
-          spdat <- data.frame(x$spatial$prediction,
+          spred <- as.vector(x$effects$spatial$sp$plotting$inc.mat %*% ranef(x)$spatial)
+          spdat <- data.frame(x$effects$spatial$sp$plotting$grid,
+                              z     = spred,
                               model = x$call$spatial$model)
         }
         
@@ -791,6 +967,48 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
   p
 }
 
+
+
+##' @method plot ranef.breedR
+##' @export
+plot.ranef.breedR <- function(x, y, ...) {
+  ## dotplot for each random effect
+  ## only makes sense for random effects with a few levels
+  ## thus we exclude from the plot genetic, spatial or other 
+  ## random effects with many levels
+  max.nl <- 30
+  x <- x[sapply(x, length) < 30]
+  
+  ranef2df <- function(x) {
+    if( is.null(nm <- names(x)) ) nm <- seq.int(x)
+    data.frame(level= nm,
+               BLUP = as.vector(x),
+               ymin = as.vector(x) - 1.96*attr(x, 'se'),
+               ymax = as.vector(x) + 1.96*attr(x, 'se'))
+  }
+  
+  if( length(x) ) {
+    pl <- lapply(seq.int(x), function(i) data.frame(effect = names(x)[i],
+                                                    ranef2df(x[[i]])))
+    pd <- do.call(rbind, pl)
+    
+    ggplot(pd, aes(x = level, y = BLUP, ymin = ymin, ymax = ymax)) + 
+      geom_pointrange() + 
+      coord_flip()
+  } else message('No suitable random effects to plot')
+}
+
+
+print.ranef.breedR <- function(x, ...) {
+  attr2df <- function(x) {
+    data.frame(value = x, `s.e.` = attr(x, 'se'))
+  }
+  ans <- lapply(x, attr2df)
+  print(ans, ...)
+  invisible(x)
+}
+
+
 # predict.remlf90 <- function (object, ...) {
 #   
 # }
@@ -799,11 +1017,99 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
 #   
 # }
 
+
+#' Extract the modes of the random effects
+#' 
+#' Extract the conditional modes of the random effects from a fitted model 
+#' object.  For linear mixed models the conditional modes of the random effects
+#' are also the conditional means.
+#' 
+#' This method is modeled a bit after \code{\link[lme4]{ranef}}. However, it is
+#' independent and does not inherit from it. In particular, it always returns
+#' the conditional variance (argument condVar in lme4).
+#' 
+#' @name ranef
+#' @aliases ranef ranef.remlf90 ranef.breedR
+#' @param object a fitted models with random effects of class 
+#'   \code{\link{remlf90}}.
+#' @param ... not used
+#' @return An object of class \code{ranef.breedR} composed of a list of vectors,
+#'   one for each random effect. The length of the vectors are the number of
+#'   levels of the corresponding random effect.
+#'   
+#'   Each random effect has an attribute called \code{"se"} which is a vector 
+#'   with the standard errors.
+#'   
+#'   Additionally, depending of the nature of the random effect, there may be 
+#'   further attributes. The pedigree will be given for genetic random effects 
+#'   and the spatial prediction grid for the spatial random effects
+#'   
+#' @note To produce a (list of) \dQuote{caterpillar plots} of the random effects
+#'   apply \code{\link{plot}} to the result of a call to \code{ranef}.
+#' @examples
+#' res <- remlf90(phe_X ~ bl,
+#'                genetic = list(model = 'add_animal',
+#'                               pedigree = globulus[, 1:3],
+#'                               id = 'self'),
+#'                data = globulus)
+#' str(rr <- ranef(res))
+#' plot(rr)
 #' @importFrom nlme ranef
 #' @export ranef
 #' @export
 ranef.remlf90 <- function (object, ...) {
-  object$ranef
+  
+  ## List of random effects
+  ranef <- object$ranef
+  
+  ## ranef() will provide the model's random effects
+  ## and further methods will let the user compute their 'projection'
+  ## onto observed individuals (fit) or predict over unobserved individuals (pred)
+  ans <- list()
+
+  ## Genetic component
+  if( object$components$pedigree ){
+    
+    # Indices (in ranef) of genetic-related effects (direct and/or competition)
+    gen.idx <- grep('genetic', names(ranef))
+    nm <- get_pedigree(object)@label
+    gl <- lapply(ranef[gen.idx], function(x) structure(x$value,
+                                                       se = x$s.e.,
+                                                       names = nm))
+    ranef <- ranef[-gen.idx]
+    ans <- c(ans, gl)
+  }
+  
+  ## Spatial component
+  if ( object$components$spatial ) {
+    ## Depending on the spatial model, we return the coordinates
+    ## of the corresponding effects
+    coord <- with(object$effects$spatial,
+                  switch(name,
+                         splines = sp$param,
+                         AR      = sp$plotting$grid,
+                         blocks  = NULL)
+    )
+    ans$spatial <- with(ranef$spatial,
+                        structure(value,
+                                  se = s.e.,
+                                  coordinates = coord))
+    ranef$spatial <- NULL
+  }
+  
+  
+  ## Other random effects with no particular treatment
+  other.ranef <- lapply(ranef,
+                        function(x) structure(x$value,
+                                              se = x$s.e.))
+  for(x in names(other.ranef)) {
+    attr(other.ranef[[x]], 'names') <- 
+      colnames(attr(model.matrix(object)$random[[x]], 'contrasts'))
+  }
+  
+  ans <- c(ans, other.ranef)
+  class(ans) <- 'ranef.breedR'
+  return(ans)
 }
 
 
@@ -862,7 +1168,7 @@ residuals.remlf90 <- function (object, ...) {
   #   naresid(object$na.action, res)
   # TODO: add a scale parameter to allow studentization
   #     first need to determine the right sigma for each residual
-  object$residuals
+  model.response(object$mf) - fitted(object)
 }
 
 #' @method summary remlf90

@@ -29,7 +29,7 @@ build.blocks.model <- function (coord, id, autofill) {
   }
   data.ordering <- matrix2vec(sapply(coord, as.integer))
   # How to "fill-in" the missing locations with the right block number?
-  # Not trivial.
+  # Not trivial. Look the most common level among the neighbors?
   # For the moment, don't fill anything.
   
   # Structure matrix for the blocks (identity)
@@ -38,7 +38,11 @@ build.blocks.model <- function (coord, id, autofill) {
   U <- cbind(1:n.blocks, 1:n.blocks, 1)
   
   plot.grid <- expand.grid(pos)
-  plotting <- list(grid = plot.grid)
+  inc.mat <- Matrix::sparseMatrix(i = data.ordering,
+                                  j = as.numeric(id),
+                                  x = 1)
+  plotting <- list(grid = plot.grid,
+                   inc.mat = inc.mat)
   return(list(coord = coord0,
               map = data.ordering,
               B = as.numeric(id),

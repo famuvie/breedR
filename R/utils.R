@@ -121,3 +121,27 @@ gmean <- function(x) {
   
   return (as.character(u))
 }
+
+# Convert a incidence matrix specified in 8+8 columns format
+# the first 8 are coefficients, and the last 8 are columns
+# into a sparse matrix format
+matrix.short16 <- function(M) {
+  coef = M[, 1:8]
+  neig = M[, 8+1:8]
+  
+  n <- nrow(coef)
+  p <- max(neig, na.rm = TRUE)
+  
+  i <- rep(1:n, 8)
+  j <- as.vector(neig)
+  x <- as.vector(coef)
+  
+  rm.idx <- which(x==0)
+  stopifnot( all(x[rm.idx] == 0) )
+  
+  Z <- Matrix::spMatrix(nrow = n, ncol = p,
+                        i = i[-rm.idx],
+                        j = j[-rm.idx],
+                        x = x[-rm.idx])
+  return(Z)
+}

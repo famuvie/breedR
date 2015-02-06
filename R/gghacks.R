@@ -22,7 +22,7 @@ compare.plots <- function(plots) {
   # Aggregate datasets and substitute data
   # http://docs.ggplot2.org/current/gg-add.html
   if( is.null(names(plots)) ) {
-    names(plots) <- paste('p', 1:length(plots), sep = '')
+    names(plots) <- paste('p', seq_along(plots), sep = '')
   }
   tmpdat <- plyr::ldply(plots, function(x) x$data)
   # Keep the order of the plots
