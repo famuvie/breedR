@@ -985,8 +985,6 @@ ggplot(var.comp, aes(True, Estimated)) +
 
 
 
-## TODO: This plot has changed, and it should not have. Check.
-
 
 ## Competition #1 | True vs. predicted components
 ```{r competition-exercise-1, purl = FALSE, message=FALSE}
