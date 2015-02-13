@@ -2,7 +2,6 @@
 % Please edit documentation in R/AllGeneric.R, R/metagene-class.R, R/remlf90-class.R
 \name{get_pedigree}
 \alias{get_pedigree}
-\alias{get_pedigree.breedR}
 \alias{get_pedigree.metagene}
 \alias{get_pedigree.remlf90}
 \title{Get the Pedigree from an object}
@@ -11,7 +10,7 @@ get_pedigree(x, ...)
 
 \method{get_pedigree}{metagene}(x, ...)
 
-\method{get_pedigree}{breedR}(x, ...)
+\method{get_pedigree}{remlf90}(x, ...)
 }
 \arguments{
 \item{x}{object to extract pedigree from}
@@ -23,15 +22,9 @@ Returns an object from the formal class \code{pedigree}.
 }
 \section{Methods (by class)}{
 \itemize{
-<<<<<<< HEAD
-\item \code{metagene}: Get the pedigree from a metagene object
-
-\item \code{remlf90}: Get the pedigree from a remlf90 object
-=======
 \item \code{metagene}: Get the pedigree from a \code{metagene} object
 
-\item \code{breedR}: Get the pedigree from a \code{breedR} object
->>>>>>> dev
+\item \code{remlf90}: Get the pedigree from a remlf90 object
 }}
 \references{
 \code{\link[pedigreemm]{pedigree-class}} from package

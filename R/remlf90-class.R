@@ -584,19 +584,6 @@ remlf90 <- function(fixed,
 #### Interface methods ####
 #%%%%%%%%%%%%%%%%%%%%%%%%%#
 
-#' @describeIn get_pedigree Get the pedigree from a remlf90 object
-#' @export
-get_pedigree.remlf90 <- function(x, ...) {
-  ped <- x$effects$genetic$ped
-  if( !is.null(ped) ) {
-    map <- attr(ped, 'map')
-    ped <- with(ped,
-                pedigreemm::pedigree(sire=sire, dam=dam, label=self))
-    attr(ped, 'map') <- map
-  }
-  return(ped)
-}
-
 #' @export
 coef.remlf90 <- function(object, ...) { 
   unlist(c(lapply(fixef(object),
@@ -665,14 +652,17 @@ fixef.remlf90 <- function (object, ...) {
 }
 
 
-#' @describeIn get_pedigree Get the pedigree from a \code{breedR} object
+#' @describeIn get_pedigree Get the pedigree from a remlf90 object
 #' @export
-get_pedigree.breedR <- function(x, ...) {
-  if( !x$components$pedigree )
-    stop(paste('No genetic component in', substitute(x)))
-  
-  return(with(x$effects$genetic$ped,
-              pedigreemm::pedigree(sire=sire, dam=dam, label=self)))
+get_pedigree.remlf90 <- function(x, ...) {
+  ped <- x$effects$genetic$ped
+  if( !is.null(ped) ) {
+    map <- attr(ped, 'map')
+    ped <- with(ped,
+                pedigreemm::pedigree(sire=sire, dam=dam, label=self))
+    attr(ped, 'map') <- map
+  }
+  return(ped)
 }
 
 
