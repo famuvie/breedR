@@ -7,7 +7,7 @@ This package provides frequentist and Bayesian statistical tools to build predic
 
 If you have questions, please join our discussion [group](http://groups.google.com/group/breedr)
 
-Check our Overview [slides](/doc/Overview.html)
+Check our Overview [slides](doc/Overview.html)
 
 #### Usage and collaboration
 

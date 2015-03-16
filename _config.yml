@@ -3,8 +3,8 @@ title: breedR
 email: facundo.munoz@orleans.inra.fr
 description: > # this means to ignore newlines until "baseurl:"
   Statistical methods for forest genetic resources analysts
-baseurl: /breedR/
-url: "https://github.com/famuvie" # the base hostname & protocol for your site
+baseurl: /breedR
+url: "http://famuvie.github.io" # the base hostname & protocol for your site
 twitter_username: famuvie
 github_username:  famuvie
 
