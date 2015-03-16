@@ -10,3 +10,10 @@ github_username:  famuvie
 
 # Build settings
 markdown: kramdown
+pygments: true
+highlighter: rouge
+
+kramdown:
+  input: GFM
+ 
+

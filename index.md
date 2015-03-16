@@ -26,23 +26,22 @@ Check our Overview [slides](/doc/Overview.html)
   - `devtools::install_github('famuvie/breedR')`
 
 ##### How to use
-
-  ```
-  library(breedR)             # Load the package
-  news(package = 'breedR')    # Check the changelog
-  example('breedR')           # Check-out the basic example
-  demo(package='breedR')      # Available demos on features
-  demo('Metagene-spatial')    # Execute some demos
-  demo('globulus')
-  ```
+~~~
+library(breedR)             # Load the package
+news(package = 'breedR')    # Check the changelog
+example('breedR')           # Check-out the basic example
+demo(package='breedR')      # Available demos on features
+demo('Metagene-spatial')    # Execute some demos
+demo('globulus')
+~~~
 
 ##### Test cycle
 - Check the automated tests
 
-  ```R
-  library('testthat')
-  test_package('breedR')
-  ```
+~~~
+library('testthat')
+test_package('breedR')
+~~~
   
 - Try it with your own data or with provided datasets
 - Report [issues](https://github.com/famuvie/breedR/issues "Issues page")
