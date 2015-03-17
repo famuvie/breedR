@@ -26,22 +26,22 @@ This package provides frequentist and Bayesian statistical tools to build predic
   - `devtools::install_github('famuvie/breedR')`
 
 ##### How to use
-~~~
+{% highlight r %}
 library(breedR)             # Load the package
 news(package = 'breedR')    # Check the changelog
 example('breedR')           # Check-out the basic example
 demo(package='breedR')      # Available demos on features
 demo('Metagene-spatial')    # Execute some demos
 demo('globulus')
-~~~
+{% endhighlight %}
 
 ##### Test cycle
 - Check the automated tests
 
-~~~
+{% highlight r %}
 library('testthat')
 test_package('breedR')
-~~~
+{% endhighlight %}
   
 - Try it with your own data or with provided datasets
 - Report [issues](https://github.com/famuvie/breedR/issues "Issues page")
@@ -49,5 +49,3 @@ test_package('breedR')
 ##### Citing
 - If you use this package please cite it
 - `citation('breedR')`
-    
-
