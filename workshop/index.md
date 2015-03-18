@@ -15,20 +15,13 @@ Jaca, Spain
 Participants are expected to bring their laptops and have the following
 tasks done, if necessary, before the workshop
 
-- Install and get familiar with R
-  - Download and install from <http://cran.r-project.org/>
-  - It is recommended to also install [RStudio](http://www.rstudio.com/) as a user interface
-  - At the very least, take a [crash-course](http://spatial.ly/2013/05/crash/) on R
-  - or take this 4-hour introductory course on R from [DataCamp](https://www.datacamp.com/courses/free-introduction-to-r)
-  - or find some tutorial that suits you among the comprehensive contributed [documentation](http://cran.r-project.org/other-docs.html), even in [other languages](http://cran.r-project.org/other-docs.html#nenglish)
-  - Bookmark [Quick-R](http://www.statmethods.net/) as a reference site for help
-- Install the latest version of breedR
-  - Follow instructions in <http://famuvie.github.io/breedR/>
-  - Join our discussion [group](http://groups.google.com/group/breedr)
-- Bring your datasets and prepare your questions
+- Install and get familiar with [R](../getR)
+- Install the latest version of [breedR](http://famuvie.github.io/breedR/)
+- Join our discussion [group](http://groups.google.com/group/breedr)
+- Bring your **datasets** and prepare your **questions**
 
 ### Provisional program
-last updated March 17, 2015
+last updated March 18, 2015
 
 
 #### Day 1: Tuesday June 30
