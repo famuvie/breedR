@@ -51,10 +51,7 @@ res.ar  <- remlf90(fixed  = phe_X ~ gg,
 summary(res.ar)
 
 ### Predicted spatial effect in the observed locations ###
-plot(res.ar)
+plot(res.ar, 'spatial')
 
-### Prediction in unobserved locations ###
-qplot(x, y, fill=z, geom='tile', data = transform(res.ar$spatial$prediction,
-                                                  model = 'AR1xAR1')) + 
-  scale_fill_gradient(low='green', high='red') +
-  coord_fixed()  + facet_wrap( ~ model)
+### Prediction also in unobserved locations (full grid) ###
+plot(res.ar, 'fullspatial')
