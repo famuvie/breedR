@@ -708,6 +708,7 @@ model.frame.remlf90 <- function (formula, ...) {
 }
 
 #' @importFrom stats model.matrix
+#' @importMethodsFrom Matrix coerce
 #' @export
 model.matrix.remlf90 <- function (object, ...) {
   
