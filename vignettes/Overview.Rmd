@@ -6,6 +6,8 @@ output:
   pdf_document:
     toc: true
     toc_depth: 1
+    fig_width: 4
+    fig_height: 3
   md_document:
     variant: markdown_github
     toc: true
@@ -16,7 +18,7 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-```{r setup-knitr, include=FALSE, purl=FALSE}
+```{r setup-knitr, include=FALSE, purl=FALSE, eval = FALSE}
 library(knitr)
 opts_chunk$set(echo       = TRUE,
                message    = TRUE,
@@ -816,7 +818,7 @@ qplot(rho_r, rho_c,
 ```
 
 ```{r spatial-exercise-2bis, purl = FALSE, results='asis', echo=FALSE}
-kable(res.ar1$rho)
+knitr::kable(res.ar1$rho)
 ```
 
 

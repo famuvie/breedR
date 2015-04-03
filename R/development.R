@@ -82,17 +82,25 @@ breedR.build_vignettes <- function (vigns) {
   invisible(outputs)
 }
 
-
+## Move the compiled vignettes both to breedR wiki 
+## (md and pdf versions, together with associated _files)
+## and inst/doc (pdf and R versions)
 breedR.move_vignettes <- function(pkg, vigns, out, wiki_dir) {
   doc_dir <- file.path(pkg$path, "inst", "doc")
   if (!file.exists(doc_dir)) {
     dir.create(doc_dir, recursive = TRUE, showWarnings = FALSE)
   }
+  
+  ## vignettes compiled files (to be moved)
   out_mv <- file.path(vigns$dir,
                       grep('.*\\.(pdf|R)$', out, value = TRUE))
-  out_cp <- vigns$docs
+  
+  ## vignettes compiled files (to be moved to the wiki)
   out_wiki <- file.path(vigns$dir,
                         grep('.*(\\.md|\\.pdf|_files)$', out, value = TRUE))
+
+  ## vignettes source files to be copied (not removed)
+  out_cp <- vigns$docs
 
   ## Updating wiki
   message("Moving ", paste(basename(out_wiki), collapse = ", "), 

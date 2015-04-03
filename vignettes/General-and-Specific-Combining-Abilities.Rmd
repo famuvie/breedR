@@ -6,6 +6,8 @@ output:
   pdf_document:
     toc: true
     toc_depth: 1
+    fig_width: 4
+    fig_height: 3
   md_document:
     variant: markdown_github
     toc: true
