@@ -7,9 +7,12 @@ This package provides frequentist and Bayesian statistical tools to build predic
 
 If you have questions, please join our discussion [group](http://groups.google.com/group/breedr)
 
-#### Usage and collaboration
+This site is concerned with the development and testing of breedR.
+If you want to use the most stable version of breedR, please check the [dissemination site](http://famuvie.github.io/breedR/)
 
-##### First time only
+#### Installation
+
+##### Requirements
 - Install [R](http://cran.r-project.org/ "CRAN") from CRAN
 - If you work under MS Windows platform
   - Install [`RTools`](http://cran.r-project.org/bin/windows/Rtools/) as well
@@ -23,7 +26,8 @@ If you have questions, please join our discussion [group](http://groups.google.c
 ##### Installation of breedR (latest dev. version)
   - `devtools::install_github('famuvie/breedR')`
 
-##### How to use
+#### Getting started
+Check the [breedR-wiki](https://github.com/famuvie/breedR/wiki)
   ```R
   library(breedR)             # Load the package
   news(package = 'breedR')    # Check the changelog
@@ -33,7 +37,8 @@ If you have questions, please join our discussion [group](http://groups.google.c
   demo('globulus')
   ```
 
-##### Test cycle
+#### Test cycle
+breedR is in [beta](https://en.wikipedia.org/wiki/Development_stage#Beta) stage. Collaboration is welcome!
 - Check the automated tests
   ```R
   library('testthat')
@@ -43,6 +48,6 @@ If you have questions, please join our discussion [group](http://groups.google.c
 - Try it with your own data or with provided datasets
 - Report [issues](https://github.com/famuvie/breedR/issues "Issues page")
 
-##### Citing
+#### Citing
 - If you use this package please cite it
 - `citation('breedR')`

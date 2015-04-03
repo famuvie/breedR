@@ -5,10 +5,8 @@
 #' @param ... Arguments to be passed to methods.
 #' @references \code{\link[pedigreemm]{pedigree-class}} from package
 #'   \code{pedigreemm}
-#' @family metagene
 #' @export
 get_pedigree <- function(x, ...) UseMethod('get_pedigree')
-
 
 #' Extract the number of traits
 #' @param x a metagene object.

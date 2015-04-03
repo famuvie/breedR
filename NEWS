@@ -1,3 +1,13 @@
+breedR 0.8
+==========
+
+* New interface ranef() to access BLUP of random effects
+
+* New interface model.matrix() to get incidence matrices
+
+* Integrated vignettes into the package
+
+
 breedR 0.7
 ==========
 

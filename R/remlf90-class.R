@@ -371,8 +371,9 @@ remlf90 <- function(fixed,
     genetic$model <- match.arg(genetic$model,
                                choices = c('add_animal', 'competition'))
 
-    if( !all(check_pedigree(genetic$pedigree)) )
+    if( !all(check_pedigree(genetic$pedigree)) ) {
       genetic$pedigree <- build_pedigree(1:3, data = genetic$pedigree)
+    }
     
     if( length(genetic$id)==1 ) {
       genetic$id <- data[, genetic$id]
@@ -583,7 +584,6 @@ remlf90 <- function(fixed,
 #### Interface methods ####
 #%%%%%%%%%%%%%%%%%%%%%%%%%#
 
-
 #' @export
 coef.remlf90 <- function(object, ...) { 
   unlist(c(lapply(fixef(object),
@@ -652,14 +652,17 @@ fixef.remlf90 <- function (object, ...) {
 }
 
 
-#' @describeIn get_pedigree Get the pedigree from a \code{breedR} object
+#' @describeIn get_pedigree Get the pedigree from a remlf90 object
 #' @export
-get_pedigree.breedR <- function(x, ...) {
-  if( !x$components$pedigree )
-    stop(paste('No genetic component in', substitute(x)))
-  
-  return(with(x$effects$genetic$ped,
-              pedigreemm::pedigree(sire=sire, dam=dam, label=self)))
+get_pedigree.remlf90 <- function(x, ...) {
+  ped <- x$effects$genetic$ped
+  if( !is.null(ped) ) {
+    map <- attr(ped, 'map')
+    ped <- with(ped,
+                pedigreemm::pedigree(sire=sire, dam=dam, label=self))
+    attr(ped, 'map') <- map
+  }
+  return(ped)
 }
 
 
@@ -705,6 +708,7 @@ model.frame.remlf90 <- function (formula, ...) {
 }
 
 #' @importFrom stats model.matrix
+#' @importMethodsFrom Matrix coerce
 #' @export
 model.matrix.remlf90 <- function (object, ...) {
   
@@ -795,9 +799,15 @@ model.matrix.remlf90 <- function (object, ...) {
     
     Z <- object$effects$spatial$sp$B
     
-    if( !is.matrix(Z) ) # case AR or blocks
-      Z <- as(Z, 'indMatrix')
-    
+    if( !is.matrix(Z) ) {  # case AR or blocks
+      ## The number of columns of the incidence matrix must be 
+      ## taken from the size of the random effect
+      nc <- max(object$effects$spatial$sp$U[,1])
+      if( max(Z) > nc)
+        stop('Incompatible dimensions between the incidence and covariance matrices in the spatial effect.')
+      
+      Z <- as(list(Z, nc), 'indMatrix')
+    }
     random$spatial <- Z
   }
   
