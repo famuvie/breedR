@@ -798,9 +798,15 @@ model.matrix.remlf90 <- function (object, ...) {
     
     Z <- object$effects$spatial$sp$B
     
-    if( !is.matrix(Z) ) # case AR or blocks
-      Z <- as(Z, 'indMatrix')
-    
+    if( !is.matrix(Z) ) {  # case AR or blocks
+      ## The number of columns of the incidence matrix must be 
+      ## taken from the size of the random effect
+      nc <- max(object$effects$spatial$sp$U[,1])
+      if( max(Z) > nc)
+        stop('Incompatible dimensions between the incidence and covariance matrices in the spatial effect.')
+      
+      Z <- as(list(Z, nc), 'indMatrix')
+    }
     random$spatial <- Z
   }
   
