@@ -65,11 +65,14 @@ summary(res.ar)
 ### Comparison of spatial effects ###
 
 # Spatial effects estimates in the positions of the observations
+# multiply the spatial incidence matrix by the BLUP of the spatial random effect
+space.pred <- function(x) model.matrix(x)$random$spatial %*% ranef(x)$spatial
+
 # Ordered by blocks and increasing values of the splines effect
 spatial.dat <- transform(globulus,
-                         Blocks  = res.blk$spatial$fit$z,
-                         Splines = res.spl$spatial$fit$z,
-                         AR1xAR1 = res.ar$spatial$fit$z)
+                         Blocks  = space.pred(res.blk),
+                         Splines = space.pred(res.spl),
+                         AR1xAR1 = space.pred(res.ar))
 ord <- with(spatial.dat, order(Blocks, Splines))
 
 ggplot(cbind(reshape2::melt(spatial.dat, id = 1:9), Ind = order(ord)),

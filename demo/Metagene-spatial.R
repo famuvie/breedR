@@ -33,8 +33,10 @@ res.f90 <- remlf90(fixed   = phe_X ~ sex,
 summary(res.f90)
 
 FO  <- fitted(res.f90)          # Fitted Observations
-PBV <- res.f90$genetic$fit      # Predicted Breeding Values
-PSE <- res.f90$spatial$fit$z    # Predicted Spatial Effect
+# Predicted Breeding Values and spatial effect
+# computed as the incidence matrix times the corresponding BLUPs
+PBV <- model.matrix(res.f90)$random$genetic %*% ranef(res.f90)$genetic
+PSE <- model.matrix(res.f90)$random$spatial %*% ranef(res.f90)$spatial
 
 # Fitted values vs. Observed phenotypes by sex
 qplot(phe_X, FO, color = sex, data = dat) +
