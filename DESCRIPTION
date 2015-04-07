@@ -35,12 +35,12 @@ Imports:
     reshape2
 Suggests:
     grid,
-    INLA,
     MASS,
     plyr,
     spam,
     testthat,
-    knitr
+    knitr,
+    rmarkdown
 Addiitonal_repositories: http://www.math.ntnu.no/inla/R/testing
 LazyLoad: yes
 LazyData: yes
