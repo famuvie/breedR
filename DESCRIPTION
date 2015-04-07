@@ -41,6 +41,7 @@ Suggests:
     spam,
     testthat,
     knitr
+Addiitonal_repositories: http://www.math.ntnu.no/inla/R/testing
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
