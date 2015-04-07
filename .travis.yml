@@ -1,0 +1,6 @@
+language: r
+
+# We have some warnings due to Misztal's binaries
+# This avoids issuing an error  
+warnings_are_errors: false
+sudo: required

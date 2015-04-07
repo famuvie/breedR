@@ -40,7 +40,9 @@ Suggests:
     plyr,
     spam,
     testthat,
-    knitr
+    knitr,
+    rmarkdown
+Adititonal_repositories: http://www.math.ntnu.no/inla/R/testing
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
