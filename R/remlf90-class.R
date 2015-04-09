@@ -11,6 +11,9 @@
 #'   additive genetic effect; see 'Details'.
 #' @param spatial if not \code{NULL}, a list with relevant parameters for a 
 #'   spatial random effect; see 'Details'.
+#' @param generic if not \code{NULL}, a named list with an \code{incidence} 
+#'   matrix and either a \code{covariance} or a \code{precision} matrix; see 
+#'   'Details'.
 #' @param data a data frame with variables and observations
 #' @param var.ini if not \code{NULL}, a named list with one item for each random
 #'   component in the model. See 'Details'.
@@ -27,6 +30,15 @@
 #'   spatially structured random effect, respectively. In those cases, 
 #'   \code{genetic} and \code{spatial} must be lists with named relevant 
 #'   parameters.
+#'   
+#'   The \code{generic} component implements random effects with custom 
+#'   incidence and covariance (or precision) matrices. There can be any number 
+#'   of them, stored in a named list with custom unique names that will be used 
+#'   to identify and label the results. Each effect in the list must have an 
+#'   \code{incidence} argument and either a \code{covariance} or a 
+#'   \code{precision} matrix with conforming and suitable dimensions. 
+#'   Optionally, an initial variance for the REML algorithm can be specified in
+#'   a third argument \code{var.ini}.
 #'   
 #'   \subsection{Genetic effect}{ The available models for the genetic effect 
 #'   are \code{add_animal} and \code{competition}. \code{add_animal} stands for 
@@ -175,12 +187,12 @@
 #'   
 #'   E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to
 #'   account for a spatial trend using penalized splines in an individual-tree 
-#'   mixed model. \href{http://dx.doi.org/10.1139/x07-116}{\emph{Canadian
+#'   mixed model. \href{http://dx.doi.org/10.1139/x07-116}{\emph{Canadian 
 #'   Journal of Forest Research} \strong{37}(12):2677-2688}.
 #'   
 #'   G. W. Dutkowski, J. Costa e Silva, A. R. Gilmour, G. A. López (2002). 
-#'   Spatial analysis methods for forest genetic trials.
-#'   \href{http://dx.doi.org/10.1139/x02-111}{\emph{Canadian Journal of Forest
+#'   Spatial analysis methods for forest genetic trials. 
+#'   \href{http://dx.doi.org/10.1139/x02-111}{\emph{Canadian Journal of Forest 
 #'   Research} \strong{32}(12):2201-2214}.
 #'   
 #' @examples
@@ -197,8 +209,17 @@
 #'                  f3 = f3,
 #'                  y = y + (-1:1)[f3])
 #' res.lmm <- remlf90(fixed  = y ~ x,
-#'                   random = ~ f3,
-#'                   data   = dat)
+#'                    random = ~ f3,
+#'                    data   = dat)
+#' 
+#' ## Generic model (used to manually fit the previous model)
+#' inc.mat <- model.matrix(~ 0 + f3, dat)
+#' cov.mat <- diag(3)
+#' res.lmm2 <- remlf90(fixed  = y ~ x,
+#'                     generic = list(f3 = list(inc.mat,
+#'                                              cov.mat)),
+#'                     data   = dat)
+#' identical(res.lmm, res.lmm2)  # TRUE
 #'                
 #' ## Animal model
 #' ped <- build_pedigree(c('self', 'dad', 'mum'),
@@ -266,6 +287,7 @@ remlf90 <- function(fixed,
                     random = NULL,
                     genetic = NULL,
                     spatial = NULL,
+                    generic = NULL,
                     data, 
                     var.ini = NULL,
                     method = c('ai', 'em'),
@@ -277,7 +299,6 @@ remlf90 <- function(fixed,
   ## Solution file header: trait effect level solution
   ## No intercept
   ## (not generalized) Linear Mixed Model
-  ## There always is a genetic variance component
 
   ## TODO: 
   # Allow for summarized data (parameter weights)
@@ -323,10 +344,16 @@ remlf90 <- function(fixed,
     }
     ans
   }
+  
+  ## FIX: This must be fixed to account for lists within components
+  ## either all or none elements in the list must have var.ini.
+  ## Right now, if only some elements in generic have var.ini specified,
+  ## all returns FALSE, and things go as if none were specified.
   var.ini.checks <- c(random  = FALSE,
                       genetic = check.var.ini(genetic),
                       pec     = check.var.ini(genetic$pec),
-                      spatial = check.var.ini(spatial))
+                      spatial = check.var.ini(spatial),
+                      generic = all(sapply(generic, check.var.ini)))
   
   if( !missing(var.ini) ) {
     if( !is.null(var.ini) ) {
@@ -359,6 +386,10 @@ remlf90 <- function(fixed,
     }
     if( !is.na(var.ini.checks['spatial']) )
       spatial$var.ini <- breedR.getOption('default.initial.variance')
+    if( !is.na(var.ini.checks['generic']) )
+      for(g in names(generic)) {
+        generic[[g]]$var.ini <- breedR.getOption('default.initial.variance')
+      }
   }
   
   
@@ -477,13 +508,13 @@ remlf90 <- function(fixed,
   # and translating the intercept (if appropriate) to a fake covariate
   # Add an additional 'term.types' attribute within 'terms'
   # indicating whether the term is 'fixed' or 'random'
-  # progsf90 don't allow for custom model parameterizations
+  # progsf90 does not allow for custom model parameterizations
   # and they don't use intercepts
   mf <- build.mf(mc)
   mt <- attr(mf, 'terms')
   
   # Build a list of parameters and information for each effect
-  effects <- build.effects(mf, genetic, spatial, var.ini)
+  effects <- build.effects(mf, genetic, spatial, generic, var.ini)
   
   # Generate progsf90 parameters
   # TODO: Memory efficiency. At this point there are three copies of the 
