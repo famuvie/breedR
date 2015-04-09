@@ -14,6 +14,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
                           
   parse.rangroup <- function(x) {
     group.size <- nrow(as.matrix(effects[[x]]$var))
+    ## The group 'head' is the first effect with a number of levels > 0
     group.head <- head(which(effects[[x]]$levels != 0), 1)
     # Determine the right position in the effects list
     group.head.abs <- sum(sapply(effect.lst, length)[1:(x-1)]) + group.head
@@ -170,7 +171,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
   # The competition effect is nested into the additive genetic and it is 'cov'
   # with the funny structure of zeroes to produce the sum of effects
   # For pedigree effects, there might be more levels than those
-  # present in the data. We should declare the levels present in the pedigree.
+  # present in the data. We must declare the levels present in the pedigree.
   
   if( !is.null(genetic) ) {
 
