@@ -1,3 +1,13 @@
+#' Render a progsf90 effect
+#' 
+#' Translates breedR effects into progsf90 parameters and data.
+#' 
+#' This is an intenal function. Not exported.
+#' 
+#' @param x object of class breedr_modelframe, effect_group or breedr_effect.
+#' @family progsf90
+renderpf90 <- function(x) UseMethod('renderpf90')
+
 #' Get the Pedigree from an object
 #' 
 #' Returns an object from the formal class \code{pedigree}.

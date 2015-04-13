@@ -24,6 +24,10 @@ breedr_effect <- function(incidence) {
   return(ans)
 }
 
+#' @importFrom stats model.matrix
+model.matrix.breedr_effect <- function(object, ...) {
+  object$incidence.matrix
+}
 
 #' Constructor for a group of effects
 #' 

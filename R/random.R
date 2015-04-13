@@ -44,3 +44,11 @@ random <- function (incidence, covariance, precision) {
   
   return(ans)
 }
+
+
+#' @importFrom stats vcov
+vcov.random <- function(object, ...) {
+  ans <- object$structure.matrix
+  attr(ans, 'inverse') <- object$structure.type == 'precision'
+  ans
+}
