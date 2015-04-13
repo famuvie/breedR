@@ -212,7 +212,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
 # as required by Misztal's progsf90 suite of programs
 # @references
 # \url{http://nce.ads.uga.edu/wiki/lib/exe/fetch.php?media=blupf90.pdf}
-build.effects <- function (mf, genetic, spatial, var.ini) {
+build.effects <- function (mf, genetic, spatial, generic, var.ini) {
   
   # Build up effects data (position, levels, type)
   
@@ -410,6 +410,32 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     
     effects <- c(effects, 
                  spatial = list(effect.item))
+  }
+  
+  
+  ## Generic effect if applicable
+  
+  if( !is.null(generic) ) {
+    
+    ## From each element in the generic list, we build a generic object
+    ## and make an effect_group with it alone, and the corresponding var.ini
+    make_group <- function(x) {
+      stopifnot('var.ini' %in% names(x))
+      go <- do.call('generic', x[-grep('var.ini', names(x))])
+      
+      ######################################
+      ## Temporarily, we give the pos head here, 
+      ## and convey it with the generic effect
+      ## This is to be done later, after the refactoring
+      go$pos.head <- pos
+      ######################################
+      
+      effect_group(list(go), x[['var.ini']])
+    }
+    
+    generic.groups <- lapply(generic, make_group)
+    effects <- c(effects,
+                 generic.groups)
   }
   
   return(effects)
