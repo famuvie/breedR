@@ -493,7 +493,9 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     rownames(result[[x]]) <- levels(mf[[x]])
   
   # Random and Fixed effects indices with respect to the 'effects' list
-  fixed.effects.idx <- sapply(effects, function(x) !exists('model', x))
+  fixed.effects.idx <- 
+    sapply(effects, 
+           function(x) !exists('model', x) & !inherits(x, 'effect_group'))
   diagonal.effects.idx <- sapply(effects,
                                  function(x) identical(x$model, 'diagonal'))
   special.effects.idx <- !(fixed.effects.idx | diagonal.effects.idx)
