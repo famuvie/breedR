@@ -29,6 +29,10 @@ model.matrix.breedr_effect <- function(object, ...) {
   object$incidence.matrix
 }
 
+effect_type.breedr_effect <- function(x) {
+  ifelse(inherits(x, 'random'), 'random', 'fixed')
+}
+
 #' Constructor for a group of effects
 #' 
 #' Builds an \code{effect_group} from a list of \code{breer_effect} elements.
@@ -66,3 +70,20 @@ effect_group <- function(x, cov.ini) {
                    class = 'effect_group')
   return(ans)
 }
+
+#' Size of a group of effects
+group_size <- function(x) {
+  stopifnot(inherits(x, 'effect_group'))
+  length(x$effects)
+}
+
+
+#' Type of a effect_group
+effect_type.effect_group <- function(x) {
+  
+  types <- sapply(x$effects, effect_type.breedr_effect)
+  utypes <- unique(types)
+  stopifnot(length(utypes) == 1)
+  return(utypes)
+}
+

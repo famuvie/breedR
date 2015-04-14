@@ -526,7 +526,6 @@ remlf90 <- function(fixed,
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)
 
-  
   # Change to temporal directory to avoid specification of long paths
   # Avoids Issue #1
   cdir <- setwd(tmpdir)

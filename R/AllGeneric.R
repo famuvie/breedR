@@ -1,3 +1,10 @@
+#' Type of a (group of) effect(s)
+#' 
+#' Generic function that returns whether an effect or a group of effects in a
+#' breedR mixed model is \code{fixed} or \code{random}
+#' @param x object to be \emph{translated} to progsf90
+effect_type <- function(x) UseMethod('effect_type')
+
 #' Render a progsf90 effect
 #' 
 #' Translates breedR effects into progsf90 parameters and data.
