@@ -2,7 +2,7 @@
 #' @importMethodsFrom Matrix coerce
 
 #' @export 
-model.matrix.effect_group(x) <- function(object) {
+model.matrix.effect_group <- function(object) {
   
   ## get the incidence matrices for all the subeffects
   mml <- lapply(object$effects, model.matrix.breedr_effect)
@@ -11,7 +11,7 @@ model.matrix.effect_group(x) <- function(object) {
   stopifnot(length(unique(vapply(mml, nrow, 0))) == 1)
   
   ## bind by columns
-  mm <- do.call(cbind, mml)
+  mm <- do.call(Matrix::cBind, mml)
   
   return(mm)
 }
