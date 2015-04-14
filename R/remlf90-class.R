@@ -516,12 +516,12 @@ remlf90 <- function(fixed,
   
   # Build a list of parameters and information for each effect
   effects <- build.effects(mf, genetic, spatial, generic, var.ini)
-  
+
   # Generate progsf90 parameters
   # TODO: Memory efficiency. At this point there are three copies of the 
   # dataset. One in data, one in mf (only needed variables)
   # and yet one more in pf90. This is a potential problem with large datasets.
-  pf90 <- progsf90(mf, effects, opt = c("sol se"), res.var.ini = var.ini$resid)
+  pf90 <- progsf90(mf, effects, opt = c("sol se"), res.var.ini = var.ini$residuals)
   
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)
