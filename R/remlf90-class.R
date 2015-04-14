@@ -353,7 +353,8 @@ remlf90 <- function(fixed,
                       genetic = check.var.ini(genetic),
                       pec     = check.var.ini(genetic$pec),
                       spatial = check.var.ini(spatial),
-                      generic = all(sapply(generic, check.var.ini)))
+                      generic = ifelse(missing(generic), NA,
+                                       all(sapply(generic, check.var.ini))))
   
   if( !missing(var.ini) ) {
     if( !is.null(var.ini) ) {
