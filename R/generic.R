@@ -39,3 +39,4 @@ generic <- function(incidence, covariance, precision) {
   
   return(ans)
 }
+
