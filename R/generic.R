@@ -28,7 +28,7 @@ generic <- function(incidence, covariance, precision) {
   for (arg in names(arg.list)) {
     mc[[arg]] <- try(as.Matrix(eval(mc[[arg]], parent.frame())))
     if (inherits(mc[[arg]], 'try-error'))
-      stop(paste(arg, 'is expected to be a mtrix-like object in a generic model.'))
+      stop(paste(arg, 'is expected to be a matrix-like object in a generic model.'))
   }
 
   ## Build the random effect, and further specify the generic class

@@ -593,7 +593,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     }
     
     # EM-REML does not print Standard Errors for variance components
-    if(method == 'ai'){
+    if (method == 'ai') {
       varsd.idx <- grep(paste(sd.label, 'for G|for R'), reml.out) + 1
       # There should be one variance for each random effect plus one resid. var.
       stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))

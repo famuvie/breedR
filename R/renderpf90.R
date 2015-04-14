@@ -98,13 +98,9 @@ renderpf90.effect_group <- function(x) {
   ## Need to check for that.
   
   ## DATA file
-  ## render the incidence matrices for all the subeffects
-  datl <- lapply(lapply(x$effects, model.matrix.breedr_effect),
-                 renderpf90.matrix)
-  ## confirm they have all the same number of rows
-  stopifnot(length(unique(vapply(datl, nrow, 0))) == 1)
-  ## bind by columns
-  dat <- do.call(cbind, datl)
+  ## incidence matrix of the group rendered for pf90
+  dat <- renderpf90.matrix(model.matrix.effect_group(x))
+  
   
   ## Concatenate parameters and bind data column-wise
   ## as this is a restriction in progsf90
