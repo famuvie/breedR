@@ -3,6 +3,7 @@
 S3method("$",metagene)
 S3method("$<-",metagene)
 S3method("[",metagene)
+S3method(all,equal.remlf90)
 S3method(as.data.frame,metagene)
 S3method(as.data.frame,pedigree)
 S3method(coef,remlf90)

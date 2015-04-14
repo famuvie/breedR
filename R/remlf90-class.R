@@ -219,7 +219,7 @@
 #'                     generic = list(f3 = list(inc.mat,
 #'                                              cov.mat)),
 #'                     data   = dat)
-#' identical(res.lmm, res.lmm2)  # TRUE
+#' all.equal(res.lmm, res.lmm2, check.attributes = FALSE)  # TRUE
 #'                
 #' ## Animal model
 #' ped <- build_pedigree(c('self', 'dad', 'mum'),
