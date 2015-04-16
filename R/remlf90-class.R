@@ -11,6 +11,9 @@
 #'   additive genetic effect; see 'Details'.
 #' @param spatial if not \code{NULL}, a list with relevant parameters for a 
 #'   spatial random effect; see 'Details'.
+#' @param generic if not \code{NULL}, a named list with an \code{incidence} 
+#'   matrix and either a \code{covariance} or a \code{precision} matrix; see 
+#'   'Details'.
 #' @param data a data frame with variables and observations
 #' @param var.ini if not \code{NULL}, a named list with one item for each random
 #'   component in the model. See 'Details'.
@@ -27,6 +30,15 @@
 #'   spatially structured random effect, respectively. In those cases, 
 #'   \code{genetic} and \code{spatial} must be lists with named relevant 
 #'   parameters.
+#'   
+#'   The \code{generic} component implements random effects with custom 
+#'   incidence and covariance (or precision) matrices. There can be any number 
+#'   of them, stored in a named list with custom unique names that will be used 
+#'   to identify and label the results. Each effect in the list must have an 
+#'   \code{incidence} argument and either a \code{covariance} or a 
+#'   \code{precision} matrix with conforming and suitable dimensions. 
+#'   Optionally, an initial variance for the REML algorithm can be specified in
+#'   a third argument \code{var.ini}.
 #'   
 #'   \subsection{Genetic effect}{ The available models for the genetic effect 
 #'   are \code{add_animal} and \code{competition}. \code{add_animal} stands for 
@@ -175,12 +187,12 @@
 #'   
 #'   E. P. Cappa and R. J. C. Cantet (2007). Bayesian estimation of a surface to
 #'   account for a spatial trend using penalized splines in an individual-tree 
-#'   mixed model. \href{http://dx.doi.org/10.1139/x07-116}{\emph{Canadian
+#'   mixed model. \href{http://dx.doi.org/10.1139/x07-116}{\emph{Canadian 
 #'   Journal of Forest Research} \strong{37}(12):2677-2688}.
 #'   
 #'   G. W. Dutkowski, J. Costa e Silva, A. R. Gilmour, G. A. López (2002). 
-#'   Spatial analysis methods for forest genetic trials.
-#'   \href{http://dx.doi.org/10.1139/x02-111}{\emph{Canadian Journal of Forest
+#'   Spatial analysis methods for forest genetic trials. 
+#'   \href{http://dx.doi.org/10.1139/x02-111}{\emph{Canadian Journal of Forest 
 #'   Research} \strong{32}(12):2201-2214}.
 #'   
 #' @examples
@@ -197,8 +209,17 @@
 #'                  f3 = f3,
 #'                  y = y + (-1:1)[f3])
 #' res.lmm <- remlf90(fixed  = y ~ x,
-#'                   random = ~ f3,
-#'                   data   = dat)
+#'                    random = ~ f3,
+#'                    data   = dat)
+#' 
+#' ## Generic model (used to manually fit the previous model)
+#' inc.mat <- model.matrix(~ 0 + f3, dat)
+#' cov.mat <- diag(3)
+#' res.lmm2 <- remlf90(fixed  = y ~ x,
+#'                     generic = list(f3 = list(inc.mat,
+#'                                              cov.mat)),
+#'                     data   = dat)
+#' all.equal(res.lmm, res.lmm2, check.attributes = FALSE)  # TRUE
 #'                
 #' ## Animal model
 #' ped <- build_pedigree(c('self', 'dad', 'mum'),
@@ -266,6 +287,7 @@ remlf90 <- function(fixed,
                     random = NULL,
                     genetic = NULL,
                     spatial = NULL,
+                    generic = NULL,
                     data, 
                     var.ini = NULL,
                     method = c('ai', 'em'),
@@ -277,7 +299,6 @@ remlf90 <- function(fixed,
   ## Solution file header: trait effect level solution
   ## No intercept
   ## (not generalized) Linear Mixed Model
-  ## There always is a genetic variance component
 
   ## TODO: 
   # Allow for summarized data (parameter weights)
@@ -323,10 +344,17 @@ remlf90 <- function(fixed,
     }
     ans
   }
+  
+  ## FIX: This must be fixed to account for lists within components
+  ## either all or none elements in the list must have var.ini.
+  ## Right now, if only some elements in generic have var.ini specified,
+  ## all returns FALSE, and things go as if none were specified.
   var.ini.checks <- c(random  = FALSE,
                       genetic = check.var.ini(genetic),
                       pec     = check.var.ini(genetic$pec),
-                      spatial = check.var.ini(spatial))
+                      spatial = check.var.ini(spatial),
+                      generic = ifelse(missing(generic), NA,
+                                       all(sapply(generic, check.var.ini))))
   
   if( !missing(var.ini) ) {
     if( !is.null(var.ini) ) {
@@ -359,6 +387,10 @@ remlf90 <- function(fixed,
     }
     if( !is.na(var.ini.checks['spatial']) )
       spatial$var.ini <- breedR.getOption('default.initial.variance')
+    if( !is.na(var.ini.checks['generic']) )
+      for(g in names(generic)) {
+        generic[[g]]$var.ini <- breedR.getOption('default.initial.variance')
+      }
   }
   
   
@@ -477,24 +509,23 @@ remlf90 <- function(fixed,
   # and translating the intercept (if appropriate) to a fake covariate
   # Add an additional 'term.types' attribute within 'terms'
   # indicating whether the term is 'fixed' or 'random'
-  # progsf90 don't allow for custom model parameterizations
+  # progsf90 does not allow for custom model parameterizations
   # and they don't use intercepts
   mf <- build.mf(mc)
   mt <- attr(mf, 'terms')
   
   # Build a list of parameters and information for each effect
-  effects <- build.effects(mf, genetic, spatial, var.ini)
-  
+  effects <- build.effects(mf, genetic, spatial, generic, var.ini)
+
   # Generate progsf90 parameters
   # TODO: Memory efficiency. At this point there are three copies of the 
   # dataset. One in data, one in mf (only needed variables)
   # and yet one more in pf90. This is a potential problem with large datasets.
-  pf90 <- progsf90(mf, effects, opt = c("sol se"), res.var.ini = var.ini$resid)
+  pf90 <- progsf90(mf, effects, opt = c("sol se"), res.var.ini = var.ini$residuals)
   
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)
 
-  
   # Change to temporal directory to avoid specification of long paths
   # Avoids Issue #1
   cdir <- setwd(tmpdir)
@@ -707,116 +738,6 @@ model.frame.remlf90 <- function (formula, ...) {
   formula$mf
 }
 
-#' @importFrom stats model.matrix
-#' @importMethodsFrom Matrix coerce
-#' @export
-model.matrix.remlf90 <- function (object, ...) {
-  
-  ## mm and mf for fixed and diagonal effects only
-  mf <- object$mf
-  mm.fd <- object$mm
-  
-  # terms in the formula that are fixed
-  fixterm.bol <- attr(attr(mf, 'terms'), 'term.types') == 'fixed'
-  
-  # columns in the mm corresponding to fixed and diagonal terms
-  fixcol.bol <- attr(mm.fd, 'assign') %in% which(fixterm.bol)
-  diacol.bol <- attr(mm.fd, 'assign') %in% which(!fixterm.bol)
-  stopifnot(all(xor(fixcol.bol, diacol.bol)))  # check they are complementary
-
-  
-  # preallocate
-  fixed  <- random <- NULL
-  
-  
-  ## mm for fixed effects and corresponding attributes
-  if( any(fixcol.bol) ) {
-    fixed <- mm.fd[, fixcol.bol, drop = FALSE]
-    attr(fixed, 'assign') <- attr(mm.fd, 'assign')[fixcol.bol]
-    ff.bol <- names(attr(mm.fd, 'contrasts')) %in% names(which(fixterm.bol))
-    if( any(ff.bol) )
-      attr(fixed, 'contrasts') <- attr(mm.fd, 'contrasts')[ff.bol]
-  }
-  
-  ## mm for diagonal effects and corresponding attributes
-  for ( de.idx in which(!fixterm.bol) ) {
-    de.nm <- names(fixterm.bol)[de.idx]
-    decol.bol <- attr(mm.fd, 'assign') == de.idx
-    stopifnot( any(decol.bol) )
-    
-    random[[de.nm]] <- structure(mm.fd[, decol.bol, drop = FALSE],
-                                 assign = attr(mm.fd, 'assign')[decol.bol])
-
-    ## Here, df.bol is TRUE at most in one element
-    df.bol <- names(attr(mm.fd, 'contrasts')) %in% de.nm 
-    if( any(df.bol) ) {
-      cnt <- attr(mm.fd, 'contrasts')[[which(df.bol)]]
-      attr(random[[de.nm]], 'contrasts') <- cnt
-    }
-  }
-  
-  
-  
-  ## mm for genetic effects
-  if( object$components$pedigree ) {
-    # Indices (in ranef) of genetic-related effects (direct and/or competition)
-    gen.idx <- grep('genetic', names(object$ranef))
-    
-    # Incidence vector for the direct effect
-    # First column of incidence matrix (and only, if model = add_animal)
-    Z.direct <- as(object$effects$genetic$gen$B[,1],
-                   'indMatrix')
-    
-    random <- c(random,
-                structure(list(Z.direct),
-                          names = names(object$ranef)[gen.idx[1]]))
-    
-    if( length(gen.idx) > 1 ) {
-      
-      ## model = 'competition'
-      stopifnot(length(gen.idx) == 2)
-      
-      # Incidence matrix of competition effect is in short 16-column format
-      # needs to be converted
-      Z.comp <- matrix.short16(object$effects$genetic$gen$B[, 1+1:16])
-      
-      random <- c(random,
-                  structure(list(Z.comp),
-                            names = names(object$ranef)[gen.idx[2]]))
-      
-      ## Optional pec effect
-      ## shares the same incidende matrix as the genetic competition effect
-      if( exists('pec', object$ranef) ) {
-        random$pec <- Z.comp
-      }
-      
-    }
-    
-  }
-  
-  ## mm for spatial effects
-  if( object$components$spatial ) {
-    
-    Z <- object$effects$spatial$sp$B
-    
-    if( !is.matrix(Z) ) {  # case AR or blocks
-      ## The number of columns of the incidence matrix must be 
-      ## taken from the size of the random effect
-      nc <- max(object$effects$spatial$sp$U[,1])
-      if( max(Z) > nc)
-        stop('Incompatible dimensions between the incidence and covariance matrices in the spatial effect.')
-      
-      Z <- as(list(Z, nc), 'indMatrix')
-    }
-    random$spatial <- Z
-  }
-  
-  
-  return(list(fixed  = fixed,
-              random = random))
-}
-
-
 
 
 #' @importFrom stats nobs
@@ -833,6 +754,8 @@ nobs.remlf90 <- function (object, ...) {
 # sp::coordinates() is an S4 function
 # Register the S3 class 'breedR' as an S4 class
 setOldClass('breedR')
+#' @importFrom methods setOldClass setMethod
+#' @export
 setMethod('coordinates', signature = 'breedR', 
           function(obj, ...) {
             err_msg <- "This breedR object has no spatial structure.\n"
@@ -859,6 +782,7 @@ setMethod('coordinates', signature = 'breedR',
           }
 )
 
+#' @export
 setMethod('coordinates<-', signature = 'breedR', 
           function(object, value) {
             # sp::coordinates() performs some sanity checks
@@ -995,7 +919,8 @@ plot.ranef.breedR <- function(x, y, ...) {
   } else message('No suitable random effects to plot')
 }
 
-
+#' @describeIn ranef
+#' @export
 print.ranef.breedR <- function(x, ...) {
   attr2df <- function(x) {
     data.frame(value = x, `s.e.` = attr(x, 'se'))

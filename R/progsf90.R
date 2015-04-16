@@ -1,26 +1,41 @@
-# progsf90 class
-# 
-# This function parses a model frame and extracts the relevant fields
-# that are to be written in the parameter, data and auxiliary files
-# of the progsf90 programs.
+#' progsf90 class
+#' 
+#' This function parses a model frame and extracts the relevant fields
+#' that are to be written in the parameter, data and auxiliary files
+#' of the progsf90 programs.
+#' @family progsf90
 progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   
-  
-  # Build models for random effects
+  ## Build models for random effects
   mt <- attr(mf, 'terms')
-  random.effects.idx <- c(which(attr(mt, 'term.types') == 'random'),
-                          which(names(effects) %in% c('genetic', 'pec', 'spatial')))
+  random.effects.idx <- 
+    c(which(attr(mt, 'term.types') == 'random'),
+      which(names(effects) %in% c('genetic', 'pec', 'spatial')),
+      ## This only works temporarily. After completing the refactoring,
+      ## I should use the method effect_type() for each element in effect.
+      which(sapply(effects, inherits, 'effect_group')))
+  
+  
+  ## renderpf90 the new classes of effects
+  effects.pf90 <- renderpf90.breedr_modelframe(effects) 
   
                           
   parse.rangroup <- function(x) {
-    group.size <- nrow(as.matrix(effects[[x]]$var))
-    group.head <- head(which(effects[[x]]$levels != 0), 1)
+    group.size <- nrow(as.matrix(effects.pf90[[x]]$var))
+    ## The group 'head' is the first effect with a number of levels > 0
+    group.head <- head(which(effects.pf90[[x]]$levels != 0), 1)
     # Determine the right position in the effects list
     group.head.abs <- sum(sapply(effect.lst, length)[1:(x-1)]) + group.head
+    
+    ## Refactored effects
+    fn <- ifelse('file_name' %in% names(effects.pf90[[x]]),
+                 effects.pf90[[x]]$file_name,
+                 effects.pf90[[x]]$file)
+      
     return(list(pos = group.head.abs + 1:group.size - 1,
-                type = effects[[x]]$model, 
-                file = effects[[x]]$file, 
-                cov  = effects[[x]]$var))
+                type = effects.pf90[[x]]$model, 
+                file = fn, 
+                cov  = effects.pf90[[x]]$var))
   }
   # Number of traits
   # (size of the response vector or matrix)
@@ -30,12 +45,12 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   weights <- ''     # No weights for the moment --- TODO
   
   # Builds the lines in the EFFECTS section
-  effect.lst <- sapply(effects,
+  effect.lst <- sapply(effects.pf90,
                        function(x) with(x, paste(pos, levels, type)))
   # Parameters  
   par <- list(datafile = 'data',
               ntraits  = ntraits,
-              neffects = sum(sapply(effects, function(x) length(x$pos))),
+              neffects = sum(sapply(effect.lst, length)),
               observations = 1:ntraits,
               weights  = weights,
               effects  = effect.lst,
@@ -49,6 +64,12 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   # after the trait(s) 
   build.dat.single <- function(name, mf) {
     n <- nrow(mf)
+    
+    ## Refactored effects:
+    if ('data' %in% names(effects.pf90[[name]])) {
+      return(effects.pf90[[name]]$data)
+    }
+    
     # Distinguish between the splines model and the AR model
     process.spatial.dat <- function(x) {
       if(length(x$pos) == 1) { # AR
@@ -88,14 +109,20 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   
   # Additional Files
   build.file.single <- function(ef) {
+    
+    ## Refactored:
+    if ('file_name' %in% names(ef)) {
+      return(list(fname = ef$file_name,
+                  file  = ef$file))
+    }
     switch(ef$file,
            pedigree = list(fname = ef$file,
-                          file   = ef$ped),
+                           file   = ef$ped),
            spatial  = list(fname = ef$file,
                            file  = ef$sp$U),
            NULL)
   }
-  files <- lapply(effects[random.effects.idx], build.file.single)
+  files <- lapply(effects.pf90[random.effects.idx], build.file.single)
   
   ans <- list(parameter = par, data = dat, files = files)
   class(ans) <- 'progsf90'
@@ -109,7 +136,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
 # as required by Misztal's progsf90 suite of programs
 # @references
 # \url{http://nce.ads.uga.edu/wiki/lib/exe/fetch.php?media=blupf90.pdf}
-build.effects <- function (mf, genetic, spatial, var.ini) {
+build.effects <- function (mf, genetic, spatial, generic, var.ini) {
   
   # Build up effects data (position, levels, type)
   
@@ -170,7 +197,7 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
   # The competition effect is nested into the additive genetic and it is 'cov'
   # with the funny structure of zeroes to produce the sum of effects
   # For pedigree effects, there might be more levels than those
-  # present in the data. We should declare the levels present in the pedigree.
+  # present in the data. We must declare the levels present in the pedigree.
   
   if( !is.null(genetic) ) {
 
@@ -195,9 +222,9 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     # IC and the other for keeping the neigbour index.
     if( genetic$model == 'competition' ) {
       stopifnot(n.comp > 0)
-      gen.levels <- c(gen.levels,
-                      rep(0, n.comp - 1),
-                      gen.levels)
+      gen.levels <- c(gen.levels,          # ind. in pedigree for direct 
+                      rep(0, n.comp - 1),  # aggregating neighbours
+                      gen.levels)          # ind. in pedigree for competition
       gen.type   <- c(gen.type,
                       paste('cov', pos + n.comp + 1:n.comp))
     }
@@ -307,6 +334,40 @@ build.effects <- function (mf, genetic, spatial, var.ini) {
     
     effects <- c(effects, 
                  spatial = list(effect.item))
+  }
+  
+  
+  ## Generic effect if applicable
+  
+  if( !is.null(generic) ) {
+    
+    ## From each element in the generic list, we build a generic object
+    ## and make an effect_group with it alone, and the corresponding var.ini
+    make_group <- function(x) {
+      stopifnot('var.ini' %in% names(x))
+      go <- do.call('generic', x[-grep('var.ini', names(x))])
+      ef <- effect_group(list(go), x[['var.ini']])
+      ######################################
+      ## Temporarily, we give the pos head here, 
+      ## and convey it with the generic effect
+      ## This is to be done later, after the refactoring
+      ef$pos.head <- pos
+      ######################################
+      return(ef)
+    }
+    generic.groups <- lapply(generic, make_group)
+    
+    ## Make sure the names do not clash any of the 'special' names
+    ## i.e. 'genetic' or 'spatial'
+    match.idx <- names(generic.groups) %in% c('genetic', 'spatial')
+    if (any(match.idx)) {
+      names(generic.groups)[match.idx] <- 
+        paste0('generic_', names(generic.groups)[match.idx])
+    }
+    
+    
+    effects <- c(effects,
+                 generic.groups)
   }
   
   return(effects)
@@ -432,7 +493,9 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     rownames(result[[x]]) <- levels(mf[[x]])
   
   # Random and Fixed effects indices with respect to the 'effects' list
-  fixed.effects.idx <- sapply(effects, function(x) !exists('model', x))
+  fixed.effects.idx <- 
+    sapply(effects, 
+           function(x) !exists('model', x) & !inherits(x, 'effect_group'))
   diagonal.effects.idx <- sapply(effects,
                                  function(x) identical(x$model, 'diagonal'))
   special.effects.idx <- !(fixed.effects.idx | diagonal.effects.idx)
@@ -530,7 +593,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     }
     
     # EM-REML does not print Standard Errors for variance components
-    if(method == 'ai'){
+    if (method == 'ai') {
       varsd.idx <- grep(paste(sd.label, 'for G|for R'), reml.out) + 1
       # There should be one variance for each random effect plus one resid. var.
       stopifnot(identical(length(varcomp.idx), sum(random.effects.idx) + 1L))
