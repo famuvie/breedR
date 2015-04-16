@@ -75,7 +75,12 @@ spatial.dat <- transform(globulus,
                          AR1xAR1 = space.pred(res.ar))
 ord <- with(spatial.dat, order(Blocks, Splines))
 
-ggplot(cbind(reshape2::melt(spatial.dat, id = 1:9), Ind = order(ord)),
+# Gather results into one variable (tidy form) for plotting
+spatial.tidy <- 
+  tidyr::gather(cbind(spatial.dat, Ind = order(ord)),
+                variable, value, Blocks:AR1xAR1)
+
+ggplot(spatial.tidy,
        aes(Ind, value)) + 
   geom_point(aes(col = variable))
 

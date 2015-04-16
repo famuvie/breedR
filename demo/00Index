@@ -2,3 +2,4 @@ Metagene-spatial          Analysis of a synthetic dataset with spatial structure
 globulus                  Spatial analysis of the Eucalyptus Globulus dataset
 Spatial-Autoregressive    Separable autoregressive process for grid-like spatial configurations
 Plotting                  Visualization and diagnostic functions
+generic                   Uses of the generic random effect
