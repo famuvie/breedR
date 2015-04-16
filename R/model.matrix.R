@@ -26,7 +26,7 @@ model.matrix.breedr_effect <- function(object, ...) {
 model.matrix.remlf90 <- function (object, ...) {
   
   ## mm and mf for fixed and diagonal effects only
-  mf <- object$mf
+  mf <- model.frame.remlf90(object)
   mm.fd <- object$mm
   
   # terms in the formula that are fixed
@@ -124,6 +124,13 @@ model.matrix.remlf90 <- function (object, ...) {
     random$spatial <- Z
   }
   
+  ## mm for refactored effects
+  rf.idx <- vapply(object$effects, inherits, TRUE, 'effect_group')
+  if (any(rf.idx)) {
+    rf.mm <- lapply(object$effects[rf.idx], model.matrix.effect_group)
+    random <- c(random,
+                rf.mm)
+  }
   
   return(list(fixed  = fixed,
               random = random))
