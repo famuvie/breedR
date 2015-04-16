@@ -32,6 +32,13 @@ get_pedigree <- function(x, ...) UseMethod('get_pedigree')
 #' @export
 get_ntraits <- function(x, ...) UseMethod('get_ntraits')
 
+
+#' 'move' an arrangement in a given direction
+#' @param x matrix or list of matrices
+#' @param dir a \emph{direction} in ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')
+neighbours.at <- function(x, dir) UseMethod('neighbours.at')
+
+
 #' Number of generations
 #' @param x a metagene object.
 #' @param ... Arguments to be passed to methods.

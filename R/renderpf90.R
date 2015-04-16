@@ -1,4 +1,5 @@
 #' @describeIn renderpf90 For unknown classes, just returns the object untouched
+#' @export
 renderpf90.default <- function(x) x
 
 
@@ -16,6 +17,7 @@ renderpf90.default <- function(x) x
 #'   column indices.
 #' @inheritParams renderpf90
 #' @family renderpf90
+#' @export
 renderpf90.matrix <- function(x) {
   
   which_n_where <- function(x, n) {
@@ -37,6 +39,7 @@ renderpf90.matrix <- function(x) {
 
 
 #' @describeIn renderpf90 Render a full \code{breedr_modelframe}
+#' @export
 renderpf90.breedr_modelframe <- function(x) {
   
   ## Until the refactoring is completed, not all effects in the list
@@ -72,6 +75,7 @@ renderpf90.breedr_modelframe <- function(x) {
   
 
 #' @describeIn renderpf90 Render groups of effects into pf90 code
+#' @export
 renderpf90.effect_group <- function(x) {
 
   ## Render each effect individually
@@ -124,6 +128,7 @@ renderpf90.effect_group <- function(x) {
 #'   appropriate; a file name and its content.
 #' @describeIn renderpf90 Compute the parameters of a progsf90 representation of
 #'   a generic effect.
+#' @export
 renderpf90.generic <- function(x) {
   
   ## Incidence matrix in 'reduced' form

@@ -1,5 +1,6 @@
 
 #' @describeIn effect_type Type of an \code{effect_group}
+#' @export
 effect_type.effect_group <- function(x) {
   
   types <- sapply(x$effects, effect_type.breedr_effect)
@@ -9,6 +10,7 @@ effect_type.effect_group <- function(x) {
 }
 
 #' @describeIn effect_type Type of an \code{breedr_effect}
+#' @export
 effect_type.breedr_effect <- function(x) {
   ifelse(inherits(x, 'random'), 'random', 'fixed')
 }

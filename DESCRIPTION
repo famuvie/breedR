@@ -31,16 +31,16 @@ Imports:
     nlme,
     pedigree,
     pedigreemm,
-    splines,
-    reshape2
+    splines
 Suggests:
     grid,
     INLA,
+    knitr,
     MASS,
     plyr,
     spam,
     testthat,
-    knitr
+    tidyr
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR

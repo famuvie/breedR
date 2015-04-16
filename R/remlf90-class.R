@@ -754,6 +754,8 @@ nobs.remlf90 <- function (object, ...) {
 # sp::coordinates() is an S4 function
 # Register the S3 class 'breedR' as an S4 class
 setOldClass('breedR')
+#' @importFrom methods setOldClass setMethod
+#' @export
 setMethod('coordinates', signature = 'breedR', 
           function(obj, ...) {
             err_msg <- "This breedR object has no spatial structure.\n"
@@ -780,6 +782,7 @@ setMethod('coordinates', signature = 'breedR',
           }
 )
 
+#' @export
 setMethod('coordinates<-', signature = 'breedR', 
           function(object, value) {
             # sp::coordinates() performs some sanity checks
@@ -916,7 +919,8 @@ plot.ranef.breedR <- function(x, y, ...) {
   } else message('No suitable random effects to plot')
 }
 
-
+#' @describeIn ranef
+#' @export
 print.ranef.breedR <- function(x, ...) {
   attr2df <- function(x) {
     data.frame(value = x, `s.e.` = attr(x, 'se'))
