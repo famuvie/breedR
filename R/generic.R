@@ -5,10 +5,7 @@
 #' A generic random effect stores the incidence and structure matrices in Matrix
 #' form, which tries to take advantage of sparsity, if it exists.
 #' 
-#' @param incidence matrix-like object
-#' @param covariance matrix-like object
-#' @param precision matrix-like object
-#'   
+#' @inheritParams random
 #' @return A list with elements \code{incidence.matrix}, \code{structure.matrix}
 #'   and \code{structure.type}, which is a string indicating either 
 #'   \code{covariance} or \code{precision}.
