@@ -951,6 +951,11 @@ ranef.remlf90 <- function (object, ...) {
   
   ## Spatial component
   if ( object$components$spatial ) {
+    
+    if (inherits(object$effects$spatial, 'effect_group')) {
+      coord <- coordinates(object$effects$spatial)
+    } else {
+      
     ## Depending on the spatial model, we return the coordinates
     ## of the corresponding effects
     coord <- with(object$effects$spatial,
@@ -959,6 +964,8 @@ ranef.remlf90 <- function (object, ...) {
                          AR      = sp$plotting$grid,
                          blocks  = NULL)
     )
+    }
+    
     ans$spatial <- with(ranef$spatial,
                         structure(value,
                                   se = s.e.,
