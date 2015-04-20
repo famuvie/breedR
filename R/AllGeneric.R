@@ -1,3 +1,15 @@
+#' Covariance structure of a breedR component
+#' 
+#' This generic function returns the covariance or precision matrix of a breedR 
+#' random effect or a group of effects.
+#' 
+#' For \code{effect_group}s, it returns the common structure of all the elements
+#' in the group.
+#' 
+#' @param x A \code{breedr_effect}.
+#'   
+get_structure <- function(x) UseMethod('get_structure')
+
 #' Type of a (group of) effect(s)
 #' 
 #' Generic function that returns whether an effect or a group of effects in a
