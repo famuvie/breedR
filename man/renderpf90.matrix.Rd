@@ -28,6 +28,7 @@ Other renderpf90: \code{\link{renderpf90}},
   \code{\link{renderpf90.breedr_modelframe}},
   \code{\link{renderpf90.default}},
   \code{\link{renderpf90.effect_group}},
-  \code{\link{renderpf90.generic}}
+  \code{\link{renderpf90.generic}},
+  \code{\link{renderpf90.splines}}
 }
 

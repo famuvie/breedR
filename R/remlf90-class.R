@@ -1052,21 +1052,29 @@ vcov.remlf90 <- function (object, effect = 'spatial', ...) {
   if( !exists(effect, envir = as.environment(object$effects)) )
     stop(paste('There is no', effect, 'effect in this object.\n'))
   
+  ef <- object$effects[[effect]]
+  
   # Underlying covariance matrix
   # (only the lower triangle)
-  Usp <- object$effects[[effect]]$sp$U
-  dimU <- c(max(Usp[, 1]), max(Usp[, 2]))
-  stopifnot(identical(dimU[1], dimU[2]))
-  
-  U <- Matrix::sparseMatrix(i = Usp[, 1], j = Usp[, 2], x = Usp[, 3], symmetric = TRUE)
+  # Account for refactored and old effects
+  if (inherits(ef, 'effect_group')) {
+    U <- get_structure(ef)
+  } else {
+    Usp <- object$effects[[effect]]$sp$U
+    dimU <- c(max(Usp[, 1]), max(Usp[, 2]))
+    stopifnot(identical(dimU[1], dimU[2]))
+    
+    U <- Matrix::sparseMatrix(i = Usp[, 1], j = Usp[, 2], x = Usp[, 3], symmetric = TRUE)
+    attr(U, 'type') <- object$effects[[effect]]$sp$Utype
+  }
   
   # need to invert?
-  if(object$effects[[effect]]$sp$Utype == 'precision')
+  if(attr(U, 'type') == 'precision')
     U <- solve(U)
   
   # Incidence matrix
   # It can be a vector if it is an identity reordered (e.g. block or AR cases)
-  Bsp <- as.matrix(object$effects[[effect]]$sp$B)
+  Bsp <- model.matrix(object)$random[[effect]]
   
   if( ncol(Bsp) == 1 ) {
     dimB = nrow(Bsp)

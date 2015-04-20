@@ -24,6 +24,8 @@ effect_type <- function(x) UseMethod('effect_type')
 #' This is an intenal function. Not exported.
 #' 
 #' @param x object of class breedr_modelframe, effect_group or breedr_effect.
+#' @return The number of levels and type for each 'virtual' effect; the progsf90
+#'   model-name as appropriate; a file name and its content.
 #' @family renderpf90
 renderpf90 <- function(x) UseMethod('renderpf90')
 

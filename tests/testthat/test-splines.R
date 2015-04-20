@@ -20,29 +20,24 @@ test_that("determine.n.knots fails with few data points", {
 context("Splines infraestructure") 
 ########################
 
-test_that("build.splines.model gives a list with six elements of correct sizes", {
+test_that("build.splines.model gives a list with five elements of correct sizes", {
   x.loc <- 1:100
   y.loc <- seq(1000, by = 5, length = 51)
   coord <- expand.grid(x.loc, y.loc)
-  result <- build.splines.model(coord)
-  n.knots <- ncol(result$B)
+  result <- splines(coord)
+  inc.mat <- model.matrix(result)
+  cov.mat <- get_structure(result)
+  n.knots <- sapply(result$knots, function(x) length(unique(x)))
+  n.splines <- ncol(cov.mat)
   
-  expect_that(result, is_a('list'))
-  expect_that(length(result), equals(6))
-  expect_that(nrow(result$B), equals(nrow(coord)))
-  expect_that(prod(sapply(result$param, length) - 4),
-              equals(n.knots))
+  expect_that(result, is_a('splines'))
+  expect_that(length(result), equals(5))
+  expect_that(nrow(inc.mat), equals(nrow(coord)))
+  expect_that(prod(n.knots-4), equals(n.splines))
+
   # The matrix U should be in sparse format: row col value
-  expect_that(ncol(result$U), equals(3))
-  expect_that(max(result$U[, 1]), equals(n.knots))
-  expect_that(max(result$U[, 2]), equals(n.knots))
+  expect_that(cov.mat, is_a('Matrix'))
   
-  # The last element is a list of coordinates
-  # and the corresponding incidence matrix
-  # for plotting purposes
-  expect_that(result$plotting, is_a('list'))
-  expect_that(dim(result$plotting$inc.mat), 
-              equals(c(nrow(result$plotting$grid), n.knots)))
 })
 
 
@@ -54,11 +49,11 @@ dat <- as.data.frame(m1)
 
 # Use a different number of knots for rows and columns
 res <- try(remlf90(fixed = phe_X ~ sex, 
-                                    spatial = list(model = 'splines', 
-                                                   coord = coordinates(m1),
-                                                   n.knots = c(2, 3)), 
-                                    data = dat,
-                                    method = 'em'),
+                   spatial = list(model = 'splines', 
+                                  coord = coordinates(m1),
+                                  n.knots = c(2, 3)), 
+                   data = dat,
+                   method = 'em'),
            silent = TRUE)
 
 

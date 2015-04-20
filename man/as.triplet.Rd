@@ -7,6 +7,7 @@
 as.triplet(x)
 }
 \description{
-Represent a symmetric matrix in triplet format
+It only gives the lower triangular elements, and **do not** check for
+symmetry.
 }
 

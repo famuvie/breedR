@@ -121,11 +121,10 @@ renderpf90.effect_group <- function(x) {
 
 
 
-#' @details For the \code{generic} method, all matrices are converted to plain 
-#'   matrix-class, for exporting to files.
-#' @return For the \code{generic} method, number of levels and type for each
-#'   'virtual' effect; model \code{user_file} or \code{user_file_i} as
-#'   appropriate; a file name and its content.
+#' @details For the \code{generic} class, all matrices are converted to plain 
+#'   matrix-class, for exporting to files. The progsf90 model is either
+#'   \code{user_file} or \code{user_file_i} depending on the type of sructure
+#'   matrix; i.e. respectively precision or covariance.
 #' @describeIn renderpf90 Compute the parameters of a progsf90 representation of
 #'   a generic effect.
 #' @export
@@ -155,7 +154,25 @@ renderpf90.generic <- function(x) {
   return(ans)
 }
 
+
+#' @details For the \code{splines} class, everything reduces to a generic effect
+#'   with a covariance matrix
+#' @describeIn renderpf90 Compute the parameters of a progsf90 representation of
+#'   a splines effect.
+#' @export
+renderpf90.splines <- function(x) {
+  
+  ans <- renderpf90.generic(x)
+  ans$file_name = 'splines'
+  
+  return(ans)
+}
+
+
 #' Represent a symmetric matrix in triplet format
+#' 
+#' It only gives the lower triangular elements, and **do not** check for
+#' symmetry.
 as.triplet <- function(x) {
   xsp <- Matrix::tril(as(as.matrix(x), 'dgTMatrix'))
   # Note: The Matrix package counts rows and columns starting from zero

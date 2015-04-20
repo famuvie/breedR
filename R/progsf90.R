@@ -9,11 +9,11 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   ## Build models for random effects
   mt <- attr(mf, 'terms')
   random.effects.idx <- 
-    c(which(attr(mt, 'term.types') == 'random'),
+    unique(c(which(attr(mt, 'term.types') == 'random'),
       which(names(effects) %in% c('genetic', 'pec', 'spatial')),
       ## This only works temporarily. After completing the refactoring,
       ## I should use the method effect_type() for each element in effect.
-      which(sapply(effects, inherits, 'effect_group')))
+      which(sapply(effects, inherits, 'effect_group'))))
   
   
   ## renderpf90 the new classes of effects
@@ -75,15 +75,8 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
       if(length(x$pos) == 1) { # AR
         x$sp$B
       } else {
-        # For the splines, I need both the columns of B
-        # and further columns like
-        # 1  2  3  ...
-        # 1  2  3  ...
-        # ·  ·  ·  ...
-        # ·  ·  ·  ...
-        cbind(as.matrix(x$sp$B),
-              sapply(1:ncol(x$sp$B),
-                     function(y) rep(y, n)))
+        # For the splines, render the progsf90 representation of B
+        renderpf90.matrix(x$sp$B)
       }
     }
     switch(name,
@@ -268,23 +261,29 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
     if( is.null(spatial$autofill) ) {
       spatial$autofill = TRUE
     }
+
+    if( is.null(spatial$sparse) ) {
+      spatial$sparse = FALSE
+    }
     
     # Splines model (Cappa & Cantet, 2007)
     if(spatial$model == 'splines') {
-      sp <- build.splines.model(spatial$coord,
-                                spatial$n.knots,
-                                spatial$autofill,
-                                degree = 3)
-      n.pos <- ncol(sp$B)
-      effect.item <- list(name   = spatial$model,
-                          pos    = pos - 1 + 1:n.pos,
-                          levels = c(rep(0, n.pos-1), n.pos),
-                          type   = paste('cov', pos - 1 + n.pos + 1:n.pos),
-                          model  = 'user_file_i',
-                          file   = 'spatial',
-                          var    = spatial$var.ini,
-                          sp     = sp)
-      pos = pos + 2*ncol(sp$B)
+      
+      ## Build the splines component
+      sp <- splines(spatial$coord,
+                    spatial$n.knots,
+                    spatial$autofill,
+                    degree = 3,
+                    spatial$sparse)
+      
+      ## Build an effect group with this component only
+      effect.item <- effect_group(list(sp), spatial[['var.ini']])
+      ######################################
+      ## Temporarily, we give the pos head here, 
+      ## and convey it with the group effect
+      ## This is to be done later, after the refactoring
+      ######################################
+      effect.item$pos.head <- pos
       
     }
 
