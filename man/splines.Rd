@@ -5,7 +5,7 @@
 \title{Build a splines model}
 \usage{
 splines(coord, n.knots = NULL, autofill = TRUE, degree = 3,
-  sparse = FALSE)
+  sparse = FALSE, strategy = "uniformgrid")
 }
 \arguments{
 \item{coord}{matrix(-like) of observation coordinates}
