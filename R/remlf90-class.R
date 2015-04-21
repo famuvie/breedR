@@ -821,8 +821,8 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
   
   type = match.arg(type)
   
-  coord <- try(coordinates(x), silent = TRUE)
-  if( inherits(coord, "try-error") ) {
+  coord <- coordinates(x)
+  if( is.null(coord) ) {
     stop(paste('Missing spatial structure. Use coordinates(',
                deparse(substitute(x)),
                ') <- coord', sep = ''))
