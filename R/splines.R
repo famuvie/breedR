@@ -29,7 +29,8 @@ splines <- function(coord,
                     n.knots  = NULL,
                     autofill = TRUE,
                     degree   = 3,
-                    sparse   = FALSE) {
+                    sparse   = FALSE,
+                    strategy = 'uniformgrid') {
   
   
   if (!requireNamespace("Matrix", quietly = TRUE)) {
@@ -37,9 +38,13 @@ splines <- function(coord,
                'and is required for sparse splines model. Please install'))
   }
   
+  strategy <- match.arg(strategy)
+  
   ## Coordinates of knots in each dimension
-  knots <- distribute_knots_uniformgrid(coord, n.knots, autofill)
-
+  if (strategy == 'uniformgrid') {
+    knots <- distribute_knots_uniformgrid(coord, n.knots, autofill)
+  }
+  
   # Compute incidence matrix B of tensor product of B-spline bases
   # need at least 2*ord -1 knots (typically, 7)
   # but in fact, we need at least 2*ord unless we set outer.ok = TRUE
@@ -151,6 +156,14 @@ distribute_knots_uniformgrid <- function (coord, n.knots, autofill) {
   # Return row and column knots in a list
   # as the numbers might be different
   knots <- mapply(add.knots, knots.inner, 3, obs.loc, SIMPLIFY = FALSE)
+  
+  # Include info about the strategy used as attributes
+  ans <- structure(knots,
+                   strategy = 'uniformgrid',
+                   n.knots = n.knots,
+                   autofill = TRUE)
+  
+  return(ans)
 }
 
 
