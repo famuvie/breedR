@@ -8,27 +8,49 @@ setOldClass(c('splines', 'spatial'))
 #' @export
 setMethod('coordinates', signature = 'breedR', 
           function(obj, ...) {
-            err_msg <- "This breedR object has no spatial structure.\n"
             # if( !obj$components$spatial ) {
             ## Watch out. It can be not spatial, but have coordinates
             ## assigned with coordinates <- 
-            if( is.null(obj$effects$spatial$sp$coord) ) {
-              ## If there is no explicit spatial structure
-              ## we can check for coordinates in the genetic effect
-              ## in case it was a competition model, which requires coords.
-              if( !obj$components$pedigree ) {
-                message(err_msg)
-                return(invisible(NULL))
-              } else {
-                if( exists('coord', obj$effects$genetic$gen) ) {
-                  return(obj$effects$genetic$gen$coord)
-                } else {
-                  message(err_msg)
-                  return(invisible(NULL))
-                }
-              }
+            
+            ## effect_groups in the list of effects
+            ## (all, after refactoring)
+            eg.idx <- vapply(obj$effects, inherits, TRUE, 'effect_group')
+            
+            ## Coordinates of each one (if any)
+            ## But only those with some 
+            coord.lst <- lapply(obj$effects[eg.idx], coordinates)
+            coord.lst <- coord.lst[vapply(coord.lst, length, 0) > 1]
+            
+            ## Non-refactored components:
+            cl2 <- list()
+            if (!is.null(obj$effects$spatial$sp$coord)) {
+              cl2 <- c(cl2, list(obj$effects$spatial$sp$coord))
             }
-            return(obj$effects$spatial$sp$coord)
+            if (!is.null(obj$effects$genetic$gen$coord)) {
+              cl2 <- c(cl2, list(obj$effects$genetic$gen$coord))
+            }
+            
+            ## Collected coordinates
+            coord.lst <- c(coord.lst, cl2)
+            
+            ## If none was found, give a message and return NULL
+            if (length(coord.lst) == 0) {
+              message("This breedR object has no spatial structure.\n")
+              return(invisible(NULL))
+            }
+            
+            ## If there are several sets of coordinates,
+            ## check that they are the same
+            if (length(coord.lst) > 1) {
+              if (!all.equal(coord.lst[1], coord.lst[-1]))
+                stop(paste('There are different coordinate sets in the model components.',
+                           'I do not know which one to use.'))
+            }
+            
+            ## Take the first element as a representative
+            coord.lst <- coord.lst[[1]]
+            
+            return(coord.lst)
           }
 )
 
