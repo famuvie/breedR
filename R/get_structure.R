@@ -18,30 +18,33 @@ get_structure.effect_group <- function(x) {
   ## get the incidence matrices for all the subeffects
   str.list <- lapply(x$effects, get_structure.breedr_effect)
 
-  ## all.equal applied to a list of elements
-  all.equalx <- function(x, ...) {
-    all(vapply(str.list[-1], all.equal, TRUE, str.list[[1]], ...))
-  }
-  
   ## confirm they have all the same structure
   if (nelem <- length(str.list) > 1) {
     str.types <- vapply(str.list, attr, '','type')
     
     ## Structure types can be either covariance or precision matrices
     legal.types <- c('covariance', 'precision')
-    stopifnot(all(unique(str.types)) %in% legal.types)
+    stopifnot(all(unique(str.types) %in% legal.types))
         
     if (length(unique(str.types)) == 1) {
       ## Compare matrices all of the same type
-      stopifnot(all.equalx(str.list))
+      stopifnot(all.equal(str.list[1], str.list[-1]))
     } else {
       ## Compare matrices of the corresponding types
-      stopifnot(all.equalx(str.list[str.types == 'covariance']))
-      stopifnot(all.equalx(str.list[str.types == 'precision']))
+      str.list.cov <- str.list[str.types == 'covariance']
+      str.list.prec <- str.list[str.types == 'precision']
+
+      if (length(str.list.cov) > 1)
+        stopifnot(all.equalx(str.list.cov[1], str.list.cov[-1]))
+      if (length(str.list.prec) > 1)
+        stopifnot(all.equalx(str.list.prec[1], str.list.prec[-1]))
       
       ## Compare one covariance with one inverted precision
-      stopifnot(all.equal(str.list[match('covariance', str.types)],
-                          solve(str.list[match('precision', str.types)])))
+      ## Converting to standard matrix format, as solving often 
+      ## results in a dense matrix
+      str.cov1 <- as(str.list.cov[[1]], 'matrix')
+      str.cov2 <- as(Matrix::solve(str.list.prec[[1]]), 'matrix')
+      stopifnot(all.equal(str.cov1, str.cov2))
     }
   }
   
