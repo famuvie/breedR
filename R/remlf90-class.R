@@ -768,13 +768,15 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
   
   type = match.arg(type)
   
-  coord <- try(coordinates(x), silent = TRUE)
-  if( inherits(coord, "try-error") ) {
+  if( is.null(coord <- coordinates(x)) ) {
     stop(paste('Missing spatial structure. Use coordinates(',
                deparse(substitute(x)),
                ') <- coord', sep = ''))
   }
-  
+
+  ## Otherwise, this should be a matrix of coordinates
+  coord <- as.matrix(coord)
+
   # Argument z is used for plotting a custom spatial variable
   if( !is.null(z) ) {
     z <- as.vector(z)
