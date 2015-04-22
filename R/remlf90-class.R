@@ -809,16 +809,24 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
       if( x$components$spatial ) {
         
         if( type == 'spatial' ) {
-          sfit <- model.matrix(x)$random$spatial %*% ranef(x)$spatial
-          spdat <- data.frame(coord,
-                              z = sfit,
-                              model = x$call$spatial$model)
+          value <- model.matrix(x)$random$spatial %*% ranef(x)$spatial
         } else {
-          spred <- as.vector(x$effects$spatial$sp$plotting$inc.mat %*% ranef(x)$spatial)
-          spdat <- data.frame(x$effects$spatial$sp$plotting$grid,
-                              z     = spred,
-                              model = x$call$spatial$model)
+          ## fullspatial case
+          if (inherits(x$effects$spatial, 'effect_group')) {
+            inc.mat <- model.matrix(x$effects$spatial, fullgrid = TRUE)
+            coord <- attr(inc.mat, 'coordinates')
+          } else {
+            ## Legacy non-refactored effects
+            inc.mat <- x$effects$spatial$sp$plotting$inc.mat
+            coord   <- x$effects$spatial$sp$plotting$grid
+          }
+          stopifnot(!is.null(coord))
+          value <- as.vector(inc.mat %*% ranef(x)$spatial)
         }
+        spdat <- data.frame(coord,
+                            z     = value,
+                            model = x$call$spatial$model)
+        
         
         p <- spatial.plot(spdat, scale = 'div') + facet_wrap(~ model)
       } else stop('This model has no spatial effect')

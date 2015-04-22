@@ -2,10 +2,10 @@
 #' @importMethodsFrom Matrix coerce
 
 #' @export 
-model.matrix.effect_group <- function(object) {
+model.matrix.effect_group <- function(object, ...) {
   
   ## get the incidence matrices for all the subeffects
-  mml <- lapply(object$effects, model.matrix.breedr_effect)
+  mml <- lapply(object$effects, model.matrix, ...)
   
   ## confirm they have all the same number of rows
   stopifnot(length(unique(vapply(mml, nrow, 0))) == 1)
@@ -15,6 +15,24 @@ model.matrix.effect_group <- function(object) {
   
   return(mm)
 }
+
+#' @export 
+model.matrix.splines <- function(object, fullgrid = FALSE) {
+
+  if (!fullgrid) return(model.matrix.breedr_effect(object))
+  
+  coord <- coordinates(object)
+  obs.loc <- loc_grid(coord, autofill = TRUE)
+  grid <- expand.grid(obs.loc, KEEP.OUT.ATTRS = FALSE)
+  
+  inc.mat <- bispline_incidence(object$knots,
+                                grid,
+                                object$degree + 1,
+                                sparse = TRUE)
+  ans <- structure(inc.mat,
+                   coordinates = grid)
+}
+
 
 #' @export 
 model.matrix.breedr_effect <- function(object, ...) {
