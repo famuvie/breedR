@@ -45,29 +45,7 @@ splines <- function(coord,
     knots <- distribute_knots_uniformgrid(coord, n.knots, autofill)
   }
   
-  # Compute incidence matrix B of tensor product of B-spline bases
-  # need at least 2*ord -1 knots (typically, 7)
-  # but in fact, we need at least 2*ord unless we set outer.ok = TRUE
-  # in splineDesign (which we do not want)
-  tensor <- function (knots, xx, ord, sparse) {
-    b.x <- splines::splineDesign(knots[[1]], xx[, 1], ord = ord)  #, sparse=TRUE)
-    b.y <- splines::splineDesign(knots[[2]], xx[, 2], ord = ord)  #, sparse=TRUE)
-    # The rgument sparse was introduced at some point between versions 2.15.0
-    # and 3.0.2 of the splines package.
-    # sparseness is useful but unnecessary. I prefer to keep this
-    # more widely compatible, and make things sparse myself.
-    if (sparse) {
-      b.x <- as(b.x, 'CsparseMatrix')
-      b.y <- as(b.y, 'CsparseMatrix')
-    }
-    
-    ones.y <- matrix(1, ncol = ncol(b.y))
-    ones.x <- matrix(1, ncol = ncol(b.x))
-    B <- suppressMessages(kronecker(b.x, ones.y)*kronecker(ones.x, b.y))
-    return(B)
-  }
-    
-  B <- tensor(knots, coord, degree + 1, sparse)
+  B <- bispline_incidence(knots, coord, degree + 1, sparse)
   
   # The sparse incidence matrix weights 3.5 less than the non-sparse version,
   # but it takes longer processing time. Besides, the gmean computation it also
@@ -176,7 +154,7 @@ distribute_knots_uniformgrid <- function (coord, n.knots, autofill) {
 #' @param rate a numeric vector of rates at which the number of knots increases with
 #'   the sample size
 #' @return An integer vector with the number of knots for each sample size
-#' @references Ruppert, D. (2002). Selecting the number of knots for penalized 
+#' @references \strong{Ruppert, D. (2002)}. Selecting the number of knots for penalized 
 #'   splines. \emph{Journal of Computational and Graphical Statistics} 11, 
 #'   735–757.
 determine.n.knots <- function(n, cutoff = 4, rate = 0.3) {
@@ -209,4 +187,41 @@ build.splines1d.sparse <- function(n, model = 'GreenSilverman2003') {
                             symmetric = TRUE)
   
   return(U)
+}
+
+#' Incidence Matrix of Bidimensional Splines
+#' 
+#' Compute the incidence matrix as a tensor product of B-spline bases, given the
+#' knots, coordinates and order.
+#' 
+#' Need at least 2*ord -1 knots (typically, 7) but in fact, we need at least 
+#' 2*ord unless we set outer.ok = TRUE in splineDesign (which we do not want)
+#' 
+#' @param knots list with numeric vectors of knot positions with non-decreasing 
+#'   values for each dimension
+#' @param xx 2-column matrix of coordinates at which to evaluate the 
+#'   bidimensional splines
+#' @param ord integer order of the spline functions (equals degree + 1)
+#' @param sparse logical indicating if the result should be given in sparse 
+#'   format
+#'   
+#' @references \strong{Eilers, P H C and B D Marx (2003)}. Multivariate calibration with
+#'   temperature interaction using two-dimensional penalized signal regression.
+#'   \emph{Chemometrics and Intelligent Laboratory Systems} 66(2), 159-174.
+bispline_incidence <- function (knots, xx, ord, sparse) {
+  b.x <- splines::splineDesign(knots[[1]], xx[, 1], ord = ord)  #, sparse=TRUE)
+  b.y <- splines::splineDesign(knots[[2]], xx[, 2], ord = ord)  #, sparse=TRUE)
+  # The rgument sparse was introduced at some point between versions 2.15.0
+  # and 3.0.2 of the splines package.
+  # sparseness is useful but unnecessary. I prefer to keep this
+  # more widely compatible, and make things sparse myself.
+  if (sparse) {
+    b.x <- as(b.x, 'CsparseMatrix')
+    b.y <- as(b.y, 'CsparseMatrix')
+  }
+  
+  ones.y <- matrix(1, ncol = ncol(b.y))
+  ones.x <- matrix(1, ncol = ncol(b.x))
+  B <- suppressMessages(kronecker(b.x, ones.y)*kronecker(ones.x, b.y))
+  return(B)
 }

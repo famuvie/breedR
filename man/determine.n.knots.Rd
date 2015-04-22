@@ -22,7 +22,7 @@ This function computes a reasonable number of inner knots to be used for a
 basis of unidimensional B-splines
 }
 \references{
-Ruppert, D. (2002). Selecting the number of knots for penalized
+\strong{Ruppert, D. (2002)}. Selecting the number of knots for penalized
   splines. \emph{Journal of Computational and Graphical Statistics} 11,
   735–757.
 }
