@@ -4,6 +4,8 @@ title: Joint training workshop on breedR and phenotypic plasticity
 permalink: /workshop/
 ---
 
+![T4F](../images/Logo-t4f.png)
+*This workshop is organised with funds from the European Union’s Seventh Framework Programme for research, technological development and demonstration under grant agreement n° 284181 (“Trees4Future”)*
 
 June 30 – July 3 2015
 
