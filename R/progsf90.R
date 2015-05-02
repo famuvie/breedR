@@ -454,7 +454,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   colnames(sol.file) <- c('trait', 'effect', 'level', 'value', 's.e.')
   
   # Assuming one trait only
-  result <- by(sol.file[,4:5], sol.file$effect, identity)
+  result <- split(sol.file[, c('value', 's.e.')], sol.file$effect)
   
   # Different results can be associated to a single (group) effect
   effect.size <- function(x) ifelse(exists('var', x),
