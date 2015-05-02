@@ -22,8 +22,8 @@ install_github('famuvie/breedR', ref = github_release())
 {% endhighlight r %}
 
 ### Getting started
-- Check our Overview [slides](doc/Overview.html)
 - Check the [breedR-wiki](https://github.com/famuvie/breedR/wiki)
+- ... particularly, the [Overview](https://github.com/famuvie/breedR/wiki/Overview) ([pdf](https://github.com/famuvie/breedR/wiki/Overview.pdf))
 
 {% highlight r %}
 library(breedR)             # Load the package
