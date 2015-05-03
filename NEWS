@@ -1,3 +1,9 @@
+breedR 0.9
+==========
+
+* New 'generic' model component allows passing a list of arbitrary incidence and covariance/precision matrices
+
+
 breedR 0.8
 ==========
 

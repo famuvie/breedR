@@ -1,0 +1,655 @@
+---
+title: "Additive Genetic Models in Mixed Populations"
+author: "Facundo Muñoz"
+date: '`r paste(Sys.Date(), 'breedR version:', packageVersion('breedR'))`'
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_height: 3
+    fig_width: 4
+    number_sections: yes
+    toc: yes
+    toc_depth: 1
+  md_document:
+    toc: yes
+    toc_depth: 1
+    variant: markdown_github
+vignette: >
+  %\VignetteIndexEntry{Additive Genetic Models in Mixed Populations}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+  \usepackage{amsmath}
+---
+
+```{r setup-knitr, include=FALSE, purl=FALSE, eval = FALSE}
+library(knitr)
+opts_chunk$set(echo       = TRUE,
+               message    = TRUE,
+               warning    = TRUE,
+#                comment    = NA,
+               fig.width  = 4,
+               fig.height = 3,
+               cache      = TRUE)
+```
+
+```{r setup-parallel-computing}
+library(doParallel)
+cl <- makeCluster(8)
+registerDoParallel(cl)
+```
+
+
+```{r functions}
+
+## Given named vectors with the number of individuals by population
+## and their corresponding population variances, return a dataframe
+## with and id, the population index and a simulated Breeding Value
+sample_founders <- function(n.founders, sigma2) {
+  
+  stopifnot(identical(names(n.founders), names(sigma2)))
+  nms <- names(n.founders)
+  
+  cfapply <- function(fun) do.call('c', lapply(nms, fun))
+  
+  founders <- data.frame(id = cfapply(function(x) paste0(x, 1:n.founders[x])),
+                         pop.idx = cfapply(function(x) rep(match(x, nms), n.founders[x])),
+                         BV = cfapply(function(x) rnorm(n.founders[x], sd = sqrt(sigma2[x]))))
+  return(founders)
+}
+
+sample_dat <- function (n.founders, sigma2, n.obs) {
+
+  ## The 'family' is independent of the order of the parents
+  ## While the population only takes into account the origin
+  ## e.g. cross2fam(c('J3', 'E1')) gives 'E1:J3'
+  ## while cross2pop(c('J3', 'E1')) gives 'EJ'
+  cross2fam <- function(x) paste(founders$id[sort(x)], collapse = ':')
+  cross2pop <- function(x) paste(names(n.founders)[founders$pop.idx[sort(x)]], collapse = '')
+  
+  
+  founders <- sample_founders(n.founders, sigma2[names(n.founders)])
+  
+  ## A balanced design with no self-crossings
+  ## The observed problems are not due to diagonals, though.
+  #   n.reps <- 20
+  #   crossings <- which(lower.tri(matrix(TRUE, nrow(founders), nrow(founders))), arr.ind = TRUE, useNames = FALSE)
+  #   obs.parents.idx <- crossings[rep(1:nrow(crossings), each = n.reps), ]
+  #   n.obs <- nrow(obs.parents.idx)
+  
+  ## Simulate crossings (random)
+  # n.obs <- sum(n.founders)*150
+  obs.parents.idx <- matrix(sample(nrow(founders), 2*n.obs, replace = TRUE), ncol = 2)
+  
+  dat <- data.frame(
+    id  = sum(n.founders) + seq.int(n.obs),
+    dad = obs.parents.idx[, 1],
+    mum = obs.parents.idx[, 2],
+    fam = apply(obs.parents.idx, 1, cross2fam),
+    sp  = apply(obs.parents.idx, 1, cross2pop),
+    bv  = apply(obs.parents.idx, 1, 
+                function(x) mean(founders$BV[x]) + msp(x)),
+    resid = rnorm(n.obs, sd = sqrt(sigma2['resid'])))
+  
+  dat <- transform(dat,
+                   y = bv + resid)
+  return(dat)
+}
+
+## Mendelian sampling term
+## For self-polinated crossings, this should be smaller.
+msp <- function(x) {
+  ss <- sigma2[founders$pop.idx[x]]
+  s2 <- (ss[1] + ss[2])/4
+  rnorm(1, sd = sqrt(s2))
+}
+
+## Give the index vector of additive-genetic random effects
+## that belong to one subpopulation;
+## 'E', 'J' (founders) or 'EE', 'EJ' or 'JJ' (offspring).
+idx_pop <- function(x) {
+  if (nchar(x) == 1) grep(x, founders$id)
+  else
+    match(dat$id[dat$sp == x], as.data.frame(ped)$self)
+}
+```
+
+Full diallel trial with founders from two different base populations E and J
+
+```{r diallel-setup, warning = FALSE}
+## Setup
+library(breedR)
+library(ggplot2)
+set.seed(1)
+
+## Simulation parameters
+n.founders <- c(E = 9, J = 9)
+sigma2 <- c(E = 9, J = 6, resid = 1)
+n.obs  <- 3000
+
+founders <- sample_founders(n.founders, sigma2[names(n.founders)])
+dat <- sample_dat(n.founders, sigma2, n.obs)
+
+## Check: variability of the realised blups of hybrids
+# sv <- sapply(1:1e2, function(x) {dat <- sample_dat(); var(dat$bv[dat$sp=='EJ'])})
+# hist(sv)
+
+## Printing simulated setting
+print(table(dat[, c('mum', 'dad')]), zero.print = "")
+str(dat)
+```
+
+
+There will be two independent additive-genetic variance models for the  J  and  E  populations.
+Each variance component will be estimated using the *pure* offspring only.
+
+```{r overall-genetic-structure}
+
+## Build a pedigree for the whole mixed population
+## and get the kinship matrix A
+ped <- build_pedigree(1:3, data = dat)
+A <- pedigreemm::getA(ped)
+
+## Build the full incidence matrix
+Z <- as(dat$id, 'indMatrix')
+```
+
+
+## Method 1: Hybrids as an independent population
+
+This is the easiest way to go.
+It works as a first approximation, but has several shortcommings.
+
+It needs to estimate one *virtual* variance for the hybrid population which is not linked to any genetic variance in the *real world*.
+Moreover, we don't use the hybrid observations to learn about the two varainces that really matter: $\sigma 2_E$ and $\sigma 2_J$
+
+The advantage is that it predicts the Breeding Values of the hybrid offspring.
+However, the accuracy may be limited by the violation of the *single population* hypothesis of the model.
+
+```{r fit1}
+## Avoid estimating BLUPS for which we don't have information
+## Otherwise, the run takes much longer (5 hs vs 6 min in this example)
+
+
+## A[idx_pop('EE'), idx_pop('JJ')]  # This is null: populations are independent
+Z_EE <- Z[, idx_pop('EE')]
+Z_EJ <- Z[, idx_pop('EJ')]
+Z_JJ <- Z[, idx_pop('JJ')]
+
+A_EE <- A[idx_pop('EE'), idx_pop('EE')]
+A_EJ <- A[idx_pop('EJ'), idx_pop('EJ')]
+A_JJ <- A[idx_pop('JJ'), idx_pop('JJ')]
+
+## Now fit a model with three additive-genetic compnents, 
+## by means of generic effects (as only one 'genetic' is allowed in breedR)
+
+res1 <- remlf90(y ~ sp,
+                generic = list(
+                  E = list(incidence  = Z_EE,
+                           covariance = A_EE),
+                  J = list(incidence  = Z_JJ,
+                           covariance = A_JJ),
+                  H = list(incidence  = Z_EJ,
+                           covariance = A_EJ)),
+                data = dat
+)
+```
+
+
+```{r fit1-summary}
+summary(res1)
+```
+
+
+```{r fit1-predicted-breeding-values}
+PBV <- as.matrix(cbind(Z_EE, Z_JJ, Z_EJ)) %*%
+  do.call('rbind', lapply(ranef(res1), function(x) cbind(PBV = x, se = attr(x, 'se'))))
+
+ggplot(cbind(dat, PBV), aes(bv, PBV)) +
+  geom_point() +
+  geom_abline(int = 0, sl = 1, col = 'darkgray')
+```
+
+
+## Method 2: GCA/SCA model for hybrids
+
+Another approach is to model hybrids with GCAs and SCAs, with additional variance parameters.
+The additive component of the genetic variances for the E and J populations is half the population variance.
+But these parameters will also gather dominance and epistasis effects.
+
+However, we don't take advantage of the known relationship between the additive components by treating them as independent parameters.
+Furthermore, we don't use the relationship between hybrids and pures to learn about the original genetic variances.
+Nor even within hybrids, as we treat SCA as an unstructured effect, while there are both half and full siblings.
+
+
+
+```{r fit2}
+## We only want to apply 'dad', 'mum' and 'sca' effects to hybrids,
+## and make it zero for non-hybrids. We do so by pre-multiplying by a 
+## diagonal indicator matrix
+Ind <- diag(dat$sp == 'EJ')
+
+## Build a specific incidence matrices for generic random effects
+Z_dad <- Ind %*% as(dat$dad, 'indMatrix')
+Z_mum <- Ind %*% as(dat$mum, 'indMatrix')
+Z_sca <- Ind %*% as(as.numeric(dat$fam), 'indMatrix')
+
+## The structure variances are diagonal
+D <- diag(sum(n.founders))
+
+res2 <- remlf90(y ~ sp,
+                generic = list(
+                  E = list(incidence  = Z_EE,
+                           covariance = A_EE),
+                  J = list(incidence  = Z_JJ,
+                           covariance = A_JJ),
+                  dad = list(incidence = Z_dad,
+                             covariance = D),
+                  mum = list(incidence = Z_mum,
+                             covariance = D),
+                  sca = list(incidence = Z_sca,
+                             covariance = diag(nlevels(dat$fam)))),
+                data = transform(dat)
+)
+```
+
+```{r fit2-summary}
+summary(res2)
+```
+
+
+```{r fit2-predicted-breeding-values}
+PBV <- as.matrix(cbind(Z_EE, Z_JJ, Z_dad, Z_mum, Z_sca)) %*%
+  do.call('rbind', lapply(ranef(res2), function(x) cbind(PBV = x, se = attr(x, 'se'))))
+
+ggplot(cbind(dat, PBV), aes(bv, PBV)) +
+  geom_point() +
+  geom_abline(int = 0, sl = 1, col = 'darkgray')
+```
+
+
+This approach does not work very well.
+Much of the variation has not been adequately accounted for, and ended up in the residuals.
+May be there is some misspecification in the model.
+
+
+## Method 3: grid search
+
+The difficulty of the problem resides that we cannot estimate two variance parameters at the same time.
+If we split the matrix $A$ in blocks corresponding to each subpopulation, we can write the covariance matrix for the mixture as
+\begin{equation}
+  \begin{split}
+    \Sigma & =
+    \begin{bmatrix}
+      \sigma^2_E A_{E}    & \mathbf{0}        & \sigma^2_E A_{E:EE} & \frac{3\sigma^2_E + \sigma^2_J}{4} A_{E:H} & \mathbf{0} \\
+      \mathbf{0}          & \sigma^2_J A_{J}  & \mathbf{0} & \frac{\sigma^2_E + 3\sigma^2_J}{4} A_{J:H} & \sigma^2_J A_{J:JJ} \\
+      \sigma^2_E A_{E:EE} & \mathbf{0}        & \sigma^2_E A_{EE} & \frac{3\sigma^2_E + \sigma^2_J}{4} A_{EH} & \mathbf{0} \\
+      \frac{3\sigma^2_E + \sigma^2_J}{4} A_{E:H} & \frac{\sigma^2_E + 3\sigma^2_J}{4} A_{J:H} & \frac{3\sigma^2_E + \sigma^2_J}{4} A_{HE} & \frac{\sigma^2_E + \sigma^2_J}{2} A_{HH} & \frac{\sigma^2_E + 3\sigma^2_J}{4} A_{HJ} \\
+      \mathbf{0}          & \sigma^2_J A_{J:JJ} & \mathbf{0} & \frac{\sigma^2_E + 3\sigma^2_J}{4} A_{JH} & \sigma^2_J A_{JJ} \\
+    \end{bmatrix} \\
+    & = \sigma^2_E
+    \begin{bmatrix}
+       A_{E}      & \mathbf{0}  &  A_{E:EE}   & \frac{3 + \lambda}{4} A_{E:H}  & \mathbf{0} \\
+      \mathbf{0}  &  \lambda A_{J}      & \mathbf{0}  & \frac{1 + 3\lambda}{4} A_{J:H}  & \lambda A_{J:JJ} \\
+       A_{E:EE} & \mathbf{0}        & A_{EE} & \frac{3 + \lambda}{4} A_{EH} & \mathbf{0} \\
+      \frac{3 + \lambda}{4} A_{E:H} & \frac{1 + 3\lambda}{4} A_{J:H} & \frac{3 + \lambda}{4} A_{HE} & \frac{1 + \lambda}{2} A_{HH} & \frac{1 + 3\lambda}{4} A_{HJ} \\
+      \mathbf{0}          & \lambda A_{J:JJ} & \mathbf{0} & \frac{1 + 3\lambda}{4} A_{JH} & \lambda A_{JJ} \\
+    \end{bmatrix},
+  \end{split}
+\end{equation}
+where $\lambda = \frac{\sigma^2_J}{\sigma^2_E}$.
+
+However, if we are not interested in evaluating the parents, we can disregard the first two block rows and columns from the matrix.
+
+Now, fit the model for several values of $\lambda$ and maximize the likelihood.
+
+```{r likelihood-profiling}
+
+## Introduce the corresponding scaling factors 
+## in the relationship matrix
+scale_A <- function(x) {
+
+  A <- pedigreemm::getA(ped)
+  
+  ## The pure E subpopulations remains the same
+  S <- A
+  E.idx <- c(idx_pop('E'), idx_pop('EE'))
+  
+  ## The pure J subpopulations get multiplied by lambda
+  J.idx <- c(idx_pop('J'), idx_pop('JJ'))
+  S[J.idx, J.idx] <- A[J.idx, J.idx] * x
+  
+  ## The hybrids related wuth pure E get a factor of (3+lambda)/4
+  S[idx_pop('EJ'), E.idx] <- A[idx_pop('EJ'), E.idx] * (3+x)/4
+  S[E.idx, idx_pop('EJ')] <- A[E.idx, idx_pop('EJ')] * (3+x)/4
+  
+  ## The hybrids related wuth pure J get a factor of (1+3*lambda)/4
+  S[idx_pop('EJ'), J.idx] <- A[idx_pop('EJ'), J.idx] * (1+3*x)/4
+  S[J.idx, idx_pop('EJ')] <- A[J.idx, idx_pop('EJ')] * (1+3*x)/4
+
+  ## Finally, the hybrids related with other hybrids get a factor of (1+lambda)/2
+  S[idx_pop('EJ'), idx_pop('EJ')] <- A[idx_pop('EJ'), idx_pop('EJ')] * (1+x)/2
+
+  return(S)
+}
+
+## Condicional likelihood given lambda
+cond_lik <- function(x) {
+  require(breedR)
+  ## Conditional structure matrix
+  S <- scale_A(x)
+  
+  #   ## Temporarily, let's use only the pure pops
+  #   idx <- c(idx_pop('EE'), idx_pop('JJ'))
+  idx <- -c(idx_pop('E'), idx_pop('J'))  # exclude founders
+  
+  suppressWarnings(
+    res <- remlf90(y ~ sp,
+                   generic = list(
+                     E = list(incidence  = Z[, idx],
+                              covariance = S[idx, idx])),
+                   data = dat
+    )
+  )
+  logLik(res)
+}
+
+lambda <- seq(.3, 1, length.out = 11)
+
+# lik <- sapply(lambda, cond_lik)  # (sequential)
+lik <- foreach(x = seq.int(lambda), .combine = c) %dopar% cond_lik(lambda[x])
+
+ggplot(data.frame(lambda, lik)[6:11,], aes(lambda, lik)) + 
+  geom_line()
+```
+
+This one works well.
+But for some reason, when I include the hybrids, for lambdas below about 0.58 all the variance is accounted for residual variance.
+
+There must be something wrong somewhere. May be the simulation of the Breeding Values is not correct?
+
+Analogously, if I include only the hybrid subpopulation, it also works quite well, identifying the base variance.
+
+
+```{r fit3}
+
+## Take lambda maximizing the likelihood
+lambda0 <- lambda[which.max(lik)]
+
+S <- scale_A(lambda0)
+
+## Temporarily, let's use only the pure pops
+idx <- c(idx_pop('EE'), idx_pop('JJ'))
+
+# ## Remove the founders, which I don't want to evaluate
+# idx <- -(1:sum(n.founders))
+
+res <- remlf90(y ~ sp,
+               generic = list(
+                 E = list(incidence  = Z[dat$sp != 'EJ', idx],
+                          covariance = S[idx, idx])),
+               data = dat[dat$sp != 'EJ', ]
+)
+
+res3 <- remlf90(y ~ 1,
+                generic = list(
+                  E = list(incidence  = Z[,-(1:18)],
+                           covariance = S[-(1:18), -(1:18)],
+                           var.ini = 3)),
+                var.ini = list(resid = 1),
+                data = dat)
+
+```
+
+
+```{r fit3-summary}
+summary(res3)
+```
+
+Lambda was maximized at `r lambda0`, giving an estimated additive-genetic variance for the `J` population of `r round(res3$var['E', 1]*lambda0,2)`.
+
+```{r fit3-predicted-breeding-values}
+PBV <- as.matrix(Z[dat$sp != 'EJ', idx]) %*%
+  do.call('rbind', lapply(ranef(res3), function(x) cbind(PBV = x, se = attr(x, 'se'))))
+
+ggplot(cbind(dat[dat$sp != 'EJ', ], PBV), aes(bv, PBV)) +
+  geom_point() +
+  geom_abline(int = 0, sl = 1, col = 'darkgray')
+```
+
+
+
+## Trying to identify the problem
+
+For low values of $\lambda$, the model favours the residual component rather than the structured random effect.
+I believe this might be due to some misspecification of the model, or error in the simulation of data.
+
+Hoever, the following results show that the simulated data are compatible with the assumed model.
+
+It is not a matter of the initial variance. 
+I have tried specifying the true variances as initial values, and the problem persists.
+
+It is not a matter of the null fixed effects.
+I have tried specifying only an intercept, and the problem persists.
+
+It is not a matter of variance magnitudes.
+I have tried specifying variances of 9, 6 and 1 for E, J and residuals respectively, and the problem persists.
+
+It is not a matter of unbalanced sampling.
+I have designed a balanced simulation, and the problem persists.
+
+It is not a problem of misspecification of the Mendelian Sampling Term for self-crossings.
+In effect, it is not exactly how we defined it. But I excluded the self-cronssings from the desing, and the problem persists.
+
+It is not a problem of including the founders in the effect.
+I have tried using only the observed blocks of both the incidence and covariance matrix, and the problem persists.
+
+```{r detecting-outliers}
+
+## Which of the simulated BVs are most incompatible
+## with the assumed covariance matrix S?
+
+## Set each simulated BV to its marginal mean (0)
+## and measure the Mahalanobis distance between the 
+## modified vector of BVs to the actually observed.
+## This equals the BV in question times the square root
+## of the element in the corresponding position of the
+## precision matrix.
+## The BVs with higher distance to the mean are the 
+## most uncompatible.
+
+lambda0 <- 2/3
+
+ped <- build_pedigree(1:3, data = dat)
+A <- pedigreemm::getA(ped)
+S <- scale_A(lambda0)
+
+## Marginalize observed variables only, and scale
+Sigma <- sigma2['E']*S[-(1:sum(n.founders)), -(1:sum(n.founders))]
+Q <- solve(Sigma)  ## This is very unstable!! (A is very ill-conditioned)
+
+md <- dat$bv * sqrt(diag(Q))
+
+plot(md, pch = 20)
+hist(md, prob = TRUE)
+curve(dnorm(x, mean = 0, sd = sqrt(var(md))),
+     add = TRUE)
+qqnorm(md, pch = 20)
+qqline(md)
+
+ggplot(cbind(dat, md), aes(md, fill = sp)) + 
+  geom_density(alpha = 0.4)
+```
+
+
+
+```{r comparing-likelihoods, eval = FALSE}
+## This does not work well:
+## Usually det(Q) equals 0, because of malconditioning
+## and its logarithm goes to infinity.
+dat <- sample_dat(n.founders, sigma2, n.obs = 100)
+
+loglik <- function(x, sigmaE, lambda0, data = dat) {
+  ped <- breedR::build_pedigree(1:3, data = dat)
+  S <- sigmaE * scale_A(lambda0)[-(1:18), -(1:18)]
+  Q <- solve(S)
+
+  k <- length(x)
+
+  x %*% Q %*% x - log(det(Q))/2 - k*log(2*pi)/2
+}
+
+lik <- foreach(lmb = lambda) %dopar% lambda
+  foreach(s2e = 1:15) %dopar% loglik(dat$bv, s2e, lmb, dat)
+
+sapply(lambda0,
+       function(lmb) sapply(1:,
+                            function(s2e)))
+dat$bv %*% Q %*% dat$bv
+dat$bv %*% diag(nrow(dat)) %*% dat$bv
+```
+
+
+
+Can be a problem of malconditioned covariance Matrix.
+Already, A is quite ill-conditioned.
+When scaling with $\lambda$ small, the condition gets worse.
+
+May a solution be using the smaller variance as a reference, so that $\lambda$ is always greater than 1?
+This does not help. It only reverses the problem so that the condition gets worse for higher $\lambda$.
+
+In summary, it seems to be a problem of malconditioning, which worsens for ratios of variances $\lambda$ more extremes than the true ration.
+Furthermore, it must have something to do with the relationship between *hybrids* and *pures*, for when these are excluded, everything works fine, even for extreme values of $\lambda$
+
+```{r likelihood-profiling-the-other-way-around}
+
+## Introduce the corresponding scaling factors 
+## in the relationship matrix
+revscale_A <- function(x) {
+
+  A <- pedigreemm::getA(ped)
+  
+  ## The pure E subpopulations get multiplied by tau
+  S <- A
+  E.idx <- c(idx_pop('E'), idx_pop('EE'))
+  S[E.idx, E.idx] <- A[E.idx, E.idx] * x
+  
+  ## The pure J subpopulations remains the same
+  J.idx <- c(idx_pop('J'), idx_pop('JJ'))
+  
+  ## The hybrids related wuth pure E get a factor of (3*tau+1)/4
+  S[idx_pop('EJ'), E.idx] <- A[idx_pop('EJ'), E.idx] * (3*x+1)/4
+  S[E.idx, idx_pop('EJ')] <- A[E.idx, idx_pop('EJ')] * (3*x+1)/4
+  
+  ## The hybrids related wuth pure J get a factor of (tau+3)/4
+  S[idx_pop('EJ'), J.idx] <- A[idx_pop('EJ'), J.idx] * (x+3)/4
+  S[J.idx, idx_pop('EJ')] <- A[J.idx, idx_pop('EJ')] * (x+3)/4
+
+  ## Finally, the hybrids related with other hybrids get a factor of (1+lambda)/2
+  S[idx_pop('EJ'), idx_pop('EJ')] <- A[idx_pop('EJ'), idx_pop('EJ')] * (x+1)/2
+
+  return(S)
+}
+
+## Condicional likelihood given lambda
+revcond_lik <- function(x) {
+  require(breedR)
+  ## Conditional structure matrix
+  S <- revscale_A(x)
+  
+  #   ## Temporarily, let's use only the pure pops
+  #   idx <- c(idx_pop('EE'), idx_pop('JJ'))
+  idx <- -c(idx_pop('E'), idx_pop('J'))  # exclude founders
+  
+  suppressWarnings(
+    res <- remlf90(y ~ sp,
+                   generic = list(
+                     J = list(incidence  = Z[, idx],
+                              covariance = S[idx, idx])),
+                   data = dat
+    )
+  )
+  logLik(res)
+}
+
+tau <- seq(1, 2, length.out = 11)
+
+# lik <- sapply(lambda, cond_lik)  # (sequential)
+lik <- foreach(x = tau, .combine = c) %dopar% cond_lik(x)
+
+ggplot(data.frame(tau, lik)[6:11,], aes(tau, lik)) + 
+  geom_line()
+```
+
+
+## Recalculating the covariance for the hybrid-pure relationships by simulation
+
+```{r sim-cov}
+
+sample_bv <- function(sigma2) {
+  ## Simulate two parents from E
+  ## take the second, and simulate another parent from J
+  x <- rnorm(2, sd = sqrt(sigma2['E']))
+  y <- c(x[2], rnorm(1, sd = sqrt(sigma2['J'])))
+  
+  ## Compute BVs of half-sibs with mean-parents and MST
+  xx <- mean(x) + rnorm(1, sd = sqrt(sigma2['E']/2))
+  yy <- mean(y) + rnorm(1, sd = sqrt(sum(sigma2[c('E', 'J')])/4))
+  
+  return(c(xx, yy))
+}
+
+simbvs <- foreach(x = 1:1e4, .combine = 'rbind') %dopar% sample_bv(sigma2)
+cov(simbvs)
+
+```
+
+The variance of the E is $\sigma^2_E = 9$, as expected.
+The variance of the hybrid is $\frac{\sigma^2_E + \sigma^2_J}{2} = 7.5$, as also expected.
+However, their covariance as half-sibs seems not to be $\frac14 \frac{3 \sigma^2_E + \sigma^2_J}{4} = 2.0625$ as was introduced in the model, but is rather close to $\frac14 \sigma^2_E = 2.25$.
+
+
+## A new model for scaling the relationship matrix
+
+```{r likelihood-profiling-the-other-way-around}
+
+## Introduce the corresponding scaling factors 
+## in the relationship matrix
+rescale_A <- function(x) {
+
+  A <- pedigreemm::getA(ped)
+  
+  ## The pure E subpopulations get multiplied by tau
+  S <- A
+  E.idx <- c(idx_pop('E'), idx_pop('EE'))
+  S[E.idx, E.idx] <- A[E.idx, E.idx] * x
+  
+  ## The pure J subpopulations remains the same
+  J.idx <- c(idx_pop('J'), idx_pop('JJ'))
+  
+  ## The hybrids related wuth pure E get a factor of tau
+  S[idx_pop('EJ'), E.idx] <- A[idx_pop('EJ'), E.idx] * x
+  S[E.idx, idx_pop('EJ')] <- A[E.idx, idx_pop('EJ')] * x
+  
+  ## The hybrids related wuth pure J remain the same
+  S[idx_pop('EJ'), J.idx] <- A[idx_pop('EJ'), J.idx] 
+  S[J.idx, idx_pop('EJ')] <- A[J.idx, idx_pop('EJ')] 
+
+  ## Finally, the hybrids related with other hybrids get a factor of (1+tau)/2
+  S[idx_pop('EJ'), idx_pop('EJ')] <- A[idx_pop('EJ'), idx_pop('EJ')] * (x+1)/2
+
+  return(S)
+}
+
+S <- rescale_A(1.5)
+idx <- -c(idx_pop('E'), idx_pop('J'))  # exclude founders
+res <- remlf90(y ~ sp,
+               generic = list(
+                 J = list(incidence  = Z[, idx],
+                          covariance = S[idx, idx])),
+               data = dat
+)
+
+summary(res)
+```
+
+Still...
