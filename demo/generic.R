@@ -87,15 +87,10 @@ system.time(
                                      n.knots = c(7, 7)), 
                       data = globulus,
                       method = 'em')
-)  # ~ 32
+)  # ~ 6 s
 
 spl.inc <- model.matrix(res.spl)$random$spatial
-spl.cov <- with(res.spl$effects$spatial$sp,
-                Matrix::spMatrix(nrow = ncol(spl.inc),
-                                 ncol = ncol(spl.inc),
-                                 i = U[, 1],
-                                 j = U[, 2],
-                                 x = U[, 3]))
+spl.cov <- get_structure(res.spl)$spatial
 
 system.time(
   res.spl2  <- remlf90(fixed  = phe_X ~ gg,
@@ -104,7 +99,7 @@ system.time(
                                                  spl.cov)), 
                        data = globulus,
                        method = 'em')
-)  # ~ 6 s!!! 5 times faster!
+)  # ~ 6 s
 
 all.equal(res.spl, res.spl2, check.attributes = FALSE)
 

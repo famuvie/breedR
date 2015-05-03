@@ -1,3 +1,15 @@
+#' Covariance structure of a breedR component
+#' 
+#' This generic function returns the covariance or precision matrix of a breedR 
+#' random effect or a group of effects.
+#' 
+#' For \code{effect_group}s, it returns the common structure of all the elements
+#' in the group.
+#' 
+#' @param x A \code{breedr_effect}.
+#'   
+get_structure <- function(x) UseMethod('get_structure')
+
 #' Type of a (group of) effect(s)
 #' 
 #' Generic function that returns whether an effect or a group of effects in a
@@ -12,6 +24,8 @@ effect_type <- function(x) UseMethod('effect_type')
 #' This is an intenal function. Not exported.
 #' 
 #' @param x object of class breedr_modelframe, effect_group or breedr_effect.
+#' @return The number of levels and type for each 'virtual' effect; the progsf90
+#'   model-name as appropriate; a file name and its content.
 #' @family renderpf90
 renderpf90 <- function(x) UseMethod('renderpf90')
 
