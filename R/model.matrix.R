@@ -2,10 +2,10 @@
 #' @importMethodsFrom Matrix coerce
 
 #' @export 
-model.matrix.effect_group <- function(object) {
+model.matrix.effect_group <- function(object, ...) {
   
   ## get the incidence matrices for all the subeffects
-  mml <- lapply(object$effects, model.matrix.breedr_effect)
+  mml <- lapply(object$effects, model.matrix, ...)
   
   ## confirm they have all the same number of rows
   stopifnot(length(unique(vapply(mml, nrow, 0))) == 1)
@@ -15,6 +15,24 @@ model.matrix.effect_group <- function(object) {
   
   return(mm)
 }
+
+#' @export 
+model.matrix.splines <- function(object, fullgrid = FALSE) {
+
+  if (!fullgrid) return(model.matrix.breedr_effect(object))
+  
+  coord <- coordinates(object)
+  obs.loc <- loc_grid(coord, autofill = TRUE)
+  grid <- expand.grid(obs.loc, KEEP.OUT.ATTRS = FALSE)
+  
+  inc.mat <- bispline_incidence(object$knots,
+                                grid,
+                                object$degree + 1,
+                                sparse = TRUE)
+  ans <- structure(inc.mat,
+                   coordinates = grid)
+}
+
 
 #' @export 
 model.matrix.breedr_effect <- function(object, ...) {
@@ -108,24 +126,30 @@ model.matrix.remlf90 <- function (object, ...) {
   }
   
   ## mm for spatial effects
-  if( object$components$spatial ) {
+  ## Remove after refactoring
+  if (object$components$spatial) {
     
-    Z <- object$effects$spatial$sp$B
-    
-    if( !is.matrix(Z) ) {  # case AR or blocks
-      ## The number of columns of the incidence matrix must be 
-      ## taken from the size of the random effect
-      nc <- max(object$effects$spatial$sp$U[,1])
-      if( max(Z) > nc)
-        stop('Incompatible dimensions between the incidence and covariance matrices in the spatial effect.')
+    ## Only for not-yet refactored objects
+    if (!inherits(object$effects$spatial, 'effect_group')) {
       
-      Z <- as(list(Z, nc), 'indMatrix')
+      Z <- object$effects$spatial$sp$B
+      
+      if( !is.matrix(Z) & !inherits(Z, 'Matrix')) {  # case AR or blocks
+        ## The number of columns of the incidence matrix must be 
+        ## taken from the size of the random effect
+        nc <- max(object$effects$spatial$sp$U[,1])
+        if( max(Z) > nc)
+          stop('Incompatible dimensions between the incidence and covariance matrices in the spatial effect.')
+        
+        Z <- as(list(Z, nc), 'indMatrix')
+      }
+      random$spatial <- Z
     }
-    random$spatial <- Z
   }
   
   ## mm for refactored effects
   rf.idx <- vapply(object$effects, inherits, TRUE, 'effect_group')
+  
   if (any(rf.idx)) {
     rf.mm <- lapply(object$effects[rf.idx], model.matrix.effect_group)
     random <- c(random,

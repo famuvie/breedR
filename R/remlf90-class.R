@@ -751,59 +751,6 @@ nobs.remlf90 <- function (object, ...) {
 }
 
 
-# sp::coordinates() is an S4 function
-# Register the S3 class 'breedR' as an S4 class
-setOldClass('breedR')
-#' @importFrom methods setOldClass setMethod
-#' @export
-setMethod('coordinates', signature = 'breedR', 
-          function(obj, ...) {
-            err_msg <- "This breedR object has no spatial structure.\n"
-            # if( !obj$components$spatial ) {
-              ## Watch out. It can be not spatial, but have coordinates
-              ## assigned with coordinates <- 
-            if( is.null(obj$effects$spatial$sp$coord) ) {
-              ## If there is no explicit spatial structure
-              ## we can check for coordinates in the genetic effect
-              ## in case it was a competition model, which requires coords.
-              if( !obj$components$pedigree ) {
-                message(err_msg)
-                return(invisible(NULL))
-              } else {
-                if( exists('coord', obj$effects$genetic$gen) ) {
-                  return(obj$effects$genetic$gen$coord)
-                } else {
-                  message(err_msg)
-                  return(invisible(NULL))
-                }
-              }
-            }
-            return(obj$effects$spatial$sp$coord)
-          }
-)
-
-#' @export
-setMethod('coordinates<-', signature = 'breedR', 
-          function(object, value) {
-            # sp::coordinates() performs some sanity checks
-            # like coords to be positive integers, not NA, etc.
-            cc <- as.data.frame(sp::coordinates(value))
-            if( !object$components$spatial ) {
-              object$effects$spatial <- list(name = 'none',
-                                             sp = list(coord = cc))
-              # Now it is a "spatial" object, although there is no
-              # spatial model.
-              # Not a good idea. It then confuses other methods that assume
-              # that if it is 'spatial' then it has further things like
-              # an incidence matrix (e.g. model.matrix)
-              # object$components$spatial = TRUE
-            } else {
-              object$effects$spatial$sp$coord = cc
-            }
-            return(object)
-          }
-)
-
 
 #' Spatial plot of a model's fit components
 #' 
@@ -821,13 +768,15 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
   
   type = match.arg(type)
   
-  coord <- coordinates(x)
-  if( is.null(coord) ) {
+  if( length(coord <- coordinates(x)) == 0) {
     stop(paste('Missing spatial structure. Use coordinates(',
                deparse(substitute(x)),
                ') <- coord', sep = ''))
   }
-  
+
+  ## Otherwise, this should be a matrix of coordinates
+  coord <- as.matrix(coord)
+
   # Argument z is used for plotting a custom spatial variable
   if( !is.null(z) ) {
     z <- as.vector(z)
@@ -860,16 +809,24 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
       if( x$components$spatial ) {
         
         if( type == 'spatial' ) {
-          sfit <- model.matrix(x)$random$spatial %*% ranef(x)$spatial
-          spdat <- data.frame(coord,
-                              z = sfit,
-                              model = x$call$spatial$model)
+          value <- model.matrix(x)$random$spatial %*% ranef(x)$spatial
         } else {
-          spred <- as.vector(x$effects$spatial$sp$plotting$inc.mat %*% ranef(x)$spatial)
-          spdat <- data.frame(x$effects$spatial$sp$plotting$grid,
-                              z     = spred,
-                              model = x$call$spatial$model)
+          ## fullspatial case
+          if (inherits(x$effects$spatial, 'effect_group')) {
+            inc.mat <- model.matrix(x$effects$spatial, fullgrid = TRUE)
+            coord <- attr(inc.mat, 'coordinates')
+          } else {
+            ## Legacy non-refactored effects
+            inc.mat <- x$effects$spatial$sp$plotting$inc.mat
+            coord   <- x$effects$spatial$sp$plotting$grid
+          }
+          stopifnot(!is.null(coord))
+          value <- as.vector(inc.mat %*% ranef(x)$spatial)
         }
+        spdat <- data.frame(coord,
+                            z     = value,
+                            model = x$call$spatial$model)
+        
         
         p <- spatial.plot(spdat, scale = 'div') + facet_wrap(~ model)
       } else stop('This model has no spatial effect')
@@ -1004,18 +961,9 @@ ranef.remlf90 <- function (object, ...) {
   
   ## Spatial component
   if ( object$components$spatial ) {
-    ## Depending on the spatial model, we return the coordinates
-    ## of the corresponding effects
-    coord <- with(object$effects$spatial,
-                  switch(name,
-                         splines = sp$param,
-                         AR      = sp$plotting$grid,
-                         blocks  = NULL)
-    )
+    
     ans$spatial <- with(ranef$spatial,
-                        structure(value,
-                                  se = s.e.,
-                                  coordinates = coord))
+                        structure(value, se = s.e.))
     ranef$spatial <- NULL
   }
   
@@ -1052,21 +1000,29 @@ vcov.remlf90 <- function (object, effect = 'spatial', ...) {
   if( !exists(effect, envir = as.environment(object$effects)) )
     stop(paste('There is no', effect, 'effect in this object.\n'))
   
+  ef <- object$effects[[effect]]
+  
   # Underlying covariance matrix
   # (only the lower triangle)
-  Usp <- object$effects[[effect]]$sp$U
-  dimU <- c(max(Usp[, 1]), max(Usp[, 2]))
-  stopifnot(identical(dimU[1], dimU[2]))
-  
-  U <- Matrix::sparseMatrix(i = Usp[, 1], j = Usp[, 2], x = Usp[, 3], symmetric = TRUE)
+  # Account for refactored and old effects
+  if (inherits(ef, 'effect_group')) {
+    U <- get_structure(ef)
+  } else {
+    Usp <- object$effects[[effect]]$sp$U
+    dimU <- c(max(Usp[, 1]), max(Usp[, 2]))
+    stopifnot(identical(dimU[1], dimU[2]))
+    
+    U <- Matrix::sparseMatrix(i = Usp[, 1], j = Usp[, 2], x = Usp[, 3], symmetric = TRUE)
+    attr(U, 'type') <- object$effects[[effect]]$sp$Utype
+  }
   
   # need to invert?
-  if(object$effects[[effect]]$sp$Utype == 'precision')
+  if(attr(U, 'type') == 'precision')
     U <- solve(U)
   
   # Incidence matrix
   # It can be a vector if it is an identity reordered (e.g. block or AR cases)
-  Bsp <- as.matrix(object$effects[[effect]]$sp$B)
+  Bsp <- model.matrix(object)$random[[effect]]
   
   if( ncol(Bsp) == 1 ) {
     dimB = nrow(Bsp)

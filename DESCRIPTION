@@ -1,8 +1,8 @@
 Package: breedR
 Type: Package
-Title: Statistical methods for forest genetic resources analysts
+Title: Statistical Methods for Forest Genetic Resources Analysts
 Version: 0.9
-Date: 2014-07-03
+Date: 2015-05-05
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
     role=c("aut", "cre"),
@@ -12,7 +12,7 @@ Authors@R: c(person("Facundo", "Muñoz",
     person("Pablo", "Cappa", role="ctb"))
 Author: Facundo Muñoz with libraries by Ignacy Misztal
 Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
-Description: This package provides statistical tools to build predictive models
+Description: Statistical tools to build predictive models
     for the breeders community. It aims to assess the genetic value of
     individuals under a number of situations, including spatial
     autocorrelation, genetic/environment interaction and competition. It is
@@ -44,5 +44,6 @@ Suggests:
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
-BugReports: https://github.com/famuvie/breedR
+BugReports: https://github.com/famuvie/breedR/issues
+Additional_repositories: http://www.math.ntnu.no/inla/R/testing
 VignetteBuilder: knitr

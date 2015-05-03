@@ -3,6 +3,8 @@ breedR 0.9
 
 * New 'generic' model component allows passing a list of arbitrary incidence and covariance/precision matrices
 
+* Optimized splines model. It runs about 5x faster.
+
 
 breedR 0.8
 ==========
