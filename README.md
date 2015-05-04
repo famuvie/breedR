@@ -21,7 +21,7 @@ If you want to use the most stable version of breedR, please check the [dissemin
 - For beta-testers;
   - Create a [GitHub](https://github.com/join) account
   - Install the `testthat` R-package
-    - `install.pacakges('testthat')`
+    - `install.packages('testthat')`
 
 ##### Installation of breedR (latest dev. version)
   - `devtools::install_github('famuvie/breedR')`
