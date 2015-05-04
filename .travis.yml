@@ -4,3 +4,5 @@ language: r
 # This avoids issuing an error  
 warnings_are_errors: false
 sudo: required
+
+r_build_args: --no-build-vignettes
