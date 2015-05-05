@@ -61,7 +61,7 @@ run_expectations <- function(m, data = dat, method) {
   
   n.cov <- length(attr(terms(m), 'term.labels'))
   
-    #equal variance components
+    # equal variance components
     pf90.var <- res[[1]]$var[1,1]
     lm.var <- summary(res[[2]])$sigma**2
     expect_that(pf90.var, equals(lm.var, tolerance = 1e-02))
