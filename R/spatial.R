@@ -98,7 +98,13 @@ fill_holes <- function(x, label) {
 }
 
 
-# Fill a hole in a given position
+#' Fill a hole in a given position
+#' 
+#' @param x numeric vector
+#' @param idx index of last observation just before a hole
+#' @param n size of hole in terms of number of missing observations
+#' @param sep spacing between observations
+#' @param label character. An identificative name.
 fill_hole <- function(x, idx, n, sep, label) {
   filling <- x[idx] + sep*(1:n)
   if( !isTRUE(all.equal(x[idx + 1], x[idx] + sep*(n+1))) )
