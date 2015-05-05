@@ -34,11 +34,14 @@ run_expectations <- function(m, data = dat, method) {
   
   # TODO:
   # other checks, like:
-  #  - compare the estimated genetic and residual vaiances with true values
-  #  - compare the estimated and true Breeding Values
+  #  + compare the estimated and true Breeding Values
   #  - compare results to those from package pedigreemm 
   #    (an extension to lme4 to include animal models)
-  
+
+  test_that("The PBVs are around the true values", {
+  expect_equal(dat$BV_X, ranef(res)$genetic[-(1:160)], tolerance = 1, check.attributes = FALSE)
+})
+
 }
 
 
