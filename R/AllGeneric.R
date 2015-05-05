@@ -1,3 +1,34 @@
+#' Covariance structure of a breedR component
+#' 
+#' This generic function returns the covariance or precision matrix of a breedR 
+#' random effect or a group of effects.
+#' 
+#' For \code{effect_group}s, it returns the common structure of all the elements
+#' in the group.
+#' 
+#' @param x A \code{breedr_effect}.
+#'   
+get_structure <- function(x) UseMethod('get_structure')
+
+#' Type of a (group of) effect(s)
+#' 
+#' Generic function that returns whether an effect or a group of effects in a
+#' breedR mixed model is \code{fixed} or \code{random}
+#' @param x object to be \emph{translated} to progsf90
+effect_type <- function(x) UseMethod('effect_type')
+
+#' Render a progsf90 effect
+#' 
+#' Translates breedR effects into progsf90 parameters and data.
+#' 
+#' This is an intenal function. Not exported.
+#' 
+#' @param x object of class breedr_modelframe, effect_group or breedr_effect.
+#' @return The number of levels and type for each 'virtual' effect; the progsf90
+#'   model-name as appropriate; a file name and its content.
+#' @family renderpf90
+renderpf90 <- function(x) UseMethod('renderpf90')
+
 #' Get the Pedigree from an object
 #' 
 #' Returns an object from the formal class \code{pedigree}.
@@ -14,6 +45,13 @@ get_pedigree <- function(x, ...) UseMethod('get_pedigree')
 #' @family metagene
 #' @export
 get_ntraits <- function(x, ...) UseMethod('get_ntraits')
+
+
+#' 'move' an arrangement in a given direction
+#' @param x matrix or list of matrices
+#' @param dir a \emph{direction} in ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')
+neighbours.at <- function(x, dir) UseMethod('neighbours.at')
+
 
 #' Number of generations
 #' @param x a metagene object.

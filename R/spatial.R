@@ -1,3 +1,32 @@
+#' Build a spatial model
+#' 
+#' Check conformity of arguments and return a \code{spatial} object.
+#' 
+#' @param coord two-column matrix-like object with observation coordinates
+#' @inheritParams random
+#' @return A list with elements \code{coordinates}, \code{incidence.matrix},
+#'   \code{structure.matrix} and \code{structure.type}, which is a string
+#'   indicating either \code{covariance} or \code{precision}.
+spatial <- function(coord, incidence, covariance, precision) {
+  
+  mc <- match.call()
+  arg.list <- as.list(mc)[-1]
+  
+  ## check conformance
+  if (nrow(coord) != nrow(incidence))
+    stop('The incidence matrix should have as many rows as observations.')
+  
+  ## Build the random effect, and further specify the spatial class
+  random.args <- lapply(arg.list[-1], eval, parent.frame())
+  ans <- do.call('random', random.args)
+  ans$coordinates <- coord
+  class(ans) <- c('spatial', class(ans))
+
+  return(ans)
+}
+
+
+
 #' Lattice of spatial locations
 #' 
 #' Returns a list row and column coordinates of observations

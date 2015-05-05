@@ -146,35 +146,143 @@ dat <- transform(dat, z = a + wnc + pec + e)
 
 #### Fitting the competition model with remlf90
 
-# fixed  = z ~ 1
-# random = NULL
-# genetic = list(model = c('comp'), 
-#                pedigree = dat[, c('id', 'mum', 'dad')],
-#                id = 'id',
-#                coord = dat[, c('x', 'y')],
-#                competition_decay = 1)
-# spatial = NULL
-# method = 'ai'
-# data = dat
-# debug = FALSE
-# mc <- call('remlf90',
-#            fixed = fixed,
-#            random = random,
-#            genetic = genetic,
-#            spatial = spatial,
-#            method = method,
-#            data = data,
-#            debug = debug)
-# 
-# res <- remlf90(fixed  = z ~ 1,
-#                genetic = list(model = c('comp'), 
-#                               pedigree = dat[, c('id', 'mum', 'dad')],
-#                               id = 'id',
-#                               coord = dat[, c('x', 'y')],
-#                               competition_decay = 1,
-#                               pec = list(present = TRUE)), 
-#                data = dat,
-#                method = 'em',
-#                debug = F)
-# 
+res <- remlf90(fixed  = z ~ 1,
+               genetic = list(model = c('comp'), 
+                              pedigree = dat[, c('id', 'mum', 'dad')],
+                              id = 'id',
+                              coord = dat[, c('x', 'y')],
+                              competition_decay = 1,
+                              pec = list(present = TRUE)), 
+               data = dat,
+               method = 'em',
+               debug = F)
+
 # qplot(dat$z - dat$e, fitted(res)) + geom_abline(int = 0, sl = 1, col = 'darkgray')
+
+
+
+
+context("Extraction of results from competition model")
+########################
+
+n.fixed   <- 1
+nlevels.fixed <- 1
+n.bvs <- nrow(as.data.frame(fullped))  # one set for direct, another for comp.
+n.pec <- n.bvs
+
+
+test_that("The competition model runs with EM-REML without errors", {
+  expect_that(!inherits(res, "try-error"), is_true())
+})
+
+test_that("coef() gets a named vector of coefficients", {
+  expect_is(coef(res), 'numeric')
+  expect_equal(length(coef(res)), nlevels.fixed + 2*n.bvs + n.pec)
+  expect_named(coef(res))
+})
+
+test_that("ExtractAIC() gets one number", {
+  expect_is(extractAIC(res), 'numeric')
+  expect_equal(length(extractAIC(res)), 1)
+})
+
+test_that("fitted() gets a vector of length N", {
+  expect_is(fitted(res), 'numeric')
+  expect_equal(length(fitted(res)), Nobs)
+})
+
+test_that("fixef() gets a named list of data.frames with estimated values and s.e.", {
+  x <- fixef(res)
+  expect_is(x, 'list')
+  expect_named(x)
+  expect_equal(length(x), n.fixed)
+  for (f in x) {
+    expect_is(f, 'data.frame')
+    expect_named(f, c('value', 's.e.'))
+  }
+})
+
+test_that("get_pedigree() returns the given pedigree", {
+  expect_identical(get_pedigree(res), fullped)
+})
+
+test_that("logLik() gets an object of class logLik", {
+  expect_is(logLik(res), 'logLik')
+})
+
+test_that("model.frame() gets an Nx2 data.frame with a 'terms' attribute", {
+  x <- model.frame(res)
+  expect_is(x, 'data.frame')
+  expect_is(terms(x), 'terms')
+  expect_equal(dim(x), c(Nobs, n.fixed + 1))
+})
+
+test_that("model.matrix() gets a named list of fixed and random incidence matrices", {
+  x <- model.matrix(res)
+  expect_is(x, 'list')
+  expect_named(x, c('fixed', 'random'))
+  expect_equal(dim(x$fixed), c(Nobs, nlevels.fixed))
+  expect_is(x$random, 'list')
+  expect_named(x$random, c('genetic-direct', 'genetic-competition', 'pec'))
+  for (m in x$random) {
+    expect_is(m, 'sparseMatrix')
+    expect_equal(dim(m), c(Nobs, n.bvs)) 
+  }
+})
+
+test_that("nobs() gets the number of observations", {
+  expect_equal(nobs(res), Nobs)
+})
+
+test_that("plot(, type = *) returns ggplot objects after providing coords", {
+  ## Even when there is no spatial effect,
+  ## the coordinates must be recovered from the competition
+  expect_is(plot(res, type = 'phenotype'), 'ggplot')
+  expect_is(plot(res, type = 'fitted'), 'ggplot')
+  expect_is(plot(res, type = 'residuals'), 'ggplot')
+  
+  ## But still get errors for the absent spatial components
+  expect_error(plot(res, type = 'spatial'), 'no spatial effect')
+  expect_error(plot(res, type = 'fullspatial'), 'no spatial effect')
+})
+
+test_that("print() shows some basic information", {
+  ## Not very informative currently...
+  expect_output(print(res), 'Data')
+})
+
+test_that("ranef() gets a ranef.breedR object with random effect BLUPs and their s.e.", {
+  x <- ranef(res)
+  expect_is(x, 'ranef.breedR')
+  expect_equal(length(x), 3)
+  expect_named(x, c('genetic-direct', 'genetic-competition', 'pec'))
+  
+  for (y in x) {
+    expect_is(y, 'numeric')
+    expect_equal(length(y), n.bvs)
+    expect_false(is.null(xse <- attr(y, 'se')))
+    
+    expect_is(xse, 'numeric')
+    expect_equal(length(xse), n.bvs)
+  }
+})
+
+test_that("residuals() gets a vector of length N", {
+  rsd <- residuals(res)
+  expect_is(rsd, 'numeric')
+  expect_equal(length(rsd), Nobs)
+})
+
+test_that("summary() shows summary information", {
+  expect_output(summary(res), 'Variance components')
+})
+
+test_that("vcov() gets the covariance matrix of the genetic component of the observations", {
+  
+  ## Make it available after refactoring
+  ## when we can recover the structure and model matrices
+  expect_error(x <- vcov(res, effect = 'genetic'), 'Currently not available')
+  #   expect_is(x, 'Matrix')
+  #   expect_equal(dim(x), rep(Nobs, 2))
+})
+
