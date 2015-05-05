@@ -6,3 +6,12 @@ warnings_are_errors: false
 sudo: required
 
 r_build_args: --no-build-vignettes
+
+r_binary_packages: 
+  - Matrix
+  - ggplot2
+  - nlme
+  - reshape2
+  - mass
+  - plyr
+  - testthat
