@@ -129,7 +129,7 @@ matrix.short16 <- function(M) {
   coef = M[, 1:8]
   neig = M[, 8+1:8]
   
-  n <- nrow(coef)
+  n <- nrow(M)
   p <- max(neig, na.rm = TRUE)
   
   i <- rep(1:n, 8)
@@ -139,9 +139,16 @@ matrix.short16 <- function(M) {
   rm.idx <- which(x==0)
   stopifnot( all(x[rm.idx] == 0) )
   
+  if (length(rm.idx) > 0) {
+    i = i[-rm.idx]
+    j = j[-rm.idx]
+    x = x[-rm.idx]
+  }
+  
+  
   Z <- Matrix::spMatrix(nrow = n, ncol = p,
-                        i = i[-rm.idx],
-                        j = j[-rm.idx],
-                        x = x[-rm.idx])
+                        i = i,
+                        j = j,
+                        x = x)
   return(Z)
 }
