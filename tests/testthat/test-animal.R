@@ -23,25 +23,57 @@ run_model <- function(m, data = dat, method) {
   return(res.reml)
 }
 
-# Compare progsf90 and pedigreemm results
+# Compare breedR and pedigreemm results
 run_expectations <- function(m, data = dat, method) {
-  res <- run_model(m, data, method)
+  res <- run_model(m$fixed, data, method)
   
   # It runs without errors 
   test_that("The animal model runs without errors", {
     expect_that(!inherits(res, "try-error"), is_true())
   })
   
-  # TODO:
-  # other checks, like:
-  #  + compare the estimated and true Breeding Values
-  #  - compare results to those from package pedigreemm 
-  #    (an extension to lme4 to include animal models)
-
+  # Compare the estimated and true Breeding Values
   test_that("The PBVs are around the true values", {
   expect_equal(dat$BV_X, ranef(res)$genetic[-(1:160)], tolerance = 1, check.attributes = FALSE)
 })
+  
+  ## pedigreemm vs breedR
 
+  p1 <- new("pedigree",
+            sire = as.integer(c(NA,NA,1, 1,4,5)),
+            dam  = as.integer(c(NA,NA,2,NA,3,2)),
+            label = as.character(1:6))
+  A<-getA(p1)
+  cholA<-chol(A)  
+  varU<-0.4; varE<-0.6; rep<-20
+  n<-rep*6
+  set.seed(1081)
+  bStar<- rnorm(6, sd=sqrt(varU))
+  b<-crossprod(as.matrix(cholA),bStar)
+  ID <- rep(1:6, each=rep)
+  e0<-rnorm(n, sd=sqrt(varE))
+  y<- 10 + b[ID]+e0
+  fm1 <- pedigreemm(y ~ (1|ID) , pedigree = list(ID = p1))
+  
+  res <- remlf90(fixed = y~1,
+                 genetic = list(model = 'add_animal', 
+                                pedigree = p1,
+                                id = 'ID'), 
+                 data = data.frame(ID, y),
+                 method = 'ai')
+  
+  test_that("The variances of genetic components are equal",{
+    expect_equal(res$var[1],VarCorr(fm1)$ID[1, 1],tolerance=1e-01)
+  })
+  test_that("The variances of residual components are equal",{
+    expect_equal(res$var[2],sigma(fm1)**2,tolerance=1e-01)
+  })
+  test_that("The values of fixed effects are equal",{
+    expect_equal(res$fixed$Intercept$value,fixef(fm1)[[1]],tolerance=1e-01)
+  })
+  test_that("The values of random effects are equal",{
+    expect_equal(res$ranef$genetic$value,ranef(fm1)$ID[[1]],tolerance=1)
+  })
 }
 
 
@@ -54,6 +86,24 @@ test_that("remlf90() estimates matches lm()'s", {
 test_that("airemlf90() estimates matches lm()'s", {
   lapply(fixed_models, run_expectations, method = 'ai')
 })
+
+
+lm2lmm <- function(x) {
+  fixed = x
+  random = NULL
+  isF <- sapply(dat, is.factor)
+  freeF <- names(isF)[which(isF)]
+  usedF <- match(attr(terms(x), 'term.labels'), names(isF)[which(isF)])
+  usedF <- usedF[!is.na(usedF)]
+  if(length(usedF)) freeF <- freeF[-usedF]
+  if(length(freeF))
+    random = as.formula(paste('~', paste(freeF, collapse = '+')),
+                        env = parent.frame(2))
+  return(list(fixed = fixed, random = random))
+}
+
+
+m <- lm2lmm(fixed_models[[1]])
 
 
 
