@@ -43,8 +43,8 @@ test_that('generic() takes either covariance or precision matrices', {
 
 ## TODO:
 ## Test more throughly:
-#   - effect_type()
-#   - renderpf90()
+#   - effect_type()  #  creer un nuveaux ficher test-effect_type.R et tester objets de type generic, splines 
+#   - renderpf90()   #  creer un nuveaux ficher test-renderpf90.R et tester objets de type generic, splines 
 #   - all.equal.remlf90()
 #   - breedr_effect()
 #   - effect_group()
