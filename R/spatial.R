@@ -135,7 +135,7 @@ fill_hole <- function(x, idx, n, sep, label) {
 #'   \item{idx}{the index of each observation in the vectorized grid} }
 build_grid <- function (coordinates, autofill = TRUE) {
   
-  stopifnot(ncol(coord) == 2)
+  stopifnot(ncol(coordinates) == 2)
   
   ## Original coordinates
   coord0 <- as.data.frame(coordinates)
