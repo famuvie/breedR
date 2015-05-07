@@ -6,6 +6,9 @@
 \usage{
 as.triplet(x)
 }
+\arguments{
+\item{x}{matrix.}
+}
 \description{
 It only gives the lower triangular elements, and **do not** check for
 symmetry.

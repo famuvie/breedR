@@ -63,6 +63,8 @@ effect_group <- function(x, cov.ini) {
 }
 
 #' Size of a group of effects
+#' 
+#' @param x object of class \code{effect_group}
 group_size <- function(x) {
   stopifnot(inherits(x, 'effect_group'))
   length(x$effects)

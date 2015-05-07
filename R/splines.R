@@ -19,8 +19,10 @@
 #'   the rows or columns. Otherwise, it will treat gaps the same way as adjacent
 #'   rows or columns.
 #' @param degree integer. Degree of the B-spline polynomials.
-#' @param sparse logical. If \code{TRUE} the incidence matrix will be stored in
+#' @param sparse logical. If \code{TRUE} the incidence matrix will be stored in 
 #'   sparse format. Default is \code{FALSE}.
+#' @param strategy character. Strategy for placing spline knots. Only
+#'   \code{uniformgrid} available for the moment.
 #'   
 #' @return A list with elements \code{incidence.matrix}, \code{structure.matrix}
 #'   and \code{structure.type}, which is a string indicating either 

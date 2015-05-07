@@ -877,6 +877,7 @@ plot.ranef.breedR <- function(x, y, ...) {
 }
 
 #' @describeIn ranef
+#' @param x object of class \code{ranef.breedR}
 #' @export
 print.ranef.breedR <- function(x, ...) {
   attr2df <- function(x) {

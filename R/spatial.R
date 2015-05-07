@@ -2,24 +2,24 @@
 #' 
 #' Check conformity of arguments and return a \code{spatial} object.
 #' 
-#' @param coord two-column matrix-like object with observation coordinates
 #' @inheritParams random
+#' @inheritParams build_grid
 #' @return A list with elements \code{coordinates}, \code{incidence.matrix},
 #'   \code{structure.matrix} and \code{structure.type}, which is a string
 #'   indicating either \code{covariance} or \code{precision}.
-spatial <- function(coord, incidence, covariance, precision) {
+spatial <- function(coordinates, incidence, covariance, precision) {
   
   mc <- match.call()
   arg.list <- as.list(mc)[-1]
   
   ## check conformance
-  if (nrow(coord) != nrow(incidence))
+  if (nrow(coordinates) != nrow(incidence))
     stop('The incidence matrix should have as many rows as observations.')
   
   ## Build the random effect, and further specify the spatial class
   random.args <- lapply(arg.list[-1], eval, parent.frame())
   ans <- do.call('random', random.args)
-  ans$coordinates <- coord
+  ans$coordinates <- coordinates
   class(ans) <- c('spatial', class(ans))
 
   return(ans)
@@ -31,20 +31,17 @@ spatial <- function(coord, incidence, covariance, precision) {
 #' 
 #' Returns a list row and column coordinates of observations
 #' 
-#' @param coord matrix, data.frame or list of row and column coordinates of 
-#'   observational units
-#' @param autofill locigcal, whether to perform automatic filling of empty 
-#'   rows/columns
+#' @inheritParams build_grid
 #' @return list of row and column coordinates of spatial units
 #'   
 #'   This functions converts observational coordinates into spatial coordinates.
 #'   While in a observational dataset there can possibly be many or missing 
 #'   observations at one single location, this function returns the list of row
 #'   and column coordinates of a grid which contains all the observations
-loc_grid <- function (coord, autofill) {
+loc_grid <- function (coordinates, autofill) {
   # Sorted coordinates of rows and columns where there are
   # at least one observation (or missing)
-  pos <- lapply(as.data.frame(coord),
+  pos <- lapply(as.data.frame(coordinates),
                 function(x) sort(unique(as.numeric(x))))
   
   if( autofill ) {
@@ -74,7 +71,7 @@ fill_holes <- function(x, label) {
     # defined as the spacing between at least 60% of the individuals
     if( !isTRUE(all.equal(diff(quantile(dif, probs = c(.1, .6))), 0, check.attributes = FALSE)) )
       stop("This does not seem to be a regular grid.\n",
-           "The spacing between", label, "should be the same for ",
+           "The spacing between ", label, " should be the same for ",
            "at least the 60% of the cases.\n",
            "You can override this check with autofill = FALSE.\n")
     

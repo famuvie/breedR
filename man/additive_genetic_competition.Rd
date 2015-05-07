@@ -8,6 +8,8 @@ additive_genetic_competition(pedigree, coordinates, id, decay,
   autofill = TRUE)
 }
 \arguments{
+\item{pedigree}{object of class 'pedigree'}
+
 \item{coordinates}{two-column matrix-like set of row and column coordinates
 of observational units}
 
@@ -19,8 +21,6 @@ Typically 1 or 2. See Details.}
 \item{autofill}{logical. If TRUE it will try to fill missing rows or columns
   with missing observations. Otherwise, will treat individuals as neighbours
   even if they are across an empty line.}
-
-\item{ped}{object of class 'pedigree'}
 }
 \value{
 A list with elements \code{pedigree}, \code{incidence.matrix},
@@ -28,8 +28,9 @@ A list with elements \code{pedigree}, \code{incidence.matrix},
   indicating either \code{covariance} or \code{precision}.
 }
 \description{
-Given a pedigree, and an index vector of observations, build and
-\code{additive_genetic_competition} model.
+Return incidence and structure for a \code{additive_genetic_competition}
+model, given the pedigree, the spatial coordinates and codes of the
+observations and the competition decay parameter.
 }
 \details{
 \code{id} must hold the codes of observed individuals in the original

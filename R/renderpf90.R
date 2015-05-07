@@ -173,6 +173,8 @@ renderpf90.splines <- function(x) {
 #' 
 #' It only gives the lower triangular elements, and **do not** check for
 #' symmetry.
+#' 
+#' @param x matrix.
 as.triplet <- function(x) {
   xsp <- Matrix::tril(as(as.matrix(x), 'dgTMatrix'))
   # Note: The Matrix package counts rows and columns starting from zero

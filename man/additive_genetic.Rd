@@ -7,9 +7,9 @@
 additive_genetic(pedigree, incidence)
 }
 \arguments{
-\item{incidence}{matrix-like object}
+\item{pedigree}{object of class 'pedigree'}
 
-\item{ped}{object of class 'pedigree'}
+\item{incidence}{matrix-like object}
 }
 \value{
 A list with elements \code{pedigree}, \code{incidence.matrix},

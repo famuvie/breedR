@@ -20,7 +20,10 @@ rows or columns.}
 \item{degree}{integer. Degree of the B-spline polynomials.}
 
 \item{sparse}{logical. If \code{TRUE} the incidence matrix will be stored in
-  sparse format. Default is \code{FALSE}.}
+sparse format. Default is \code{FALSE}.}
+
+\item{strategy}{character. Strategy for placing spline knots. Only
+  \code{uniformgrid} available for the moment.}
 }
 \value{
 A list with elements \code{incidence.matrix}, \code{structure.matrix}

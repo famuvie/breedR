@@ -35,7 +35,7 @@ genetic <- function(pedigree, incidence, covariance, precision) {
 #' 
 #' Check conformity of arguments and return a \code{additive_genetic} object.
 #' 
-#' @param ped object of class 'pedigree'
+#' @param pedigree object of class 'pedigree'
 #' @inheritParams random
 #' @return A list with elements \code{pedigree}, \code{incidence.matrix},
 #'   \code{structure.matrix} and \code{structure.type}, which is a string
@@ -73,8 +73,8 @@ additive_genetic <- function(pedigree, incidence) {
 #' codification. If recoding took place when building the pedigree, this
 #' function will convert the codes internally.
 #' 
-#' @param ped object of class 'pedigree'
 #' @param idx integer vector of observed individuals (in the original codif.)
+#' @inheritParams additive_genetic
 #'   
 #' @return A list with elements \code{pedigree}, \code{incidence.matrix}, 
 #'   \code{structure.matrix} and \code{structure.type}, which is a string 
@@ -108,17 +108,17 @@ additive_genetic_animal <- function(pedigree, idx) {
 
 #' Build an additive-genetic competition model
 #' 
-#' Given a pedigree, and an index vector of observations, build and 
-#' \code{additive_genetic_competition} model.
+#' Return incidence and structure for a \code{additive_genetic_competition}
+#' model, given the pedigree, the spatial coordinates and codes of the
+#' observations and the competition decay parameter.
 #' 
 #' \code{id} must hold the codes of observed individuals in the original 
 #' codification. If recoding took place when building the pedigree, this 
 #' function will handle the codes internally.
 #' 
-#' @param ped object of class 'pedigree'
 #' @param id integer vector of numeric codes for observed individuals
-#' @param decay numeric. The positive value of the decay parameter \eqn{\alpha}.
-#'   Typically 1 or 2. See Details.
+#' @inheritParams additive_genetic
+#' @inheritParams competition
 #' @inheritParams build_grid
 #'   
 #' @return A list with elements \code{pedigree}, \code{incidence.matrix}, 
