@@ -88,24 +88,6 @@ test_that("airemlf90() estimates matches lm()'s", {
 })
 
 
-lm2lmm <- function(x) {
-  fixed = x
-  random = NULL
-  isF <- sapply(dat, is.factor)
-  freeF <- names(isF)[which(isF)]
-  usedF <- match(attr(terms(x), 'term.labels'), names(isF)[which(isF)])
-  usedF <- usedF[!is.na(usedF)]
-  if(length(usedF)) freeF <- freeF[-usedF]
-  if(length(freeF))
-    random = as.formula(paste('~', paste(freeF, collapse = '+')),
-                        env = parent.frame(2))
-  return(list(fixed = fixed, random = random))
-}
-
-
-m <- lm2lmm(fixed_models[[1]])
-
-
 
 context("Extraction of results from add_animal model")
 ########################

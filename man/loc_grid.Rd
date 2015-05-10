@@ -4,14 +4,15 @@
 \alias{loc_grid}
 \title{Lattice of spatial locations}
 \usage{
-loc_grid(coord, autofill)
+loc_grid(coordinates, autofill)
 }
 \arguments{
-\item{coord}{matrix, data.frame or list of row and column coordinates of
-observational units}
+\item{coordinates}{two-column matrix-like set of row and column coordinates
+of observational units}
 
-\item{autofill}{locigcal, whether to perform automatic filling of empty
-rows/columns}
+\item{autofill}{logical. If TRUE it will try to fill missing rows or columns
+  with missing observations. Otherwise, will treat individuals as neighbours
+  even if they are across an empty line.}
 }
 \value{
 list of row and column coordinates of spatial units

@@ -12,7 +12,6 @@ fullN <- nrow(fullcoord)
 rm.idx <- sample(fullN, fullN/10)   
 coord <- fullcoord[-rm.idx,]
 
-
 ## Incidence matrix for splines objects
 
 # Remove 10% of the grid and build a splines model from it
