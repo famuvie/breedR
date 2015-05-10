@@ -23,3 +23,11 @@ test_that("The function behaves as expected",{
   expect_true(all(head(renderpf90(result)$levels, -1) ==0))
 })
 
+
+## TODO: Test with objects of types: 
+##   - competition
+##   - genetic
+##   - permanent_environmental_competition
+##   - additive_genetic
+##   - additive_genetic_animal
+##   - additive_genetic_competition

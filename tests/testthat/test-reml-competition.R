@@ -1,6 +1,36 @@
 old.op <- options(warn = -1)  # suppressWarnings
 on.exit(options(old.op))
 
+
+
+context('Constructors of competition models')
+
+
+## TODO: test the competition constructor (competition.R)
+##   - simulate some coordinates
+##   - use any covariance (diag), any decay (say, 1), and autofill = TRUE
+##   - build a competition() object
+##   - check the incidence matrix:
+##      - square: nrows = ncols = nrow(coordinates)
+##      - its rows squared must sum to 1
+##      - only nonzero elements in the columns corresponding to neighbours
+##      - no full-zero columns
+
+
+## TODO: test the additive_genetic_competition constructor (genetic.R)
+##   - simulate some pedigree (use breedR.sample.pedigree())
+##     and use the same coordinates from before
+##   - use any decay (say, 1), and autofill = TRUE
+##   - build an additive_genetic_competition() object
+##   - check the incidence matrix:
+##      - square: nrows = nrow(coordinates); ncols = nrow(pedigree)
+##      - its rows squared must sum to 1
+##      - only nonzero elements in the columns corresponding to neighbours
+##      - full-zero columns corresponding to founders in the pedigree
+##   - note that the pedigree might have been recoded. The map from original
+##     to internal coding is an attribute of the pedigree.
+
+
 ### For testing competition, we perform a simulation excercise ###
 
 set.seed(12345)

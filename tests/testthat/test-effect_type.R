@@ -24,3 +24,11 @@ result <- splines(coord)
 test_that("The function returns the type expected",{
   expect_output(effect_type(result),"random")
 })
+
+## TODO: Test with objects of types: 
+##   - competition
+##   - genetic
+##   - permanent_environmental_competition
+##   - additive_genetic
+##   - additive_genetic_animal
+##   - additive_genetic_competition

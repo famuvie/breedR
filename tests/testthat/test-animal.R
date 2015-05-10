@@ -25,7 +25,7 @@ run_model <- function(m, data = dat, method) {
 
 # Compare breedR and pedigreemm results
 run_expectations <- function(m, data = dat, method) {
-  res <- run_model(m$fixed, data, method)
+  res <- run_model(m, data, method)
   
   # It runs without errors 
   test_that("The animal model runs without errors", {
@@ -38,12 +38,13 @@ run_expectations <- function(m, data = dat, method) {
 })
   
   ## pedigreemm vs breedR
+  require(pedigreemm)
 
   p1 <- new("pedigree",
             sire = as.integer(c(NA,NA,1, 1,4,5)),
             dam  = as.integer(c(NA,NA,2,NA,3,2)),
             label = as.character(1:6))
-  A<-getA(p1)
+  A <- getA(p1)
   cholA<-chol(A)  
   varU<-0.4; varE<-0.6; rep<-20
   n<-rep*6
