@@ -12,11 +12,6 @@ fullN <- nrow(fullcoord)
 rm.idx <- sample(fullN, fullN/10)   
 coord <- fullcoord[-rm.idx,]
 
-## TODO
-
-## Test also the auxiliar function matrix.short16
-## used to convert format from 16 cols to sparse.
-
 
 ## Incidence matrix for splines objects
 
