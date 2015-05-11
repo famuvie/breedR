@@ -2,7 +2,7 @@
 % Please edit documentation in R/genetic.R
 \name{genetic}
 \alias{genetic}
-\title{Build an genetic model}
+\title{Build a genetic model}
 \usage{
 genetic(pedigree, incidence, covariance, precision)
 }

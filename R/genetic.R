@@ -1,4 +1,4 @@
-#' Build an genetic model
+#' Build a genetic model
 #' 
 #' Check conformity of arguments and return a \code{genetic} object.
 #' 
