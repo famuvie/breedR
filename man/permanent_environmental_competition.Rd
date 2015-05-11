@@ -16,13 +16,10 @@ Typically 1 or 2. See Details.}
 \item{autofill}{logical. If TRUE it will try to fill missing rows or columns
   with missing observations. Otherwise, will treat individuals as neighbours
   even if they are across an empty line.}
-
-\item{id}{integer vector of numeric codes for observed individuals}
 }
 \value{
-A list with elements \code{pedigree}, \code{incidence.matrix},
-  \code{structure.matrix} and \code{structure.type}, which is a string
-  indicating either \code{covariance} or \code{precision}.
+An object inheriting from \link{\code{competition}} with the
+  incidence and structure matrices for the random effect.
 }
 \description{
 Given the coordinates of observations, and the competition decay parameter,
@@ -34,7 +31,6 @@ dat <- data.frame(id   = 1:5,
                   dam  = c(12, NA, 1, 12, 1),
                   x    = c(rep(1:2, times = 2), 3),
                   y    = c(rep(1:2, each = 2), 3))
-ped <- build_pedigree(1:3, data = dat)
-permanent_environmental_competition(ped, coord = dat[, c('x', 'y')], dat$id, 2)
+permanent_environmental_competition(coord = dat[, c('x', 'y')], decay = 2)
 }
 
