@@ -30,6 +30,8 @@ structure matrix, compute the incidence matrix of competition, and return a
 random effect with the given structure.
 }
 \details{
+Exactly one of \code{covariance} and \code{precision} must be specified.
+
 The competition model attributes to each individual a random effect of
 competition with variance \eqn{\sigma_{a_c}^2}, which impacts the phenotype
 of the neighbours rather than its own phenotype.
