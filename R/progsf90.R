@@ -194,9 +194,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
   
   if( !is.null(genetic) ) {
 
-    if( is.null(genetic$autofill) ) {
-      genetic$autofill = TRUE
-    }
+    genetic <- do.call('check_genetic', genetic)
     
     gen <- build.genetic.model(genetic)
     
