@@ -2,6 +2,21 @@
 ## Not exported, and not even packaged 
 ## i.e. this file is listed in .Rbuildignore
 
+## Naïve coverage
+## 
+## Check whether each of the functions defines in \code{breedR} are actually
+## called from within any of the available tests.
+##
+## Note that all the methods not explicitly called will appear as non-tested
+breedR.coverage <- function() {
+  objs <- ls(getNamespace('breedR'))
+  test.fnames <- list.files(system.file('tests', 'testthat', package = 'breedR'),
+                           full.names = TRUE)
+  tests <- do.call('c', lapply(test.fnames, readLines))
+  
+  sapply(objs, function(x) any(grepl(x, tests, fixed = TRUE)))
+}
+
 ## Render vignettes
 ## formats: pdf for the package
 ##          md  for the GitHub wiki
