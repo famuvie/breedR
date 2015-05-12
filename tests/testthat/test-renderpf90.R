@@ -24,10 +24,49 @@ test_that("The function behaves as expected",{
 })
 
 
+##Test with an object of type competition
+x = c(rep(1:2, times = 2), 3)
+y = c(rep(1:2, each = 2), 3)
+dat <- data.frame(id   = 1:5,
+                  sire = c(11, 11, 2, 3, 2),
+                  dam  = c(12, NA, 1, 12, 1),
+                  x    = x,
+                  y    = y)
+
+coordinates <- dat[, c('x', 'y')]
+covariance <- diag(nrow(coordinates))
+comptest <- competition(coordinates,covariance, decay=1,autofill=TRUE)
+test_that("The function behaves as expected",{
+  expect_equal(nrow(renderpf90(comptest)$structure.matrix),nrow(comptest$structure.matrix))
+})
+
+##Test with an object of type additive_genetic_competition
+ped <- build_pedigree(1:3, data = dat)
+addtest <- additive_genetic_competition(ped, coord = coordinates, dat$id, 1, autofill=TRUE)
+test_that("The function behaves as expected",{
+  expect_equal(nrow(renderpf90(addtest)$structure.matrix),nrow(addtest$structure.matrix))
+})
+
+##Test with an object of type additive_genetic
+ped2 <- pedigreemm::pedigree(sire = c(NA,NA,1, 1,4,5),
+                             dam  = c(NA,NA,2,NA,3,2),
+                             label= 1:6)
+inc <- cbind(0, 1, diag(4))
+addtest2 <- additive_genetic(ped2, inc)
+test_that("The function  behaves as expected",{
+  expect_equal(nrow(renderpf90(addtest2)$structure.matrix),nrow(addtest2$structure.matrix))
+})
+
+##Test with an object of type additive_genetic_animal
+dat <- data.frame(id = 1:4,
+                  sire = c(11, 11, 2, 3),
+                  dam  = c(12, NA, 1, 12))
+ped3 <- build_pedigree(1:3, data = dat)
+addtest3 <- additive_genetic_animal(ped3, dat$id)
+test_that("The function behaves as expected",{
+  expect_equal(nrow(renderpf90(addtest3)$structure.matrix),nrow(addtest3$structure.matrix))
+})
+
 ## TODO: Test with objects of types: 
-##   - competition
 ##   - genetic
 ##   - permanent_environmental_competition
-##   - additive_genetic
-##   - additive_genetic_animal
-##   - additive_genetic_competition
