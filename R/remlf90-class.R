@@ -573,9 +573,6 @@ remlf90 <- function(fixed,
                          ai = file.path(breedR.bin, 'airemlf90'),
                          em = file.path(breedR.bin, 'remlf90'))
 
-    print(paste0('Exists file ', breedR.call, ': ', file.exists(breedR.call)))
-    list.files(dirname(breedR.call))
-          
     reml.out <- system2(breedR.call, 
                         input  = 'parameters',
                         stdout = ifelse(debug, '', TRUE))
