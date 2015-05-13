@@ -67,6 +67,20 @@ test_that("The function behaves as expected",{
   expect_equal(nrow(renderpf90(addtest3)$structure.matrix),nrow(addtest3$structure.matrix))
 })
 
-## TODO: Test with objects of types: 
-##   - genetic
-##   - permanent_environmental_competition
+##Test with an object of type genetic
+genetictest <- genetic(ped2, inc,  cov = diag(6))
+test_that("The function returns the type expected",{
+  expect_equal(nrow(renderpf90(genetictest)$structure.matrix),nrow(genetictest$structure.matrix))
+})
+
+##Test with an object of type permanent_environmental_competition
+dat_pec <- data.frame(id   = 1:5,
+                      sire = c(11, 11, 2, 3, 2),
+                      dam  = c(12, NA, 1, 12, 1),
+                      x    = c(rep(1:2, times = 2), 3),
+                      y    = c(rep(1:2, each = 2), 3))
+pectest <- permanent_environmental_competition(coord = dat_pec[, c('x', 'y')], decay = 2)
+test_that("The function returns the type expected",{
+  expect_equal(nrow(renderpf90(pectest)$structure.matrix),nrow(pectest$structure.matrix))
+})
+
