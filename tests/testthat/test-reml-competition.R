@@ -5,32 +5,69 @@ on.exit(options(old.op))
 
 context('Constructors of competition models')
 
+  ## Test the competition constructor (competition.R)
 
-## TODO: test the competition constructor (competition.R)
-##   - simulate some coordinates
-##   - use any covariance (diag), any decay (say, 1), and autofill = TRUE
-##   - build a competition() object
-##   - check the incidence matrix:
-##      - square: nrows = ncols = nrow(coordinates)
-##      - its rows squared must sum to 1
-##      - only nonzero elements in the columns corresponding to neighbours
-##      - no full-zero columns
+  x = c(rep(1:2, times = 2), 3)
+  y = c(rep(1:2, each = 2), 3)
+  dat <- data.frame(id   = 1:5,
+                  sire = c(11, 11, 2, 3, 2),
+                  dam  = c(12, NA, 1, 12, 1),
+                  x    = x,
+                  y    = y)
 
+  coordinates <- dat[, c('x', 'y')]
+  covariance <- diag(nrow(coordinates))
+  comptest <- competition(coordinates,covariance, decay=1,autofill=TRUE)
 
-## TODO: test the additive_genetic_competition constructor (genetic.R)
-##   - simulate some pedigree (use breedR.sample.pedigree())
-##     and use the same coordinates from before
-##   - use any decay (say, 1), and autofill = TRUE
-##   - build an additive_genetic_competition() object
-##   - check the incidence matrix:
-##      - square: nrows = nrow(coordinates); ncols = nrow(pedigree)
-##      - its rows squared must sum to 1
-##      - only nonzero elements in the columns corresponding to neighbours
-##      - full-zero columns corresponding to founders in the pedigree
-##   - note that the pedigree might have been recoded. The map from original
-##     to internal coding is an attribute of the pedigree.
+  test_that("incidence matrix gets the right dimension", {
+    expect_equal(nrow(comptest$incidence.matrix),nrow(coordinates))
+    expect_equal(ncol(comptest$incidence.matrix),nrow(coordinates))
+  })
+  
+  test_that("the sum of rows squared of incidence matrix is equal to 1", {
+    expect_equal(Matrix::rowSums(comptest$incidence.matrix^2),rep(1,nrow(comptest$incidence.matrix)), tol=1e-02)
+  })
+  
+  require(spdep)
+  dst <- sqrt(2)
+  mg_nb <- dnearneigh(as.matrix(coordinates), 0, dst)
 
+  test_that("only nonzero elements in the columns correspond to neighbours", {
+    expect_gt0 <- function(i) expect_equal(which(comptest$incidence.matrix[i,]>0),mg_nb[[i]])
+    sapply(1:nrow(comptest$incidence.matrix), expect_gt0)
+  })
+  
+  test_that("there are no full-zero columns", {
+    expect_match(all(apply(comptest$incidence.matrix, 2, function(x) any(x>0))),"TRUE")
+  })
 
+  
+  ##Test the additive_genetic_competition constructor (genetic.R)
+
+  ped <- build_pedigree(1:3, data = dat)
+  addtest <- additive_genetic_competition(ped, coord = coordinates, dat$id, 1, autofill=TRUE)
+
+  test_that("incidence matrix gets the right dimension", {
+    expect_equal(nrow(addtest$incidence.matrix),nrow(coordinates))
+    expect_equal(ncol(addtest$incidence.matrix),nrow(as.data.frame(addtest$pedigree)))
+  })
+
+  test_that("the sum of rows squared of incidence matrix is equal to 1", {
+    expect_equal(Matrix::rowSums(addtest$incidence.matrix^2),rep(1,nrow(addtest$incidence.matrix)), tol=1e-02)
+  })
+
+  test_that("only nonzero elements in the columns correspond to neighbours", {
+    expect_gt1 <- function(i) expect_equal(which(addtest$incidence.matrix[i,attr(ped, 'map')[dat$id]]>0),
+                                           mg_nb[[i]])
+    sapply(1:nrow(addtest$incidence.matrix), expect_gt1)
+  })
+  
+  
+  test_that("full-zero columns correspond to founders in the pedigree", {
+    idx_founders_ped <- (1:nrow(as.data.frame(ped)))[-attr(ped, 'map')[dat$id]]
+    expect_match(all(addtest$incidence.matrix[, idx_founders_ped] == 0),"TRUE")
+  })
+  
 ### For testing competition, we perform a simulation excercise ###
 
 set.seed(12345)
