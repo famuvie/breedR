@@ -847,8 +847,9 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
 
 
 
-##' @method plot ranef.breedR
-##' @export
+#' @method plot ranef.breedR
+# @describeIn ranef.breedR
+#' @export
 plot.ranef.breedR <- function(x, y, ...) {
   ## dotplot for each random effect
   ## only makes sense for random effects with a few levels
@@ -876,7 +877,8 @@ plot.ranef.breedR <- function(x, y, ...) {
   } else message('No suitable random effects to plot')
 }
 
-#' @describeIn ranef
+#' @method print ranef.breedR
+# @describeIn ranef
 #' @export
 print.ranef.breedR <- function(x, ...) {
   attr2df <- function(x) {

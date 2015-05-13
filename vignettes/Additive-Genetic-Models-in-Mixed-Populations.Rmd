@@ -1,7 +1,7 @@
 ---
 title: "Additive Genetic Models in Mixed Populations"
 author: "Facundo Muñoz"
-date: '`r paste(Sys.Date(), 'breedR version:', packageVersion('breedR'))`'
+date: "`r paste(Sys.Date(), 'breedR version:', packageVersion('breedR'))`"
 output:
   pdf_document:
     fig_caption: yes

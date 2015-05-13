@@ -33,6 +33,7 @@ Imports:
     pedigreemm,
     splines
 Suggests:
+    doParallel,
     grid,
     MASS,
     plyr,
