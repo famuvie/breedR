@@ -21,7 +21,7 @@ genetic <- function(pedigree, incidence, covariance, precision) {
   arg.list <- as.list(mc)[-1]
   
   random.call[[1]] <- as.symbol('random')
-  ans <- eval(random.call[-match('pedigree', as.list(random.call))],
+  ans <- eval(random.call[-match('pedigree', names(random.call))],
               parent.frame())
 
   ans$pedigree <- pedigree
