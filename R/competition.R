@@ -102,7 +102,7 @@ competition <- function(coordinates,
 }
 
 
-#' Build an permanent-environmental competition model
+#' Build a permanent-environmental competition model
 #' 
 #' Given the coordinates of observations, and the competition decay parameter, 
 #' build a \code{permanent_environmental_competition} model.
