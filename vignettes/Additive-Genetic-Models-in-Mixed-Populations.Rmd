@@ -263,7 +263,7 @@ Now, fit the model for several values of $\lambda$ and maximize the likelihood.
 ```{r likelihood-profiling}
 ## Setup parallel computing
 library(doParallel)
-cl <- makeCluster(4)
+cl <- makeCluster(2)
 registerDoParallel()
 on.exit(stopCluster(cl))
 
