@@ -43,16 +43,22 @@ test_that("loc_grid behaves as expected", {
 })
 
 ## Tests for the build_grid function
-  x1 = c(-1:3, 5:8)
-  y1 = c(-5:-2, 5:9)
-  A<-matrix(c(x1,y1),ncol=2)
-  x2 = c(2.1,4.2,6.3,10.5,14.7,8.4,16.8)
-  y2 = c(1,4,13,16,19,22,7)
-  B<-matrix(c(x2,y2),ncol=2)
-  C<-matrix(c(6:18),ncol=1)
-  D<-matrix(c(1:24),ncol=4)
-  E<-matrix(c(1,3,4,8,11,13,15,1,4,3,5,11,7,6),ncol=2)
-  
+x1 = c(-1:3, 5:8)
+y1 = c(-5:-2, 5:9)
+A<-matrix(c(x1,y1),ncol=2)
+x2 = c(2.1,4.2,6.3,10.5,14.7,8.4,16.8)
+y2 = c(1,4,13,16,19,22,7)
+B<-matrix(c(x2,y2),ncol=2)
+C<-matrix(c(6:18),ncol=1)
+D<-matrix(c(1:24),ncol=4)
+E<-matrix(c(1,3,4,8,11,13,15,1,4,3,5,11,7,6),ncol=2)
+
+## TODO:
+## There are a couple of failing tests in what follows (check)
+## Particularly, loc_grid(B, autofill = TRUE) returns some duplicated
+## coordinates in the first dimension. 
+## Check why is this happening and fix.
+
 test_that("The function stops if the number of columns does not equal 2",{  
 expect_error(build_grid(C))
 expect_error(build_grid(D))
