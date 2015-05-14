@@ -34,11 +34,13 @@ Imports:
     splines
 Suggests:
     doParallel,
+    foreach,
     grid,
     INLA,
     MASS,
     plyr,
     spam,
+    spdep,
     testthat,
     knitr,
     rmarkdown,
