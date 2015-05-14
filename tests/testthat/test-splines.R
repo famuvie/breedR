@@ -121,7 +121,7 @@ test_that("model.matrix() gets a named list of fixed and random incidence matric
   expect_equal(dim(x$fixed), c(n.obs, nlevels.fixed))
   expect_is(x$random, 'list')
   expect_named(x$random, c('spatial'))
-  expect_is(x$random$spatial, 'matrix')
+  expect_is(x$random$spatial, c('matrix', 'Matrix'))
   expect_equal(dim(x$random$spatial), c(n.obs, n.splines))
 })
 
