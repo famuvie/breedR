@@ -821,10 +821,10 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
             coord   <- x$effects$spatial$sp$plotting$grid
           }
           stopifnot(!is.null(coord))
-          value <- as.vector(inc.mat %*% ranef(x)$spatial)
+          value <- inc.mat %*% ranef(x)$spatial
         }
         spdat <- data.frame(coord,
-                            z     = value,
+                            z     = as.vector(value),
                             model = x$call$spatial$model)
         
         
