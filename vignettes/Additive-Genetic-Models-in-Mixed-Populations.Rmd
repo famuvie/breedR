@@ -1,7 +1,7 @@
 ---
 title: "Additive Genetic Models in Mixed Populations"
 author: "Facundo Muñoz"
-date: '`r paste(Sys.Date(), 'breedR version:', packageVersion('breedR'))`'
+date: "`r paste(Sys.Date(), 'breedR version:', packageVersion('breedR'))`"
 output:
   pdf_document:
     fig_caption: yes
@@ -101,6 +101,15 @@ A <- pedigreemm::getA(ped)
 
 ## Build the full incidence matrix
 Z <- as(dat$id, 'indMatrix')
+
+## Give the index vector of additive-genetic random effects
+## that belong to one subpopulation;
+## 'E', 'J' (founders) or 'EE', 'EJ' or 'JJ' (offspring).
+idx_pop <- function(x) {
+  if (nchar(x) == 1) grep(x, founders$id)
+  else
+    match(dat$id[dat$sp == x], as.data.frame(ped)$self)
+}
 ```
 
 
@@ -118,15 +127,6 @@ However, the accuracy may be limited by the violation of the *single population*
 ```{r fit1}
 ## Avoid estimating BLUPS for which we don't have information
 ## Otherwise, the run takes much longer (5 hs vs 6 min in this example)
-
-## Give the index vector of additive-genetic random effects
-## that belong to one subpopulation;
-## 'E', 'J' (founders) or 'EE', 'EJ' or 'JJ' (offspring).
-idx_pop <- function(x) {
-  if (nchar(x) == 1) grep(x, founders$id)
-  else
-    match(dat$id[dat$sp == x], as.data.frame(ped)$self)
-}
 
 ## A[idx_pop('EE'), idx_pop('JJ')]  # This is null: populations are independent
 Z_EE <- Z[, idx_pop('EE')]
@@ -263,8 +263,9 @@ Now, fit the model for several values of $\lambda$ and maximize the likelihood.
 ```{r likelihood-profiling}
 ## Setup parallel computing
 library(doParallel)
-cl <- makeCluster(8)
-registerDoParallel(cl)
+cl <- makeCluster(2)
+registerDoParallel()
+on.exit(stopCluster(cl))
 
 ## Introduce the corresponding scaling factors 
 ## in the relationship matrix

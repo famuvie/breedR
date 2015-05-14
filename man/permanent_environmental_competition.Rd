@@ -2,7 +2,7 @@
 % Please edit documentation in R/competition.R
 \name{permanent_environmental_competition}
 \alias{permanent_environmental_competition}
-\title{Build an permanent-environmental competition model}
+\title{Build a permanent-environmental competition model}
 \usage{
 permanent_environmental_competition(coordinates, decay, autofill = TRUE)
 }

@@ -33,13 +33,15 @@ Imports:
     pedigreemm,
     splines
 Suggests:
+    doParallel,
     grid,
     INLA,
-    knitr,
     MASS,
     plyr,
     spam,
     testthat,
+    knitr,
+    rmarkdown,
     tidyr
 LazyLoad: yes
 LazyData: yes
