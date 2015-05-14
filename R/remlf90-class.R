@@ -847,8 +847,9 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
 
 
 
-##' @method plot ranef.breedR
-##' @export
+#' @method plot ranef.breedR
+# @describeIn ranef.breedR
+#' @export
 plot.ranef.breedR <- function(x, y, ...) {
   ## dotplot for each random effect
   ## only makes sense for random effects with a few levels
@@ -876,7 +877,8 @@ plot.ranef.breedR <- function(x, y, ...) {
   } else message('No suitable random effects to plot')
 }
 
-#' @describeIn ranef
+#' @method print ranef.breedR
+# @describeIn ranef
 #' @export
 print.ranef.breedR <- function(x, ...) {
   attr2df <- function(x) {
@@ -994,12 +996,21 @@ ranef.remlf90 <- function (object, ...) {
 #' 
 #' @method vcov remlf90
 #' @export
-vcov.remlf90 <- function (object, effect = 'spatial', ...) {
+vcov.remlf90 <- function (object, effect = c('spatial', 'genetic'), ...) {
   
   effect <- match.arg(effect)
-  if( !exists(effect, envir = as.environment(object$effects)) )
-    stop(paste('There is no', effect, 'effect in this object.\n'))
   
+  ## Check that the effect exists, and is not "dummy"
+  ## currently the only dummy effect is an spatial effect used
+  ## only to provide coordinates for mapping
+  if (!effect %in% names(object$effects)) {
+    stop(paste('There is no', effect, 'effect in this object.\n'))
+  } else if ('name' %in% names(object$effects[[effect]])) {
+    if (object$effects[[effect]]$name == 'none') 
+      stop(paste('There is no', effect, 'effect in this object.\n'))
+  }
+
+
   ef <- object$effects[[effect]]
   
   # Underlying covariance matrix
@@ -1008,6 +1019,7 @@ vcov.remlf90 <- function (object, effect = 'spatial', ...) {
   if (inherits(ef, 'effect_group')) {
     U <- get_structure(ef)
   } else {
+    if (effect == 'genetic') stop('Currently not available')
     Usp <- object$effects[[effect]]$sp$U
     dimU <- c(max(Usp[, 1]), max(Usp[, 2]))
     stopifnot(identical(dimU[1], dimU[2]))
