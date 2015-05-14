@@ -18,7 +18,7 @@ Typically 1 or 2. See Details.}
   even if they are across an empty line.}
 }
 \value{
-An object inheriting from \link{\code{competition}} with the
+An object inheriting from \code{\link{competition}} with the
   incidence and structure matrices for the random effect.
 }
 \description{

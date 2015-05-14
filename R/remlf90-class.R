@@ -877,8 +877,8 @@ plot.ranef.breedR <- function(x, y, ...) {
   } else message('No suitable random effects to plot')
 }
 
-#' @param x object of class \code{ranef.breedR}
 #' @method print ranef.breedR
+# @param x object of class \code{ranef.breedR}
 # @describeIn ranef
 #' @export
 print.ranef.breedR <- function(x, ...) {

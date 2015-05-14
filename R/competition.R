@@ -110,7 +110,7 @@ competition <- function(coordinates,
 #' @inheritParams build_grid
 #' @inheritParams competition
 #'   
-#' @return An object inheriting from \link{\code{competition}} with the
+#' @return An object inheriting from \code{\link{competition}} with the
 #'   incidence and structure matrices for the random effect.
 #' @examples 
 #' dat <- data.frame(id   = 1:5,
