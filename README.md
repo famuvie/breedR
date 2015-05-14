@@ -1,4 +1,5 @@
 [![Travis-CI Build Status](https://travis-ci.org/famuvie/breedR.svg?branch=master)](https://travis-ci.org/famuvie/breedR)
+[![Coverage Status](https://coveralls.io/repos/famuvie/breedR/badge.svg?branch=set-up-coverall)](https://coveralls.io/r/famuvie/breedR?branch=set-up-coverall)
 
 breedR
 ======
