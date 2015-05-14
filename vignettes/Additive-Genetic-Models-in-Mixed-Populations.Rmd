@@ -262,10 +262,12 @@ Now, fit the model for several values of $\lambda$ and maximize the likelihood.
 
 ```{r likelihood-profiling}
 ## Setup parallel computing
-library(doParallel)
-cl <- makeCluster(2)
-registerDoParallel()
-on.exit(stopCluster(cl))
+## Commented out as it gives problems in vignettes
+## and automated checking
+# library(doParallel)
+# cl <- makeCluster(8)
+# registerDoParallel()
+# on.exit(stopCluster(cl))
 
 ## Introduce the corresponding scaling factors 
 ## in the relationship matrix
@@ -315,8 +317,11 @@ cond_lik <- function(x) {
 
 lambda <- seq(.3, 1, length.out = 11)
 
-# lik <- sapply(lambda, cond_lik)  # (sequential)
-lik <- foreach(x = seq.int(lambda), .combine = c) %dopar% cond_lik(lambda[x])
+if (require(foreach)) {
+  lik <- foreach(x = seq.int(lambda), .combine = c) %dopar% cond_lik(lambda[x])
+} else {
+  lik <- sapply(lambda, cond_lik)
+}
 
 ggplot(data.frame(lambda, lik), aes(lambda, lik)) + 
   geom_line()
