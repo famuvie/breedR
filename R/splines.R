@@ -21,12 +21,13 @@
 #' @param degree integer. Degree of the B-spline polynomials.
 #' @param sparse logical. If \code{TRUE} the incidence matrix will be stored in 
 #'   sparse format. Default is \code{FALSE}.
-#' @param strategy character. Strategy for placing spline knots. Only
+#' @param strategy character. Strategy for placing spline knots. Only 
 #'   \code{uniformgrid} available for the moment.
 #'   
 #' @return A list with elements \code{incidence.matrix}, \code{structure.matrix}
 #'   and \code{structure.type}, which is a string indicating either 
 #'   \code{covariance} or \code{precision}.
+#' @export
 splines <- function(coord,
                     n.knots  = NULL,
                     autofill = TRUE,
