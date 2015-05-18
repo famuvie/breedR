@@ -119,6 +119,7 @@ competition <- function(coordinates,
 #'                   x    = c(rep(1:2, times = 2), 3),
 #'                   y    = c(rep(1:2, each = 2), 3))
 #' permanent_environmental_competition(coord = dat[, c('x', 'y')], decay = 2)
+#' @export
 permanent_environmental_competition <- function(coordinates,
                                                 decay,
                                                 autofill = TRUE) {

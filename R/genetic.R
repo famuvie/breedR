@@ -45,7 +45,7 @@ genetic <- function(pedigree, incidence, covariance, precision) {
 #'                             dam  = c(NA,NA,2,NA,3,2),
 #'                             label= 1:6)
 #' inc <- cbind(0, 0, diag(4))
-#' additive_genetic(ped, inc)
+#' breedR:::additive_genetic(ped, inc)
 additive_genetic <- function(pedigree, incidence) {
   
   
@@ -85,6 +85,7 @@ additive_genetic <- function(pedigree, incidence) {
 #'                   dam  = c(12, NA, 1, 12))
 #' ped <- build_pedigree(1:3, data = dat)
 #' additive_genetic_animal(ped, dat$id)
+#' @export
 additive_genetic_animal <- function(pedigree, idx) {
   
   ## Checks
@@ -132,6 +133,7 @@ additive_genetic_animal <- function(pedigree, idx) {
 #'                   y    = c(rep(1:2, each = 2), 3))
 #' ped <- build_pedigree(1:3, data = dat)
 #' additive_genetic_competition(ped, coord = dat[, c('x', 'y')], dat$id, 2)
+#' @export
 additive_genetic_competition <- function(pedigree,
                                          coordinates,
                                          id,

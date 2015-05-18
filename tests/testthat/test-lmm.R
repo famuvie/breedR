@@ -147,7 +147,7 @@ run_lmm <- function(m, data = dat, method) {
                       random = m$random, 
                       data = data, 
                       method = method)
-  fml.lme4 <- breedR::lme4_fml(m$fixed, m$random)
+  fml.lme4 <- breedR:::lme4_fml(m$fixed, m$random)
   res.lmm   <- lmer(fml.lme4, data = data)
   return(list(res.reml, res.lmm))
 }
