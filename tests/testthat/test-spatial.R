@@ -53,11 +53,6 @@ C<-matrix(c(6:18),ncol=1)
 D<-matrix(c(1:24),ncol=4)
 E<-matrix(c(1,3,4,8,11,13,15,1,4,3,5,11,7,6),ncol=2)
 
-## TODO:
-## There are a couple of failing tests in what follows (check)
-## Particularly, loc_grid(B, autofill = TRUE) returns some duplicated
-## coordinates in the first dimension. 
-## Check why is this happening and fix.
 
 test_that("The function stops if the number of columns does not equal 2",{  
 expect_error(build_grid(C))

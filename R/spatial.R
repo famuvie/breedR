@@ -79,8 +79,12 @@ fill_holes <- function(x, label) {
     sep <- median(dif)
     
     # Check whether there are some "holes"
+    # There is a numerical issue with diffs of double numbers:
+    # x <- 2.1*1:10
+    # unique(diff(x))  # 2.1 2.1 2.1 2.1 2.1  difference in orders of up to e-15
+    # I will check with single precision here
     if( !isTRUE(all.equal(min(dif), max(dif))) ) {
-      holes <- which(dif > sep)
+      holes <- which(dif-sep > 1e-08)
       # The hole can be either larger or shorter than the standard sep
       hole_sizes <- dif[holes]/sep - 1
       
