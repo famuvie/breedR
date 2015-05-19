@@ -1,11 +1,6 @@
 ## Functions for checking model components
 ## Internal - not exported
 
-## TODO: 
-##  - check_spatial
-##  - check_generic
-##  - make tests for them
-
 check_genetic <- function(model = c('add_animal', 'competition'),
                           pedigree,
                           id,
@@ -15,7 +10,7 @@ check_genetic <- function(model = c('add_animal', 'competition'),
                           autofill = TRUE,
                           var.ini) {
   mc <- match.call()
-  
+
   for (arg in c('model', 'pedigree', 'id', 'var.ini')) {
     if (eval(call('missing', as.name(arg))))
       stop(paste('Argument', arg, 'required in the genetic component.'))
@@ -45,7 +40,9 @@ check_genetic <- function(model = c('add_animal', 'competition'),
       stop('Argument coordinates in the genetic component not numeric')
     if (ncol(coordinates) != 2)
       stop('Only two dimensions admitted for coordinates in the genetic component.')
-    if (!all(vapply(pec, is.logical,TRUE)) || !is.list(pec) || !'names' %in% names(attributes(pec)))
+    if (!is.list(pec))
+      stop('pec must be a named list with logical elements')
+    if (!all(vapply(pec, is.logical,TRUE)) || is.null(names(pec)) || !all(nchar(names(pec))>0))
      stop('pec must be a named list with logical elements')
     if (nrow(var.ini)!=ncol(var.ini))
       stop('var.ini must be a square matrix')
@@ -53,10 +50,17 @@ check_genetic <- function(model = c('add_animal', 'competition'),
       stop('var.ini must be a SPD matrix')
     if (!all(eigen(var.ini)$values >0))
      stop('var.ini must be a SPD matrix')
+    mc$pec <- pec
+    mc$competition_decay <- competition_decay
   }
   
   stopifnot(is.numeric(competition_decay))
   stopifnot(competition_decay > 0)
+  
+  mc$var.ini <- var.ini
+  mc$pedigree <- pedigree
+  mc$id <- id
+
   
   return(as.list(mc[-1]))
 }
@@ -65,8 +69,8 @@ check_genetic <- function(model = c('add_animal', 'competition'),
 
 check_spatial <- function(model = c('splines', 'AR'),
                           coordinates,
-                          n.knots = c(6,6) ,
-                          rho = c(0.5,0.5),
+                          n.knots,
+                          rho,
                           var.ini) {
   mc <- match.call()
     
@@ -89,28 +93,87 @@ check_spatial <- function(model = c('splines', 'AR'),
   if(mc$model == 'splines'){
     if (!is.vector(n.knots) || length(n.knots) !=2 || !all(n.knots%%1==0))
       stop(paste('n.knots must be a vector of two integers'))
+    mc$n.knots <- n.knots
   }
   
-  if (mc$model == 'AR'){ # To do : Check if rho is a matrix or data frame.
-    if(is.vector(rho)){
-      if (length(rho)!=2)
-        stop('rho must contain exactly two components')
-      if (!all(vapply(rho, is.numeric, TRUE)))
-        stop('Argument rho in the spatial component is not numeric')
-      if (any(abs(rho)>=1))
-        stop('rho must contain two numbers strictly between -1 and 1')
-    }
+  if (mc$model == 'AR'){ 
+    if (!is.vector(rho))
+      stop('rho must be a vector')
+    if (length(rho)!=2)
+      stop('rho must contain exactly two components')
+    if (!all(vapply(rho, is.numeric, TRUE)))
+      stop('Argument rho in the spatial component is not numeric')
+    if (any(abs(rho)>=1))
+      stop('rho must contain two numbers strictly between -1 and 1')
+    
+    mc$rho <- rho
   }
   
-  if (var.ini <= 0 || is.numeric(var.ini) == FALSE )
+  if (var.ini <= 0 || !is.numeric(var.ini) || length(var.ini) != 1)
     stop (paste('var.ini must be a positive number'))
+  
+  mc$var.ini <- var.ini
   
   return(as.list(mc[-1]))
 }
 
 
 
-check_generic <- function(){
+check_generic <- function(x){
   
+  mc <- match.call()
+  
+  for (arg in c('x')) {
+    if (eval(call('missing', as.name(arg))))
+      stop(paste('Argument', arg, 'required in the generic component.'))
+  }
+  
+  if (!is.list(x))
+    stop('Argument x in the generic component must be a list')
+  if (is.null(names(x)))
+    stop('Argument x must be a named list')
+  if (!all(nchar(names(x))>0))
+    stop('All elements of the argument x must be named')
+  if (any(duplicated(names(x))))
+    stop('Argument x must be a named list with different names')
+  if (!all(sapply(x,is.list)))
+    stop('All elements of the argument x must be list elements')
+  
+  for (arg in x){ 
+    result <- try(do.call('valid_generic_element',arg))
+    expect_true(result)
+  }
+  
+  mc$x <- x
+  
+  return(as.list(mc[-1]))
+}
+
+
+valid_generic_element <- function(incidence, covariance, precision, var.ini){
+  
+  for (arg in c('incidence', 'var.ini')) {
+    if (eval(call('missing', as.name(arg))))
+      stop(paste('Argument', arg, 'required in the generic component'))
+  }
+  if (!xor(missing(covariance), missing(precision)))
+    stop(paste('Exactly one argument between covariance and precision must be specified'))
+  
+  if (missing(covariance))
+    structure <- precision
+  else 
+    structure <- covariance
+  
+  if(!is.matrix(incidence))
+    stop(paste('Argument incidence must be of type matrix'))
+  if(!is.matrix(structure))
+    stop(paste('Present argument between covariance and precision must be of type matrix'))
+  if(ncol(incidence) != nrow(structure))
+    stop(paste('Argument incidence must have the same number of columns than the number of rows of 
+               covariance or precision matrix'))
+  if (length(var.ini) !=1 || !is.numeric(var.ini) || var.ini <= 0)
+    stop (paste('var.ini must be a positive number'))
+
+  return(TRUE)
 }
 
