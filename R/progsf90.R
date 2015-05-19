@@ -194,7 +194,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
   
   if( !is.null(genetic) ) {
 
-    genetic <- do.call('check_genetic', genetic)
+    genetic <- do.call('check_genetic', genetic[-match('tempfile', names(genetic))])
     
     gen <- build.genetic.model(genetic)
     

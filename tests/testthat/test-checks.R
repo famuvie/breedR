@@ -3,7 +3,7 @@ on.exit(options(old.op))
 
 ### Tests of functions for checking model components ###
 
-context("check_genetic")
+context("Checks for model components")
 
 ##Model add_animal##
 dat <- data.frame(id = 1:4,
@@ -77,7 +77,8 @@ test_that("check_genetic returns an error if competition_decay is not a positive
 
 
 
-context("check_spatial")
+## Spatial
+
 
 ##Model splines##
 var.ini <- 1.2
@@ -133,7 +134,8 @@ test_that("check_spatial returns an error if rho does not contain what is expect
   expect_error(check_spatial(model = 'AR', coordinates = coordinates, rho = 'test', var.ini = var.ini))
 })
 
-context("check_generic")
+
+## Generic
 
 x1 <- list(inc = matrix((1:12),4,3), cov = diag(3), var.ini = 6)
 x2 <- list(inc = matrix((3:8),3,2), pre = diag(2), var.ini = 4)
@@ -166,7 +168,6 @@ test_that("check_generic returns an error if x is not a named list with differen
   expect_error(check_generic(list(a = x1, a = x2)))
 })
 
-## TODO : fix what causes an error in the following instructions 
 
 test_that("check_generic returns an error if the incidence matrix is missing",{
   expect_error(check_generic(list(a = list( cov = diag(3), var.ini = 6))))

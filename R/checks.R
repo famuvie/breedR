@@ -41,9 +41,15 @@ check_genetic <- function(model = c('add_animal', 'competition'),
     if (ncol(coordinates) != 2)
       stop('Only two dimensions admitted for coordinates in the genetic component.')
     if (!is.list(pec))
-      stop('pec must be a named list with logical elements')
-    if (!all(vapply(pec, is.logical,TRUE)) || is.null(names(pec)) || !all(nchar(names(pec))>0))
-     stop('pec must be a named list with logical elements')
+      stop('pec must be a list')
+    if (is.null(names(pec)) || !all(nchar(names(pec))>0))
+     stop('pec must be a named list')
+    
+    if (!setequal(names(pec), c('present', 'var.ini')))
+      stop('Unrecognized argument in pec')
+    if (!is.logical(pec$present))
+      stop('logical value expected in pec$present')
+    
     if (nrow(var.ini)!=ncol(var.ini))
       stop('var.ini must be a square matrix')
     if(!all(var.ini == t(var.ini)))
@@ -60,7 +66,8 @@ check_genetic <- function(model = c('add_animal', 'competition'),
   mc$var.ini <- var.ini
   mc$pedigree <- pedigree
   mc$id <- id
-
+  mc$autofill <- autofill
+  
   
   return(as.list(mc[-1]))
 }
@@ -139,9 +146,10 @@ check_generic <- function(x){
   if (!all(sapply(x,is.list)))
     stop('All elements of the argument x must be list elements')
   
-  for (arg in x){ 
-    result <- try(do.call('valid_generic_element',arg))
-    expect_true(result)
+  for (arg.idx in seq.int(x)){ 
+    result <- try(do.call('valid_generic_element', x[[arg.idx]]), silent =TRUE)
+    if (inherits(result, 'try-error'))
+      stop(paste(attr(result, 'condition')$message, 'in generic component', names(x)[arg.idx]))
   }
   
   mc$x <- x
@@ -154,23 +162,25 @@ valid_generic_element <- function(incidence, covariance, precision, var.ini){
   
   for (arg in c('incidence', 'var.ini')) {
     if (eval(call('missing', as.name(arg))))
-      stop(paste('Argument', arg, 'required in the generic component'))
+      stop(paste('Argument', arg, 'required'))
   }
   if (!xor(missing(covariance), missing(precision)))
     stop(paste('Exactly one argument between covariance and precision must be specified'))
   
-  if (missing(covariance))
+  if (missing(covariance)) {
     structure <- precision
-  else 
+    str.name <- 'precision'
+  }
+  else {
     structure <- covariance
-  
+    str.name <- 'covariance'
+  }
   if(!is.matrix(incidence))
     stop(paste('Argument incidence must be of type matrix'))
   if(!is.matrix(structure))
-    stop(paste('Present argument between covariance and precision must be of type matrix'))
+    stop(paste(str.name, 'must be of type matrix'))
   if(ncol(incidence) != nrow(structure))
-    stop(paste('Argument incidence must have the same number of columns than the number of rows of 
-               covariance or precision matrix'))
+    stop(paste('Non conformant incidence and', str.name, 'matrices'))
   if (length(var.ini) !=1 || !is.numeric(var.ini) || var.ini <= 0)
     stop (paste('var.ini must be a positive number'))
 
