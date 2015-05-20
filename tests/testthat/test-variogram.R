@@ -57,8 +57,27 @@ test_that("The empirical variograms are well computed", {
   expect_equal(as.numeric(res$variogram), res$truev, tolerance = .1)
 })
 
+test_that("variogram needs to be provided with objects inheriting from 'BreedR'",{
+  expect_error(variogram(0.5))
+  expect_error(variogram(matrix(1:16,4,4)))
+  expect_error(variogram(list('test')))
+  expect_error(variogram(FALSE))
+  })
 
-## TODO: verify that variogram()
-##   - errors for objects not inheriting from 'breedR'
-##   - if x is not provided, then both coord *and* z must be given
-##   - try examples with x a breedR result (use breedR.result()) and with specific coordinates/z
+test_that("if x is not provided in the variogram, then both coord and z must be given'",{
+  expect_error(variogram(coord = coord))
+  expect_error(variogram(z = z))
+})
+
+test_that("variogram runs without error with breedR results or specific coordinates/z",{
+  breedtest <- variogram(breedR.result())
+  spectest <- variogram(coord = coord, z = z)
+  coord2 <- expand.grid(x = 0:29, y = 0 : 29)
+  z2 <- rexp(length(coord2$x))
+  spectest2 <- variogram(coord = coord2, z = z2)
+  expect_that(!inherits(breedtest, "try-error"), is_true())
+  expect_that(!inherits(spectest, "try-error"), is_true())
+  expect_that(!inherits(spectest2, "try-error"), is_true())
+})
+
+
