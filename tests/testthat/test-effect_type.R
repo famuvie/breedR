@@ -85,3 +85,11 @@ test_that("The function returns the type expected",{
   expect_output(effect_type(pectest),"random")
 })
 
+
+## TODO: check effect_type() for effect_group objects
+##   - build some groups with the effects already defined with the 
+##     internal function effect_group. Note that all the effects in a group
+##     must share the same structure (although it can be stored either as
+##     a covariance or a precision matrix). 
+##   - For groups of random effects (which is the case here), it is expected
+##   - to return a single string 'random'

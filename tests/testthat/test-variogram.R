@@ -57,3 +57,8 @@ test_that("The empirical variograms are well computed", {
   expect_equal(as.numeric(res$variogram), res$truev, tolerance = .1)
 })
 
+
+## TODO: verify that variogram()
+##   - errors for objects not inheriting from 'breedR'
+##   - if x is not provided, then both coord *and* z must be given
+##   - try examples with x a breedR result (use breedR.result()) and with specific coordinates/z
