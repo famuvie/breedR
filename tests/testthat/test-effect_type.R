@@ -85,11 +85,26 @@ test_that("The function returns the type expected",{
   expect_output(effect_type(pectest),"random")
 })
 
+##Tests with effect_group objetcs
+testgroup1 <- effect_group(list(generictest, splinestest, comptest), cov.ini = diag(3))
+testgroup2 <- effect_group(list(addtest, addtest2, addtest3), cov.ini = diag(0.5,3,3))
+testgroup3 <- effect_group(list(genetictest, pectest), cov.ini = diag(1.5,2,2))
+testgroup4 <- effect_group(list(generictest, splinestest, comptest,
+                                addtest, addtest2, addtest3,
+                                genetictest, pectest), cov.ini = diag(8))
 
-## TODO: check effect_type() for effect_group objects
-##   - build some groups with the effects already defined with the 
-##     internal function effect_group. Note that all the effects in a group
-##     must share the same structure (although it can be stored either as
-##     a covariance or a precision matrix). 
-##   - For groups of random effects (which is the case here), it is expected
-##   - to return a single string 'random'
+test_that("function effect_type behaves as expected for effect_group objects",{
+  expect_output(effect_type(testgroup1),"random")
+  expect_output(effect_type(testgroup2),"random")
+  expect_output(effect_type(testgroup3),"random")
+  expect_output(effect_type(testgroup4),"random")
+})
+
+
+
+
+
+
+
+
+
