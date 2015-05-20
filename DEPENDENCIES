@@ -1,0 +1,89 @@
+###########
+# Imports #
+###########
+
+breedR::variogram, fields::vgram.matrix
+
+breedR::m1,m4, library(ggplot2)
+breedR::compare.plots, ggplot2
+breedR::spatial.plots, ggplot2
+breedR::spatial.plots, ggplot2::gplot
+breedR::breedR-package, library(ggplot2)
+breedR::plot.metagene, ggplot2
+breedR::print.breedR.variogram, ggplot2
+
+breedR::build.ar.model, Matrix::sparseMatrix
+breedR::build.ar.model, Matrix::tril(Uinv)
+breedR::build.AR1d, Matrix::Matrix
+breedR::build.blocks.model, Matrix::sparseMatrix
+breedR::get_structure.effect_group, Matrix::solve
+breedR::model.matrix.effect_group, Matrix::coerce 
+breedR::model.matrix.effect_group, Matrix::cBind
+breedR::vcov.remlf90, Matrix::sparseMatrix
+breedR::vcov.remlf90, Matrix::spMatrix
+breedR::vcov.remlf90, Matrix::Matrix
+breedR::vcov.remlf90, Matrix::t
+breedR::as.triplet, Matrix::tril
+breedR::breedR.sample.splines, Matrix::sparseMatrix
+breedR::splines, Matrix::diag
+breedR::splines, Matrix::tcrossprod
+breedR::build.splines1d.sparse, Matrix::sparseMatrix
+breedR::matrix.short16, Matrix::spMatrix
+breedR::variogram, Matrix::sparseMatrix
+
+breedR::setMethod, methods:: setOldClass 
+breedR::setMethod, methods:: setMethod 
+
+breedR::fixef.remlf90, nlme::fixef 
+breedR::ranef.remlf90, nlme::ranef
+
+breedR::build_pedigree, pedigree::orderPed
+
+breedR::additive_genetic, pedigreemm::pedigree
+breedR::additive_genetic, pedigreemm::getA
+breedR::get_pedigree.metagene, pedigreemm::pedigree
+breedR::build_pedigree, pedigreemm::pedigree
+breedR::get_pedigree.remlf90, pedigreemm::pedigree
+breedR::breedR.sample.BV, pedigreemm::getAInv
+
+breedR::bispline_incidence, splines::splineDesign
+
+
+############
+# Suggests #
+############
+
+# doParallel empty
+
+# foreach empty
+
+breedR::print.breedR.variogram, grid::viewport
+breedR::print.breedR.variogram, grid::unit
+
+breedR::sim.spatial.metagene, INLA::inla.node2lattice.mapping
+breedR::sim.spatial.metagene, INLA::inla.mesh.2d
+breedR::sim.spatial.metagene, INLA::inla.spde2.matern
+breedR::sim.spatial.metagene, INLA::inla.spde2.precision
+breedR::sim.spatial.metagene, INLA::inla.qsample
+breedR::sim.spatial.metagene, INLA::inla.mesh.projector
+breedR::sim.spatial.metagene, INLA::inla.mesh.project
+
+
+breedR::breedR.sample.splines, MASS::mvrnorm
+
+breedR::compare.plots, plyr::ldply
+breedR::compare.plots, plyr::laply
+
+breedR::breedR.sample.AR, spam::rmvnorm.prec
+breedR::breedR.sample.BV, spam::rmvnorm.prec
+
+# spdep empty
+
+# testthat empty
+
+breedR::breedR.build_vignettes, library(knitr)
+
+breedR::breedR.build_vignettes, library(rmarkdown)
+breedR::breedR.build_vignettes, rmarkdown::render
+
+# tidyr empty
