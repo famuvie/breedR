@@ -31,14 +31,9 @@ splines <- function(coord,
                     n.knots  = NULL,
                     autofill = TRUE,
                     degree   = 3,
-                    sparse   = FALSE,
+                    sparse   = TRUE,
                     strategy = 'uniformgrid') {
   
-  
-  if (!requireNamespace("Matrix", quietly = TRUE)) {
-    stop(paste('Package Matrix is not installed,',
-               'and is required for sparse splines model. Please install'))
-  }
   
   strategy <- match.arg(strategy)
   
@@ -47,7 +42,7 @@ splines <- function(coord,
     knots <- distribute_knots_uniformgrid(coord, n.knots, autofill)
   }
   
-  B <- bispline_incidence(knots, coord, degree + 1, sparse)
+  B <- bispline_incidence(knots, coord, degree + 1, sparse = TRUE)
   
   # The sparse incidence matrix weights 3.5 less than the non-sparse version,
   # but it takes longer processing time. Besides, the gmean computation it also
