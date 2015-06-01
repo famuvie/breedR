@@ -21,7 +21,7 @@ coord <- fullcoord[-rm.idx,]
 ## Incidence matrix for splines objects
 
 # Remove 10% of the grid and build a splines model from it
-spl <- splines(coord)
+spl <- breedr_splines(coord)
 
 test_that('model.matrix() works as expected with spline objects', {
   expect_equal(nrow(model.matrix(spl)), nrow(coord))

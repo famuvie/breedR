@@ -20,17 +20,17 @@ test_that("determine.n.knots fails with few data points", {
 context("Splines infraestructure") 
 ########################
 
-test_that("splines() constructor gives a list with six elements of correct sizes", {
+test_that("breedr_splines() constructor gives a list with six elements of correct sizes", {
   x.loc <- 1:100
   y.loc <- seq(1000, by = 5, length = 51)
   coord <- expand.grid(x.loc, y.loc)
-  result <- splines(coord)
+  result <- breedr_splines(coord)
   inc.mat <- model.matrix(result)
   cov.mat <- get_structure(result)
   n.knots <- sapply(result$knots, length)
   n.splines <- ncol(cov.mat)
   
-  expect_that(result, is_a('splines'))
+  expect_is(result, c('splines', 'spatial, random', 'breedr_effect'))
   expect_that(length(result), equals(6))
   expect_equal(n.knots,
                sapply(sapply(list(x.loc, y.loc), length), determine.n.knots)+6,

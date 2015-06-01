@@ -27,12 +27,12 @@
 #' @return A list with elements \code{incidence.matrix}, \code{structure.matrix}
 #'   and \code{structure.type}, which is a string indicating either 
 #'   \code{covariance} or \code{precision}.
-splines <- function(coord,
-                    n.knots  = NULL,
-                    autofill = TRUE,
-                    degree   = 3,
-                    sparse   = TRUE,
-                    strategy = 'uniformgrid') {
+breedr_splines <- function(coord,
+                           n.knots  = NULL,
+                           autofill = TRUE,
+                           degree   = 3,
+                           sparse   = TRUE,
+                           strategy = 'uniformgrid') {
   
   
   strategy <- match.arg(strategy)

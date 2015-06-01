@@ -270,11 +270,11 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
     if(spatial$model == 'splines') {
       
       ## Build the splines component
-      sp <- splines(spatial$coord,
-                    spatial$n.knots,
-                    spatial$autofill,
-                    degree = 3,
-                    spatial$sparse)
+      sp <- breedr_splines(spatial$coord,
+                           spatial$n.knots,
+                           spatial$autofill,
+                           degree = 3,
+                           spatial$sparse)
       
       ## Build an effect group with this component only
       effect.item <- effect_group(list(sp), spatial[['var.ini']])

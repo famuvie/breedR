@@ -12,7 +12,7 @@ coord <- expand.grid(list(x = seq(1, 100, length = 51),
                      KEEP.OUT.ATTRS = FALSE)
 
 # A splines object
-spl <- splines(coord)
+spl <- breedr_splines(coord)
 spl.str <- get_structure(spl)
 
 # A generic object (with same structure, but inverted)
