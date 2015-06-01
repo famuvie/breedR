@@ -1,0 +1,6 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^vignettes/.*_cache
+^vignettes/.*_files
+^R/development.R
+^\.travis\.yml$
