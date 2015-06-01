@@ -3,6 +3,8 @@
 setOldClass('breedR')
 setOldClass('effect_group')
 setOldClass(c('splines', 'spatial'))
+setOldClass(c('ar', 'spatial'))
+setOldClass(c('blocks', 'spatial'))
 
 #' @importFrom methods setOldClass setMethod
 #' @export
