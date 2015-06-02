@@ -42,7 +42,8 @@ setMethod('coordinates', signature = 'breedR',
             ## If there are several sets of coordinates,
             ## check that they are the same
             if (length(coord.lst) > 1) {
-              if (!all.equal(coord.lst[1], coord.lst[-1]))
+              if (!isTRUE(all.equal(coord.lst[1], coord.lst[-1],
+                                    check.attributes = FALSE)))
                 stop(paste('There are different coordinate sets in the model components.',
                            'I do not know which one to use.'))
             }
