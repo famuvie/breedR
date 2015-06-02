@@ -311,11 +311,9 @@ breedR.sample.AR <- function(size, rho, sigma2, N = 1){
 #'   process as the kronecker product of B-splines processes in each dimension.
 breedR.sample.splines <- function(coord, nkn, sigma2, N = 1){
   
-  splines_struct <- build.splines.model(coord, nkn)
+  splines_struct <- splines(coord, nkn)
 
-  Umat <- with(splines_struct,
-               Matrix::sparseMatrix(i = U[, 1], j = U[, 2], x = U[, 3],
-                                    symmetric = TRUE))
+  Umat <- get_structure(splines_struct)
   
   # Simulated samples of effects
   if( !requireNamespace("MASS", quietly = TRUE) ) {
@@ -326,7 +324,7 @@ breedR.sample.splines <- function(coord, nkn, sigma2, N = 1){
                   nrow = N))
   
   # Multiply by incidence matrix to get observations at individual level
-  ans <- splines_struct$B %*% eff
+  ans <- model.matrix(splines_struct) %*% eff
   
   return(as.data.frame(ans))
 }
