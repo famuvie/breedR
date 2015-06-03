@@ -86,7 +86,11 @@ build.genetic.model <- function(genetic) {
     BIC <- BIC / sqrt(apply(BIC**2, 1, sum, na.rm = TRUE))
     
     # check
-    stopifnot(all(sapply(apply(BIC**2, 1, sum, na.rm = TRUE), all.equal, 1)))
+    # for isolated individuals, the squared sum of coefs is 0
+    # for all the rest, must be 1
+    idx.isolated <- apply(is.na(BIC), 1, all)
+    stopifnot(all(sapply(apply(BIC[!idx.isolated,]**2, 1, sum, na.rm = TRUE),
+                         function(x) isTRUE(all.equal(x, 1)))))
     
     
       
