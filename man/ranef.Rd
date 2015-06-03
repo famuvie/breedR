@@ -6,7 +6,7 @@
 \alias{ranef.remlf90}
 \title{Extract the modes of the random effects}
 \usage{
-ranef.remlf90(object, ...)
+\method{ranef}{remlf90}(object, ...)
 }
 \arguments{
 \item{object}{a fitted models with random effects of class
