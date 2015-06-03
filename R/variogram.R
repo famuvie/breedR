@@ -18,8 +18,8 @@
 #' the absolute distance between rows and columns.
 #' 
 #' Unless \code{coord} or \code{z} are specified by the user, \code{variogram} 
-#' builds the variogram with the residuals of the model fit in \code{x}. If
-#' \code{coord} or \code{z} are specified, then the spatial coordinates or the
+#' builds the variogram with the residuals of the model fit in \code{x}. If 
+#' \code{coord} or \code{z} are specified, then the spatial coordinates or the 
 #' residuals are respectively overrided.
 #' 
 #' This function assumes that there is at most one observation per spatial 
@@ -34,6 +34,46 @@
 #' @param coord (optional) a two-column matrix with coordinates of observations
 #' @param z (optional) a numeric vector of values to be represented spatially
 #'   
+#' @examples 
+#' data(globulus)
+#' 
+#' # No spatial effect
+#' res <- remlf90(fixed  = phe_X ~ 1,
+#'                random = ~ gg,
+#'                genetic = list(model = 'add_animal',
+#'                               pedigree = globulus[, 1:3],
+#'                               id = 'self'),
+#'                data   = globulus)
+#' 
+#' Zd <- model.matrix(res)$random$genetic
+#' PBV <- Zd %*% ranef(res)$genetic
+#' 
+#' # variogram() needs coordinates to compute distances
+#' # either you use the \code{coord} argument, or you do:
+#' coordinates(res) <- globulus[, c('x', 'y')]
+#'
+#' # there is residual autocorrelation
+#' # there is also spatial structure in the Breeding Values
+#' variogram(res)  
+#' variogram(res, z = PBV)  
+#' 
+#' # Autoregressive spatial effect
+#' # eliminates the residual autocorrelation
+#' res.sp<- remlf90(fixed  = phe_X ~ 1,
+#'                  spatial = list(model = 'AR', 
+#'                                 coord = globulus[, c('x', 'y')],
+#'                                 rho = c(.9, .9)),
+#'                  genetic = list(model = 'add_animal',
+#'                                 pedigree = globulus[, 1:3],
+#'                                 id = 'self'),
+#'                  data   = globulus)
+#' 
+#' Zd <- model.matrix(res.sp)$random$genetic
+#' PBV <- Zd %*% ranef(res.sp)$genetic
+#' 
+#' variogram(res.sp)
+#' variogram(res.sp, z = PBV)
+#' 
 #'   
 #' @importFrom fields vgram.matrix
 #' @seealso \code{\link[fields]{vgram.matrix}}

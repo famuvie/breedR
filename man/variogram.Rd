@@ -44,6 +44,46 @@ This function assumes that there is at most one observation per spatial
 location. Otherwise, are observations measured at different times? should a
 spatial-temporal variogram be fitted?
 }
+\examples{
+data(globulus)
+
+# No spatial effect
+res <- remlf90(fixed  = phe_X ~ 1,
+               random = ~ gg,
+               genetic = list(model = 'add_animal',
+                              pedigree = globulus[, 1:3],
+                              id = 'self'),
+               data   = globulus)
+
+Zd <- model.matrix(res)$random$genetic
+PBV <- Zd \%*\% ranef(res)$genetic
+
+# variogram() needs coordinates to compute distances
+# either you use the \\code{coord} argument, or you do:
+coordinates(res) <- globulus[, c('x', 'y')]
+
+# there is residual autocorrelation
+# there is also spatial structure in the Breeding Values
+variogram(res)
+variogram(res, z = PBV)
+
+# Autoregressive spatial effect
+# eliminates the residual autocorrelation
+res.sp<- remlf90(fixed  = phe_X ~ 1,
+                 spatial = list(model = 'AR',
+                                coord = globulus[, c('x', 'y')],
+                                rho = c(.9, .9)),
+                 genetic = list(model = 'add_animal',
+                                pedigree = globulus[, 1:3],
+                                id = 'self'),
+                 data   = globulus)
+
+Zd <- model.matrix(res.sp)$random$genetic
+PBV <- Zd \%*\% ranef(res.sp)$genetic
+
+variogram(res.sp)
+variogram(res.sp, z = PBV)
+}
 \seealso{
 \code{\link[fields]{vgram.matrix}}
 }
