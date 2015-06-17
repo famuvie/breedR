@@ -683,20 +683,6 @@ fixef.remlf90 <- function (object, ...) {
 }
 
 
-#' @describeIn get_pedigree Get the pedigree from a remlf90 object
-#' @export
-get_pedigree.remlf90 <- function(x, ...) {
-  ped <- x$effects$genetic$ped
-  if( !is.null(ped) ) {
-    map <- attr(ped, 'map')
-    ped <- with(ped,
-                pedigreemm::pedigree(sire=sire, dam=dam, label=self))
-    attr(ped, 'map') <- map
-  }
-  return(ped)
-}
-
-
 #' @method logLik remlf90
 #' @export
 logLik.remlf90 <- function (object, REML = TRUE, ...) {
