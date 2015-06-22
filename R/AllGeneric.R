@@ -10,12 +10,24 @@
 #'   
 get_structure <- function(x) UseMethod('get_structure')
 
+#' Parameters of a breedR component
+#' 
+#' @param x Some \code{breedR} component.
+#'   
+get_param <- function(x) UseMethod('get_param')
+
 #' Type of a (group of) effect(s)
 #' 
 #' Generic function that returns whether an effect or a group of effects in a
 #' breedR mixed model is \code{fixed} or \code{random}
 #' @param x object to be \emph{translated} to progsf90
 effect_type <- function(x) UseMethod('effect_type')
+
+#' Size of a (group of) effect(s)
+#' 
+#' Returns 0 for a \code{fixed} effect, and the size of a \code{effect_group}
+#' @param x element of the breedr_modelframe
+effect_size <- function(x) UseMethod('effect_size')
 
 #' Render a progsf90 effect
 #' 
