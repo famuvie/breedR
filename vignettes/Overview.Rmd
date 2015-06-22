@@ -426,7 +426,7 @@ summary(res.animal)
 # for the full pedigree first, and for the observed individuals
 # by matrix multiplication with the incidence matrix
 PBV.full <- ranef(res.animal)$genetic
-PBV <- model.matrix(res.animal)$random$genetic %*% PBV.full
+PBV <- model.matrix(res.animal)$genetic %*% PBV.full
 
 # Predicted genetic values vs.
 # phenotype.
@@ -994,14 +994,14 @@ ggplot(var.comp, aes(True, Estimated)) +
 ## compute the predicted effects for the observations
 ## by matrix multiplication of the incidence matrix and the BLUPs
 pred <- list()
-Zd <- model.matrix(res.comp)$random$'genetic-direct'
-pred$direct <- Zd %*% ranef(res.comp)$'genetic-direct'
+Zd <- model.matrix(res.comp)$'genetic_direct'
+pred$direct <- Zd %*% ranef(res.comp)$'genetic_direct'
 
 ## Watch out! for the competition effects you need to use the incidence
 ## matrix of the direct genetic effect, to get their own value.
 ## Otherwise, you get the predicted effect of the neighbours on each individual.
-pred$comp <- Zd %*% ranef(res.comp)$'genetic-competition'
-pred$pec  <- Zd %*% ranef(res.comp)$pec
+pred$comp <- Zd %*% ranef(res.comp)$'genetic_competition'
+pred$pec  <- as.vector(model.matrix(res.comp)$pec %*% ranef(res.comp)$pec)
 
 comp.pred <-
   rbind(
@@ -1089,9 +1089,9 @@ res.comp.loo <- remlf90(fixed   = phenotype ~ 1,
 ```{r prediction-validation, echo = FALSE, results='asis'}
 ## compute the predicted effects for the observations
 ## by matrix multiplication of the incidence matrix and the BLUPs
-Zd <- model.matrix(res.comp)$random$'genetic-direct'
-pred.BV.loo.mat <- with(ranef(res.comp.loo), cbind(`genetic-direct`,
-                                               `genetic-competition`))
+Zd <- model.matrix(res.comp)$'genetic_direct'
+pred.BV.loo.mat <- with(ranef(res.comp.loo), cbind(`genetic_direct`,
+                                               `genetic_competition`))
 pred.genetic.loo <- Zd[rm.idx, ] %*% pred.BV.loo.mat
 
 valid.pred <- 
@@ -1124,13 +1124,13 @@ knitr::kable(round(valid.pred, 2))
 
 ## Cross-validation #1 | Include prediction with full data
 ```{r prediction-exercise-1, purl = FALSE, results = 'asis', echo = -4}
-pred.BV.mat <- with(ranef(res.comp), cbind(`genetic-direct`,
-                                           `genetic-competition`))
+pred.BV.mat <- with(ranef(res.comp), cbind(`genetic_direct`,
+                                           `genetic_competition`))
 
 pred.genetic.loo <-
   Zd[rm.idx, ] %*% with(ranef(res.comp),
-                        cbind(`genetic-direct`,
-                              `genetic-competition`))
+                        cbind(`genetic_direct`,
+                              `genetic_competition`))
 
 valid.pred$Pred.full <- c(Zd[rm.idx, ] %*% pred.BV.mat,
                           fitted(res.comp)[rm.idx])
