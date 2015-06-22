@@ -4,7 +4,7 @@ on.exit(options(old.op))
 data(globulus)
 ped <- build_pedigree(1:3, data = globulus)
 # Test function
-fit.model <- function(vi, vigen, random, ...) {
+fit.model <- function(vi, vigen, random, dat = globulus, ...) {
   res <- 
     try(
       remlf90(fixed   = phe_X ~ gen,
@@ -14,8 +14,8 @@ fit.model <- function(vi, vigen, random, ...) {
                              var.ini = vigen,
                              pedigree = ped,
                              id = 'self'), 
-              data    = globulus),
-      silent = TRUE)
+              data    = dat)
+      , silent = TRUE)
   res
 }
 
@@ -71,7 +71,7 @@ context("Variance components specifications")
 # fit.model(vi=list(resid = 1), vigen=1, random = NULL)
 # do.call('fit.model', testdat[[1]])
 # do.call('fit.model', testdat[[7]])
-reslst <- mapply(function(x) do.call(fit.model, x), testdat)
+reslst <- lapply(testdat, function(x) do.call(fit.model, x))
 
 
 # Compare expected and true results
@@ -84,7 +84,7 @@ run_expectations <- function(m, res) {
   })
 }
 
-for(i in 1:length(testdat)) {
+for(i in seq_along(testdat)) {
 #   cat(i)
   run_expectations(testdat[[i]], reslst[[i]])
 }
