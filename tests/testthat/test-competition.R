@@ -1,32 +1,49 @@
 old.op <- options(warn = -1)  # suppressWarnings
 on.exit(options(old.op))
 
-context("Competition model builder")
-########################
 
-data(globulus)
-## randomly remove some observations
-## and make sure there is some isolated individuals
-set.seed(12345)
-idx.rm <- sample(nrow(globulus), floor(nrow(globulus)/2))
+#### Context: additive_genetic_competition() ####
+context("competition infrastructure")
 
-dat <- globulus[-idx.rm, ]
-ped <- globulus[-idx.rm, 1:3]
-coord <- globulus[-idx.rm, c('x', 'y')]
+## Minimal dataset
+dat <- data.frame(id   = 1:6,
+                  sire = c(11, 11, 2, 3, 11, 3),
+                  dam  = c(12, NA, 1, 12, 12, 1),
+                  x    = c(1,2,-1,0,0,1),
+                  y    = c(-1,0,0,1,-1,1))
+ped <- build_pedigree(1:3, data = dat)
+var.ini <- 1.5
+var.ini.mat <- matrix(c(1, -.5, -.5, 1), 2, 2)
 
+## Full specification, from minimal input
+comp.spec <- check_genetic(model = 'competition',
+                           pedigree = ped,
+                           id = dat$id,
+                           coordinates = dat[, c('x', 'y')],
+                           pec = TRUE)
 
-gen.spec <- list(model = 'competition',
-                 pedigree = ped,
-                 id = dat$self,
-                 coordinates = coord,
-                 competition_decay = 1,
-                 pec = TRUE,
-                 autofill = TRUE,
-                 var.ini = matrix(c(2,-1,-1,2), 2, 2)) 
+res <- try(with(comp.spec,
+                additive_genetic_competition(pedigree    = pedigree,
+                                             coordinates = coordinates,
+                                             id          = id,
+                                             decay       = competition_decay,
+                                             autofill    = autofill)))
 
-gen.model <- try(build.genetic.model(gen.spec))
-stopifnot(any(apply(gen.model$B[,10:17]>0, 1, sum) == 0))
-
-test_that("The competition model builds without errors", {
-  expect_false(inherits(gen.model, "try-error"))
+test_that("additive_genetic_competition() works as expected", {
+  expect_false(inherits(res, 'try-error'))
+  
+  if (!inherits(res, 'try-error')) {
+    expect_is(res, c("additive_genetic_competition", "additive_genetic", "genetic", 
+                   "competition", "spatial", "random", "breedr_effect"))
+    expect_equal(length(res), 5)
+    # Incidence matrix
+    inc.mat <- model.matrix(res)
+    expect_is(inc.mat, 'sparseMatrix') # a permutation Matrix
+    expect_equal(nrow(inc.mat), nrow(dat))
+    # Covariance matrix
+    cov.mat <- get_structure(res)
+    expect_is(cov.mat, 'sparseMatrix') 
+    expect_equal(ncol(cov.mat), nrow(as.data.frame(ped)))
+    expect_equal(ncol(inc.mat), nrow(cov.mat))
+  }
 })

@@ -74,9 +74,9 @@ If either \code{genetic} or \code{spatial} are not \code{NULL}, the
   \itemize{\item \code{model} a string, either \code{add_animal} or
   \code{competition} \item \code{pedigree} either an object of class
   \code{pedigree} (see \code{\link{build_pedigree}}) or a \emph{data.frame}
-  with exactly three columns identifying the individual, his parent and his
-  mother respectively \item \code{id} a string, the name of the variable with
-  the individual identifyer in the \code{data}}
+  with exactly three columns identifying the individual, his father and his
+  mother respectively \item \code{id} either a vector of codes or the name of
+  the variable with the individual identifyer in the \code{data}}
 
   Optional common components are:
 

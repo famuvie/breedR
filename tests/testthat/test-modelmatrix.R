@@ -21,7 +21,7 @@ coord <- fullcoord[-rm.idx,]
 ## Incidence matrix for splines objects
 
 # Remove 10% of the grid and build a splines model from it
-spl <- splines(coord)
+spl <- breedr_splines(coord)
 
 test_that('model.matrix() works as expected with spline objects', {
   expect_equal(nrow(model.matrix(spl)), nrow(coord))
@@ -61,7 +61,7 @@ test_that('model.matrix(·, fullgrid=TRUE) works as expected with generic object
 eg <- effect_group(list(spl, gen), cov.ini = diag(1,2,2))
 eg.mm <- model.matrix(eg)
 
-test_that('model.matrix() recovers the set of incidence matrices binded by columns', {
-  expect_is(eg.mm, 'Matrix')
-  expect_identical(eg.mm, Matrix::cBind(model.matrix(spl), gen.inc))
+test_that('model.matrix() recovers the list of incidence matrices', {
+  expect_is(eg.mm, 'list')
+  expect_identical(eg.mm, list(model.matrix(spl), gen.inc))
 })

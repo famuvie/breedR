@@ -1,3 +1,16 @@
+breedR 0.10
+==========
+
+* Full internal refactoring (with few 'visible' changes in the interface)
+
+* `model.matrix()` no longer separates `fixed` and `random` effects.
+  It returns the same structure as `ranef()` which is more intuitive.
+
+* `vcov()` works now with any of the non-diagonal random effects.
+
+* Much more exhaustive testing assures greater stability.
+
+
 breedR 0.9
 ==========
 

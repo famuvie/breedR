@@ -15,11 +15,17 @@ test.dat <- data.frame(matrix(sample(100, 15), 5, 3,
                               dimnames = list(NULL, c('self', 'sire', 'dam'))),
                        y = rnorm(5))
 ped.fix <- build_pedigree(1:3, data = test.dat)
-test.res <- remlf90(y~1,
-                    genetic = list(model = 'add_animal',
-                                   pedigree = test.dat[, 1:3],
-                                   id = 'self'),
-                    data = test.dat)
+test.res <- try(remlf90(y~1,
+                        genetic = list(model = 'add_animal',
+                                       pedigree = test.dat[, 1:3],
+                                       id = 'self'),
+                        data = test.dat),
+                silent = TRUE)
+
+test_that('remlf90() builds and recodes the pedigree', {
+  expect_false(inherits(test.res, 'try-error'))
+})
+
 test_that('get_pedigree() returns the recoded pedigree', {
   expect_identical(ped.fix, get_pedigree(test.res))
 })

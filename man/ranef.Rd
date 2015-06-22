@@ -9,6 +9,10 @@
 \method{ranef}{remlf90}(object, ...)
 }
 \arguments{
+\item{x}{object of class \code{ranef.breedR}}
+
+\item{...}{not used}
+
 \item{object}{a fitted models with random effects of class
 \code{\link{remlf90}}.}
 

@@ -4,10 +4,11 @@
 \alias{spatial}
 \title{Build a spatial model}
 \usage{
-spatial(coord, incidence, covariance, precision)
+spatial(coordinates, incidence, covariance, precision)
 }
 \arguments{
-\item{coord}{two-column matrix-like object with observation coordinates}
+\item{coordinates}{two-column matrix-like set of row and column coordinates
+of observational units}
 
 \item{incidence}{matrix-like object}
 

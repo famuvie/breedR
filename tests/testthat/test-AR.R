@@ -2,33 +2,37 @@ old.op <- options(warn = -1)  # suppressWarnings
 on.exit(options(old.op))
 
 
-#### Context: build.ar.model() ####
-context("build.ar.model()")
+#### Context: breedr_ar() ####
+context("AR infrastructure")
 
 # Some coordinates, with a whole row and some points missing
 # with non-integer and non-positive value
-test.pos <- list(x = c(-2, 0:3), y = 5:8/2)
-test.coord <- as.matrix(expand.grid(test.pos$x, test.pos$y))[-8, ]
+test.pos <- list(x = c(-2:3), y = 5:8/2)
+test.coord <- as.matrix(expand.grid(test.pos$x[-2], test.pos$y))[-8, ]
   # plot(test.coord, pch = 19)
-test.rho <- c(.8, .8)
-reslst <- list(build.ar.model(test.coord, test.rho, TRUE),
-               build.ar.model(test.coord, test.rho, FALSE))
+test.rho <- c(.6, .8)
+reslst <- list(breedr_ar(test.coord, test.rho, TRUE),
+               breedr_ar(test.coord, test.rho, FALSE))
 
 check_build.ar.model <- function(x) {
-  test_that("build.ar.model() returns a list with the right elements", {
-    expect_is(x, 'list')
-    expect_equal(length(x), 6)
-    expect_equal(names(x),
-                 c('param', 'coord', 'B', 'U', 'Utype', 'plotting'))
-    expect_equal(x$param, test.rho)
-    expect_equal(x$coord, as.data.frame(test.coord))
+  inc.mat <- model.matrix(x)
+  cov.mat <- get_structure(x)
+  eff.size <- ifelse(attr(x, 'grid')$autofill,
+                     prod(sapply(test.pos, length)),
+                     nrow(test.coord)+1)
+  
+  test_that("breedr_ar() returns a list with the right elements", {
+    expect_is(x, c('ar', 'spatial', 'random', 'breedr_effect'))
+    expect_equal(length(x), 5)
+    expect_equal(names(x$param), 'rho')
+    expect_equal(x$param$rho, test.rho)
     # Incidence matrix
-    expect_is(x$B, 'integer') # a vector of indices
-    expect_equal(length(x$B), nrow(test.coord))
+    expect_is(inc.mat, 'sparseMatrix') # a permutation Matrix
+    expect_equal(nrow(inc.mat), nrow(test.coord))
     # Covariance matrix
-    expect_is(x$U, 'matrix') 
-    expect_equal(ncol(x$U), 3)  # a triplet
-    expect_true(max(x$B) <= max(x$U[, 1:2]))
+    expect_is(cov.mat, 'sparseMatrix') 
+    expect_equal(ncol(cov.mat), eff.size)
+    expect_equal(ncol(inc.mat), nrow(cov.mat))
   })
 }
 
@@ -116,7 +120,7 @@ check.result <- function(m, datlabel, debug.plot = FALSE) {
   
   if( !inherits(m$res, 'try-error') ){
     fit.s <- fixef(m$res)$Intercept$value +
-      model.matrix(m$res)$random$spatial %*% ranef(m$res)$spatial
+      model.matrix(m$res)$spatial %*% ranef(m$res)$spatial
     if(debug.plot) {
       print(qplot(as.vector(m$dat$true.s), fit.s) +
               geom_abline(int = 0, sl = 1))
@@ -286,12 +290,10 @@ test_that("model.frame() gets an Nx2 data.frame with a 'terms' attribute", {
 test_that("model.matrix() gets a named list of fixed and random incidence matrices", {
   x <- model.matrix(res)
   expect_is(x, 'list')
-  expect_named(x, c('fixed', 'random'))
-  expect_equal(dim(x$fixed), c(n.obs, nlevels.fixed))
-  expect_is(x$random, 'list')
-  expect_named(x$random, c('spatial'))
-  expect_is(x$random$spatial, 'sparseMatrix')
-  expect_equal(dim(x$random$spatial), c(n.obs, n.AR))
+  expect_named(x, names(res$effects))
+  expect_equal(dim(x$sex), c(n.obs, nlevels.fixed))
+  expect_is(x$spatial, 'sparseMatrix')
+  expect_equal(dim(x$spatial), c(n.obs, n.AR))
 })
 
 test_that("nobs() gets the number of observations", {
@@ -333,6 +335,7 @@ test_that("residuals() gets a vector of length N", {
 
 test_that("summary() shows summary information", {
   expect_output(summary(res), 'Variance components')
+  expect_output(summary(res), 'rho:')
 })
 
 test_that("vcov() gets the covariance matrix of the spatial component of the observations", {

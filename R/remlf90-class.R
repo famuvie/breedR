@@ -37,7 +37,7 @@
 #'   to identify and label the results. Each effect in the list must have an 
 #'   \code{incidence} argument and either a \code{covariance} or a 
 #'   \code{precision} matrix with conforming and suitable dimensions. 
-#'   Optionally, an initial variance for the REML algorithm can be specified in
+#'   Optionally, an initial variance for the REML algorithm can be specified in 
 #'   a third argument \code{var.ini}.
 #'   
 #'   \subsection{Genetic effect}{ The available models for the genetic effect 
@@ -50,9 +50,9 @@
 #'   \itemize{\item \code{model} a string, either \code{add_animal} or 
 #'   \code{competition} \item \code{pedigree} either an object of class 
 #'   \code{pedigree} (see \code{\link{build_pedigree}}) or a \emph{data.frame} 
-#'   with exactly three columns identifying the individual, his parent and his 
-#'   mother respectively \item \code{id} a string, the name of the variable with
-#'   the individual identifyer in the \code{data}}
+#'   with exactly three columns identifying the individual, his father and his 
+#'   mother respectively \item \code{id} either a vector of codes or the name of
+#'   the variable with the individual identifyer in the \code{data}}
 #'   
 #'   Optional common components are:
 #'   
@@ -317,6 +317,9 @@ remlf90 <- function(fixed,
   if ( !inherits(fixed, "formula") ) { 
     stop("'fixed' should be a formula\n") 
   }
+  if ( !inherits(data, "data.frame") ) { 
+    stop("'data' should be a data.frame\n") 
+  }
   if ( attr(terms(fixed), 'response') != 1L ) {
     stop("There is no response in the 'fixed' argument\n")
   }
@@ -329,161 +332,42 @@ remlf90 <- function(fixed,
     if( !check.random )
       stop("random should be a response-less formula\n")
   }
-  # Initial variances specification
-  # Either all initial variances specified, or no specification at all
-  random.terms <- switch( is.null(random) + 1,
-                          c(attr(terms(random), 'term.labels'), 'residuals'),
-                          'residuals')
-  check.var.ini <- function(eff) {
-    ans = FALSE
-    if( is.null(eff) ) ans = NA
-    else if( !is.null(eff$var.ini) ){
-      if( is.numeric(eff$var.ini) & eff$var.ini > 0 ) ans = TRUE
-      else stop(paste('var.ini must be > 0 in the',
-                      substitute(eff), 'effect.\n'))
-    }
-    ans
-  }
-  
-  ## FIX: This must be fixed to account for lists within components
-  ## either all or none elements in the list must have var.ini.
-  ## Right now, if only some elements in generic have var.ini specified,
-  ## all returns FALSE, and things go as if none were specified.
-  var.ini.checks <- c(random  = FALSE,
-                      genetic = check.var.ini(genetic),
-                      pec     = check.var.ini(genetic$pec),
-                      spatial = check.var.ini(spatial),
-                      generic = ifelse(missing(generic), NA,
-                                       all(sapply(generic, check.var.ini))))
-  
-  if( !missing(var.ini) ) {
-    if( !is.null(var.ini) ) {
-      # normalize names
-      names(var.ini) <- match.arg(names(var.ini),
-                                  random.terms,
-                                  several.ok = TRUE)
-      # check that all the required variances are given
-      if( setequal(names(var.ini), random.terms) ) {
-        if( all(sapply(var.ini, is.numeric)) & all(var.ini > 0) )
-          var.ini.checks[1] = TRUE
-        else stop('Initial variances in var.ini must be > 0.\n')
-      } else stop('Some initial variances missing in var.ini.\n')
-    }
-  }
-  if( !any(all(var.ini.checks, na.rm = TRUE), all(!var.ini.checks, na.rm = TRUE)) )
-    stop('Some initial variances missing. Please check.')
-  # In the case of no specification, complete with defaults and Warn
-  if( all(!var.ini.checks, na.rm = TRUE) ) {
-    warning(paste('No specification of initial variances.\n',
-                  '\tUsing default value of',
-                  breedR.getOption('default.initial.variance'),
-                  'for all variance components.\n',
-                  '\tSee ?breedR.getOption.\n'))
-    var.ini <- as.list(rep(breedR.getOption('default.initial.variance'),
-                           length(random.terms)))
-    names(var.ini) <- random.terms
-    if( !is.na(var.ini.checks['genetic']) ){
-      genetic$var.ini <- breedR.getOption('default.initial.variance')
-    }
-    if( !is.na(var.ini.checks['spatial']) )
-      spatial$var.ini <- breedR.getOption('default.initial.variance')
-    if( !is.na(var.ini.checks['generic']) )
-      for(g in names(generic)) {
-        generic[[g]]$var.ini <- breedR.getOption('default.initial.variance')
-      }
-  }
-  
   
   ### Parse arguments
   method <- tolower(method)
   method <- match.arg(method)
   
-  # Genetic effect
-  if( !is.null(genetic) ) {
-    genetic$model <- match.arg(genetic$model,
-                               choices = c('add_animal', 'competition'))
-
-    if( !all(check_pedigree(genetic$pedigree)) ) {
-      genetic$pedigree <- build_pedigree(1:3, data = genetic$pedigree)
-    }
-    
-    if( length(genetic$id)==1 ) {
-      genetic$id <- data[, genetic$id]
-    }
-    
-    if( genetic$model == 'competition' ) {
-      genetic$var.ini <- diag(genetic$var.ini, 2)
-      genetic$var.ini[1,2] <- genetic$var.ini[2,1] <- -genetic$var.ini[1,1]/2
-      
-      # Specification of Permanent Environmental Effect
-      if( !exists('pec', genetic) ) {
-        # If pec was not listed, put it as not present
-        genetic$pec <- list(present = FALSE)
-      } else {
-        # If it was listed, mark it as present
-        if( !exists('present', genetic$pec) ) {
-          genetic$pec$present <- TRUE
-        }
-        # ... and check the initial variance
-        if( !exists('var.ini', genetic$pec) ) {
-          genetic$pec$var.ini <- breedR.getOption('default.initial.variance')
-        }
-      }
-    }
+  ## Genetic specification
+  if (!is.null(genetic)) {
+    genetic <- do.call('check_genetic',  c(genetic, list(data = data)))
   }
   
-  # Spatial effect
-  if( !is.null(spatial) ) {
-    spatial$model <- match.arg(spatial$model,
-                               choices = c('splines', 'AR', 'blocks'))
+  ## Spatial specification
+  if (!is.null(spatial)) {
     
-    # If blocks model, include the values of the relevant covariate
-    if( spatial$model == "blocks" ) {
-      
-      # Check that block id is found in data
-      if( !spatial$id %in% names(data) ) {
-        stop(paste('Block id variable', spatial$id,
-                   'not found in data'))
-      }
-
-      spatial$id <- data[, spatial$id]
-      
-      # Only factors make sense for blocks
-      # If it is already a factor, it may have
-      # unobserved levels. Otherwise, make it a factor.
-      if( !is.factor(spatial$id) )
-        spatial$id <- as.factor(spatial$id)
-      
-    }
+    spatial <- do.call('check_spatial',  c(spatial, list(data = data)))
     
     # If AR model without rho specified
     # we need to fit it with several fixed rho's
     # and return the most likely
     # TODO: It would be nice if we didn't need to recompute Q each time
     if( spatial$model == 'AR' ) {
-      if( is.null(spatial$rho) ) spatial$rho <- matrix(c(NA, NA), 1, 2)
-      if( any(is.na(spatial$rho)) ) {
-        # Evaluation values for rho
-        rho.grid <- build.AR.rho.grid(spatial$rho)
-      } else {
-        rho.grid <- spatial$rho
-      }
       
-      if( !is.null(nrow(rho.grid)) ) {
-        
-        # Results conditional on rho
+      if (!is.null(nrow(spatial$rho))) {
+        ## grid case
+        ## Results conditional on rho
         eval.rho <- function(rho, mc) {
           mc$spatial$rho <- rho
           ## Bloody function environments and scoping rules!
           mc$spatial$coord <- spatial$coord
           mc$data <- quote(data)
           suppressWarnings(eval(mc))   # Avoid multiple redundant warnings
-                                       # about initial variances.
+          # about initial variances.
         }
         #         test <- eval.rho(mc, c(.5, .5))
-        ans.rho <- apply(rho.grid, 1, eval.rho, mc)
+        ans.rho <- apply(spatial$rho, 1, eval.rho, mc)
         # Interpolate results
-        loglik.rho <- transform(rho.grid,
+        loglik.rho <- transform(spatial$rho,
                                 loglik = suppressWarnings(sapply(ans.rho, logLik)))
         rho.idx <- which.max(loglik.rho$loglik)
         ans <- ans.rho[[rho.idx]]
@@ -495,14 +379,39 @@ remlf90 <- function(fixed,
       }
     }
   }
-  
-  # Temporary files
-  tmpdir <- tempdir()
-  #   parameter.file.path <- file.path(tmpdir, 'parameters')
-  if(!is.null(genetic)) genetic$tempfile <- file.path(tmpdir, 'pedigree')
-  if(!is.null(spatial)) spatial$tempfile <- file.path(tmpdir, 'spatial')
-  
 
+  ## Generic specification
+  if (!is.null(generic)) {
+    generic <- check_generic(generic)
+  }
+  
+  ## Initial variances specification
+  ## We check even the NULL case, where the function returns the 
+  ## default initial variances for all random effects + residuals
+  var.ini <- check_var.ini(var.ini, random)
+  
+  ## Whether the user specified all initial variances for each component
+  has_var.ini <- 
+    function(x) {
+      if (eval(call('is.null', as.symbol(x)))) return(NA)
+      else eval(call('attr', as.symbol(x), 'var.ini.default'))
+    }
+  var.ini.checks <- vapply(c('genetic', 'spatial', 'generic', 'var.ini'),
+                           has_var.ini,
+                           TRUE)
+
+  ## Either all initial variances specified, or no specification at all
+  if (any(var.ini.checks, na.rm = TRUE) && any(!var.ini.checks, na.rm = TRUE))
+    stop(paste('Some initial variances missing.\n',
+               'Please specify either all or none.'))
+  ## Issue a warning in the case of no specification
+  if (all(!var.ini.checks, na.rm = TRUE)) {
+    message(paste('No specification of initial variances.\n',
+                  '\tUsing default value of',
+                  breedR.getOption('default.initial.variance'),
+                  'for all variance components.\n',
+                  '\tSee ?breedR.getOption.\n'))
+  }
   
   
   # Builds model frame by joining the fixed and random terms
@@ -522,6 +431,9 @@ remlf90 <- function(fixed,
   # dataset. One in data, one in mf (only needed variables)
   # and yet one more in pf90. This is a potential problem with large datasets.
   pf90 <- progsf90(mf, effects, opt = c("sol se"), res.var.ini = var.ini$residuals)
+  
+  # Temporary dir
+  tmpdir <- tempdir()
   
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)
@@ -618,7 +530,8 @@ remlf90 <- function(fixed,
 #' @export
 coef.remlf90 <- function(object, ...) { 
   unlist(c(lapply(fixef(object),
-                  function(x) x$value), ranef(object)))
+                  function(x) x$value),
+           ranef(object)))
 }
 
 #' @export
@@ -630,30 +543,50 @@ extractAIC.remlf90 <- function(fit, scale, k, ...) {
 #' @export
 fitted.remlf90 <- function (object, ...) {
 
-  fixed.part <- model.matrix(object)$fixed %*%
-    unlist(sapply(fixef(object), function(x) x$value))
+  ef.types <- lapply(object$effects, effect_type)
   
+  mml <- model.matrix(object)
   
-  mm.names <- names(model.matrix(object)$random)
-  stopifnot(setequal(mm.names, names(ranef(object))))
+  vall <- c(lapply(fixef(object), function(x) x$value),
+            ranef(object))
+  
+  ## Match order
+  stopifnot(setequal(names(mml), names(vall)))
+  vall <- vall[names(mml)]
+  
   silent.matmult.drop <- function(x, y) {
     suppressMessages(drop(as.matrix(x %*% y)))
   }
-  random.part <- 
-    mapply(silent.matmult.drop, model.matrix(object)$random, ranef(object)[mm.names],
-           SIMPLIFY = TRUE)
+
+  ## Multiply component-wise
+  comp.mat <- mapply(silent.matmult.drop, mml, vall,
+                     SIMPLIFY = TRUE)
   
-  if( !is.matrix(random.part) ) {
-    if( is.list(random.part) ) {
-      if( length(random.part) == 0 )
-        random.part <- NULL
-    } else {
-      stop('This should not happen.')
-    }
-  }
   
   # Linear Predictor / Fitted Values
-  eta <- rowSums(cbind(fixed.part, random.part))
+  eta <- rowSums(comp.mat)
+
+  
+  #   fixed.part <- model.matrix(object)$fixed %*%
+  #     unlist(sapply(fixef(object), function(x) x$value))
+  #   
+  #   mm.names <- names(model.matrix(object)$random)
+  #   stopifnot(setequal(mm.names, names(ranef(object))))
+  #   random.part <- 
+  #     mapply(silent.matmult.drop, model.matrix(object)$random, ranef(object)[mm.names],
+  #            SIMPLIFY = TRUE)
+  #   
+  #   if( !is.matrix(random.part) ) {
+  #     if( is.list(random.part) ) {
+  #       if( length(random.part) == 0 )
+  #         random.part <- NULL
+  #     } else {
+  #       stop('This should not happen.')
+  #     }
+  #   }
+  #   
+  #   # Linear Predictor / Fitted Values
+  #   eta <- rowSums(cbind(fixed.part, random.part))
   
   return(eta)
 }
@@ -680,20 +613,6 @@ fitted.remlf90 <- function (object, ...) {
 #' @export
 fixef.remlf90 <- function (object, ...) {
       object$fixed
-}
-
-
-#' @describeIn get_pedigree Get the pedigree from a remlf90 object
-#' @export
-get_pedigree.remlf90 <- function(x, ...) {
-  ped <- x$effects$genetic$ped
-  if( !is.null(ped) ) {
-    map <- attr(ped, 'map')
-    ped <- with(ped,
-                pedigreemm::pedigree(sire=sire, dam=dam, label=self))
-    attr(ped, 'map') <- map
-  }
-  return(ped)
 }
 
 
@@ -809,17 +728,12 @@ plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspa
       if( x$components$spatial ) {
         
         if( type == 'spatial' ) {
-          value <- model.matrix(x)$random$spatial %*% ranef(x)$spatial
+          value <- as.vector(model.matrix(x)$spatial %*% ranef(x)$spatial)
         } else {
           ## fullspatial case
-          if (inherits(x$effects$spatial, 'effect_group')) {
-            inc.mat <- model.matrix(x$effects$spatial, fullgrid = TRUE)
-            coord <- attr(inc.mat, 'coordinates')
-          } else {
-            ## Legacy non-refactored effects
-            inc.mat <- x$effects$spatial$sp$plotting$inc.mat
-            coord   <- x$effects$spatial$sp$plotting$grid
-          }
+          ## assume only one spatial effect in the effect_group spatial
+          inc.mat <- model.matrix(x$effects$spatial, fullgrid = TRUE)[[1]]
+          coord <- attr(inc.mat, 'coordinates')
           stopifnot(!is.null(coord))
           value <- as.vector(inc.mat %*% ranef(x)$spatial)
         }
@@ -988,7 +902,6 @@ ranef.remlf90 <- function (object, ...) {
 #' Covariance matrix of a fitted remlf90 object
 #' 
 #' Returns the variance-covariance matrix of the specified random effect.
-#' For the moment, only the spatial effect is of interest.
 #' 
 #' @param object a fitted model of class \code{remlf90}
 #' @param effect the structured random effect of interest
@@ -996,55 +909,52 @@ ranef.remlf90 <- function (object, ...) {
 #' 
 #' @method vcov remlf90
 #' @export
-vcov.remlf90 <- function (object, effect = c('spatial', 'genetic'), ...) {
+vcov.remlf90 <- function (object,
+                          effect = c('spatial',
+                                     'genetic',
+                                     'genetic_direct',
+                                     'genetic_competition',
+                                     'pec'),
+                          ...) {
   
   effect <- match.arg(effect)
   
-  ## Check that the effect exists, and is not "dummy"
-  ## currently the only dummy effect is an spatial effect used
-  ## only to provide coordinates for mapping
-  if (!effect %in% names(object$effects)) {
+  ## Check that the effect exists
+  if (!effect %in% get_efnames(object$effects)) {
     stop(paste('There is no', effect, 'effect in this object.\n'))
-  } else if ('name' %in% names(object$effects[[effect]])) {
-    if (object$effects[[effect]]$name == 'none') 
-      stop(paste('There is no', effect, 'effect in this object.\n'))
   }
 
 
-  ef <- object$effects[[effect]]
-  
-  # Underlying covariance matrix
-  # (only the lower triangle)
-  # Account for refactored and old effects
-  if (inherits(ef, 'effect_group')) {
-    U <- get_structure(ef)
+  efgroup <- vapply(object$effects, function(x) effect %in% names(x$effects), TRUE)
+  if (sum(efgroup) == 1) {
+    ef <- object$effects[[which(efgroup)]]$effects[[effect]]
   } else {
-    if (effect == 'genetic') stop('Currently not available')
-    Usp <- object$effects[[effect]]$sp$U
-    dimU <- c(max(Usp[, 1]), max(Usp[, 2]))
-    stopifnot(identical(dimU[1], dimU[2]))
-    
-    U <- Matrix::sparseMatrix(i = Usp[, 1], j = Usp[, 2], x = Usp[, 3], symmetric = TRUE)
-    attr(U, 'type') <- object$effects[[effect]]$sp$Utype
+    ## genetic or spatial cases. TODO: Improve this.
+      ef <- object$effects[[effect]]$effects[[1]]
   }
+  ## TODO:
+  ## Maybe there should be a method 'remlf90' for 'get_structure'
+  ## with analogous behaviour as model.matrix or ranef
+  ## So we can simply say:
+  ## U <- get_structure(object)[[effect]]
   
-  # need to invert?
+  ## Underlying covariance matrix
+  U <- get_structure(ef)
+
+  ## need to invert?
   if(attr(U, 'type') == 'precision')
     U <- solve(U)
   
-  # Incidence matrix
-  # It can be a vector if it is an identity reordered (e.g. block or AR cases)
-  Bsp <- model.matrix(object)$random[[effect]]
+  ## Incidence matrix
+  B <- model.matrix(object)[[effect]]
   
-  if( ncol(Bsp) == 1 ) {
-    dimB = nrow(Bsp)
-    B <- Matrix::spMatrix(dimB, dimU[1], i = 1:dimB, j = Bsp[, 1], x = rep(1, dimB))
+  ## Scaling parameter
+  ## TODO: Fix this
+  if (any(efgroup)) {
+    sigma2 <- object$var[[names(which(efgroup))]][effect, effect]
   } else {
-    B <- Matrix::Matrix(Bsp, sparse = TRUE)
+    sigma2 <- object$var[effect, 1]
   }
-
-  # Scaling parameter
-  sigma2 <- object$var[effect, 1]
   
   V <- suppressMessages(sigma2 * B %*% U %*% Matrix::t(B))
   return(V)
@@ -1166,18 +1076,21 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
   if(!is.null(x$call$subset))
     cat(" Subset:", x$call$subset,"\n")
   print(x$model.fit, digits = digits)
-  
-  if( x$components$spatial & !is.null(x$spatial$name)) {
-    switch(x$spatial$name,
-           AR = cat(paste("\nAutoregressive parameters for rows and columns: (",
-                    paste(x$spatial$model$param, collapse = ', '),
-                    ")\n", sep = '')),
-           splines = cat(paste("\nNumber of inner knots for rows and columns: (",
-                         paste(x$spatial$model$param, collapse =', '),
-                         ")\n", sep = ''))
-    )
+
+  cat("\nParameters of special components:\n")  
+  parl <- get_param.remlf90(x)
+  for (i in seq_along(parl)) {
+    for (j in seq_along(parl[[i]])) {
+      comp.nm <- ifelse(j==1,
+                        paste0(names(parl)[i], ':'),
+                        paste(character(nchar(names(parl)[i]) + 1),
+                        collapse = ''))
+      model.nm <- paste0(names(parl[[i]])[j], ':')
+      cat(comp.nm, model.nm, parl[[i]][[j]])
+    }
   }
-  
+  cat("\n")
+
   cat("\nVariance components:\n")
   print(x$var, quote = FALSE, digits = digits, ...)
   

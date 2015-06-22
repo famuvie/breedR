@@ -113,15 +113,13 @@ test_that("model.frame() gets an Nx2 data.frame with a 'terms' attribute", {
   expect_equal(dim(x), c(n.obs, n.fixed + 1))
 })
 
-test_that("model.matrix() gets a named list of fixed and random incidence matrices", {
+test_that("model.matrix() gets a named list of incidence matrices", {
   x <- model.matrix(res)
   expect_is(x, 'list')
-  expect_named(x, c('fixed', 'random'))
-  expect_equal(dim(x$fixed), c(n.obs, nlevels.fixed))
-  expect_is(x$random, 'list')
-  expect_named(x$random, c('genetic'))
-  expect_is(x$random$genetic, 'sparseMatrix')
-  expect_equal(dim(x$random$genetic), c(n.obs, n.bvs))
+  expect_named(x, names(res$effects))
+  expect_equal(dim(x$sex), c(n.obs, nlevels.fixed))
+  expect_is(x$genetic, 'sparseMatrix')
+  expect_equal(dim(x$genetic), c(n.obs, n.bvs))
 })
 
 test_that("nobs() gets the number of observations", {
@@ -175,10 +173,9 @@ test_that("summary() shows summary information", {
 
 test_that("vcov() gets the covariance matrix of the genetic component of the observations", {
   
-  ## Make it available after refactoring
-  ## when we can recover the structure and model matrices
-  expect_error(x <- vcov(res, effect = 'genetic'), 'Currently not available')
-  #   expect_is(x, 'Matrix')
-  #   expect_equal(dim(x), rep(n.obs, 2))
+  x <- try(vcov(res, effect = 'genetic'))
+  expect_false(inherits(x, 'try-error'))
+  expect_is(x, 'Matrix')
+  expect_equal(dim(x), rep(n.obs, 2))
 })
 

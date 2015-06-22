@@ -55,7 +55,7 @@ test_that("Estimated variance components are similar", {
 test_that("Predicted spatial effects are similar everywhere", {
   expect_equal(ranef(res.full)$spatial,
                ranef(res.pred)$spatial,
-               tolerance = tol)
+               tolerance = tol, check.attributes = FALSE)
 })
 
 

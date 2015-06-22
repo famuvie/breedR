@@ -101,7 +101,7 @@ identical(ped.fix, get_pedigree(res.raw))
 ## Predicted Breeding Valuess of the observed individuals
 ## Left-multiplying the vector of BLUP by the incidence matrix
 ## gives the BLUP of the observations in the right order.
-Za <- model.matrix(res.raw)$random$genetic  # incidence matrix
+Za <- model.matrix(res.raw)$genetic  # incidence matrix
 gen.blup <- with(ranef(res.raw),
                  cbind(value=genetic,
                        's.e.'=attr(genetic, 'se')))

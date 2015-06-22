@@ -2,10 +2,17 @@
 % Please edit documentation in R/AllGeneric.R, R/renderpf90.R
 \name{renderpf90}
 \alias{renderpf90}
+\alias{renderpf90.additive_genetic_animal}
+\alias{renderpf90.additive_genetic_competition}
+\alias{renderpf90.ar}
+\alias{renderpf90.blocks}
 \alias{renderpf90.breedr_modelframe}
 \alias{renderpf90.default}
+\alias{renderpf90.diagonal}
 \alias{renderpf90.effect_group}
+\alias{renderpf90.fixed}
 \alias{renderpf90.generic}
+\alias{renderpf90.permanent_environmental_competition}
 \alias{renderpf90.splines}
 \title{Render a progsf90 effect}
 \usage{
@@ -13,16 +20,32 @@ renderpf90(x)
 
 \method{renderpf90}{default}(x)
 
-\method{renderpf90}{breedr_modelframe}(x)
+\method{renderpf90}{fixed}(x)
+
+\method{renderpf90}{diagonal}(x)
+
+\method{renderpf90}{breedr_modelframe}(x, ntraits)
 
 \method{renderpf90}{effect_group}(x)
 
 \method{renderpf90}{generic}(x)
 
+\method{renderpf90}{additive_genetic_animal}(x)
+
+\method{renderpf90}{additive_genetic_competition}(x)
+
+\method{renderpf90}{permanent_environmental_competition}(x)
+
 \method{renderpf90}{splines}(x)
+
+\method{renderpf90}{blocks}(x)
+
+\method{renderpf90}{ar}(x)
 }
 \arguments{
 \item{x}{object of class breedr_modelframe, effect_group or breedr_effect.}
+
+\item{ntraits}{integer. Number of traits in the model.}
 }
 \value{
 The number of levels and type for each 'virtual' effect; the progsf90
@@ -41,10 +64,21 @@ For the \code{generic} class, all matrices are converted to plain
 
 For the \code{splines} class, everything reduces to a generic effect
   with a covariance matrix
+
+For the \code{blocks} class, everything reduces to a generic effect
+  with a covariance matrix
+
+For the \code{ar} class, everything reduces to a generic effect
+  with a precision matrix
 }
 \section{Methods (by class)}{
 \itemize{
 \item \code{default}: For unknown classes, just returns the object untouched
+with a warning.
+
+\item \code{fixed}: For fixed effects.
+
+\item \code{diagonal}: For diagonal effects. Assumed grouping variables.
 
 \item \code{breedr_modelframe}: Render a full \code{breedr_modelframe}
 
@@ -53,8 +87,25 @@ For the \code{splines} class, everything reduces to a generic effect
 \item \code{generic}: Compute the parameters of a progsf90 representation of
 a generic effect.
 
+\item \code{additive_genetic_animal}: Compute the parameters of a progsf90 representation of
+a additive_genetic_animal effect.
+
+\item \code{additive_genetic_competition}: Compute the parameters of a progsf90 representation of
+a additive_genetic_competition effect.
+
+\item \code{permanent_environmental_competition}: Compute the parameters of a progsf90 representation of
+a permanent_environmental_competition effect. Has the same incidence matrix
+than the additive_genetic_competition effect but an unstructured covariance
+matrix.
+
 \item \code{splines}: Compute the parameters of a progsf90 representation of
 a splines effect.
+
+\item \code{blocks}: Compute the parameters of a progsf90 representation of
+a blocks effect.
+
+\item \code{ar}: Compute the parameters of a progsf90 representation of
+an AR effect.
 }}
 \seealso{
 Other renderpf90: \code{\link{renderpf90.matrix}}

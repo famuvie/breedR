@@ -6,6 +6,9 @@
 \usage{
 group_size(x)
 }
+\arguments{
+\item{x}{object of class \code{effect_group}}
+}
 \description{
 Size of a group of effects
 }

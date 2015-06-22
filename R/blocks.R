@@ -1,53 +1,50 @@
-# Build a blocks model
-# 
-# Given the coordinates of the observations,
-# the *factor* identifying blocks, and the logical autofill
-build.blocks.model <- function (coord, id, autofill) {
+#' Build a blocks model
+#' 
+#' Given the coordinates of the observations, the *factor* identifying blocks,
+#' and the logical autofill, build the incidence and covariance matrices of a
+#' blocks model.
+#' 
+#' @param coordinates matrix(-like) of observation coordinates
+#' @param id factor of the same length as observations, giving the block id for
+#'   each observation.
+#' @param autofill logical. If \code{TRUE} (default) it will try to fill gaps in
+#'   the rows or columns. Otherwise, it will treat gaps the same way as adjacent
+#'   rows or columns.
+#' @param ... Not used.
+breedr_blocks <- function (coordinates,
+                           id,
+                           autofill = TRUE,
+                           ...) {
   
-  stopifnot(is.factor(id))  # This should not happen
+  ## Checks
+  if (!is.factor(id))  id <- as.factor(id)
   
-  # Original coordinates
-  coord0 <- as.data.frame(sapply(coord, as.numeric))
-    
-  # lattice of spatial locations
-  # possibly with automatic filling of empty rows or columns
-  pos <- loc_grid(coord, autofill)
+  # Consider matrix-like coordinates
+  coordinates <- as.data.frame(coordinates)
   
-  # The coordinates as factors allows to find easily the number of 
-  # different x and y positions, and the ordering
-  coord <- as.data.frame(mapply(factor,
-                                as.data.frame(coord),
-                                pos, SIMPLIFY = FALSE))
+  ## Encompassing grid
+  grid <- build_grid(coordinates, autofill)
   
-  # Number of different locations in rows and cols
-  pos.length <- sapply(pos, length)
-  
-  # This will map the observed positions in the full grid
-  matrix2vec <- function(x, nx = pos.length[1], ny = pos.length[2]) {
-    map <- matrix(1:(nx*ny), nx, ny)
-    return(apply(x, 1, function(y) map[y[1], y[2]]))
-  }
-  data.ordering <- matrix2vec(sapply(coord, as.integer))
   # How to "fill-in" the missing locations with the right block number?
-  # Not trivial. Look the most common level among the neighbors?
+  # Not trivial. Consider the most common level among the neighbors?
   # For the moment, don't fill anything.
   
   # Structure matrix for the blocks (identity)
   # (needed by vcov())
   n.blocks <- nlevels(id)
-  U <- cbind(1:n.blocks, 1:n.blocks, 1)
+  cov.mat <- Matrix::Diagonal(n.blocks)
   
-  plot.grid <- expand.grid(pos)
-  inc.mat <- Matrix::sparseMatrix(i = data.ordering,
-                                  j = as.numeric(id),
-                                  x = 1)
-  plotting <- list(grid = plot.grid,
-                   inc.mat = inc.mat)
-  return(list(coord = coord0,
-              map = data.ordering,
-              B = as.numeric(id),
-              U = U,
-              Utype = 'covariance',
-              plotting = plotting))
+  inc.mat <- as(as.numeric(id), 'indMatrix')
+  colnames(inc.mat) <- levels(id)
+  
+  ## Build the spatial effect, return the autoregressive parameters
+  ## and further specify the blocks class
+  ans <- spatial(coordinates, incidence = inc.mat, covariance = cov.mat)
+  ans$param <- list(n.blocks = n.blocks)
+  attr(ans, 'grid') <- grid
+  class(ans) <- c('blocks', class(ans))
+  
+  return(ans)
+  
 }
 
