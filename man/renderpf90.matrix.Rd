@@ -14,6 +14,9 @@ A matrix with a number of colums equal to twice the maximum number of
   non-zero elements in one row. The first half of the columns are the
   non-zero values (except for filling-in) while the second half are the
   column indices.
+
+  For indicator matrices (i.e. each row has at most one non-zero value of 1),
+  it returns a one-column matrix of the corresponding column indices.
 }
 \description{
 This function provides a representation of a sparse matrix suited to
@@ -25,10 +28,17 @@ index. The gaps are filled with zeros.
 }
 \seealso{
 Other renderpf90: \code{\link{renderpf90}},
+  \code{\link{renderpf90.additive_genetic_animal}},
+  \code{\link{renderpf90.additive_genetic_competition}},
+  \code{\link{renderpf90.ar}},
+  \code{\link{renderpf90.blocks}},
   \code{\link{renderpf90.breedr_modelframe}},
   \code{\link{renderpf90.default}},
+  \code{\link{renderpf90.diagonal}},
   \code{\link{renderpf90.effect_group}},
+  \code{\link{renderpf90.fixed}},
   \code{\link{renderpf90.generic}},
+  \code{\link{renderpf90.permanent_environmental_competition}},
   \code{\link{renderpf90.splines}}
 }
 
