@@ -210,35 +210,46 @@ breedR.sample.phenotype <- function(fixed = NULL,
     
     components <- cbind(components, as.data.frame(ped))
     
-    # Include Breeding Values (direct additive and potentially others like comp.)
+    ## Include Breeding Values (direct additive and potentially others like comp.)
+    ## if sigma2_a is a number, returns a BV column
+    ## if it has dimension 2x2, returns a matrix with columnsBV1 and BV2
     components  <- cbind(components, breedR.sample.BV(ped, genetic$sigma2_a))
     
     # Compute the effect of competitors on phenotypes
     if( genetic$model == 'competition' ){
-      # Incidence matrix (in condensed 8-col format, with neighbour indices)
-      genetic$pedigree <- as.data.frame(ped)
+      
+      ## Check genetic model
+      genetic$pedigree <- ped
       genetic$id <-sum(genetic$Nparents) + 1:Nobs  # index of individuals
       genetic$coord <- coord[ord, ]
-      genetic$autofill <- TRUE
-      if( !exists('competition_decay', genetic) )
-        genetic$competition_decay <- 1
-      Bmat <- build.genetic.model(genetic)$B
+      genetic <- do.call(check_genetic, genetic)
+      
+      ## Build components
+      gen_comp <- additive_genetic_competition(
+        pedigree    = genetic$pedigree,
+        coordinates = genetic$coordinates,
+        id          = genetic$id,
+        decay       = genetic$competition_decay,
+        autofill    = genetic$autofill)
+      
+      # Incidence matrix (in condensed 8-col format, with neighbour indices)
+      Bmat <- renderpf90.matrix( model.matrix(gen_comp))
       Bmat[Bmat==0] <- NA
       
       # Genetic competition values of neighbours
-      Cmat <- matrix(components$BV2[Bmat[, 1+8+1:8]], nrow = Nobs)
+      Cmat <- matrix(components$BV2[Bmat[, 8+1:8]], nrow = Nobs)
       
       # Weighted Neighbour Competition
       components$wnc <- c(rep(NA, Nfull-Nobs),
-                          rowSums(Bmat[, 1+1:8] * Cmat, na.rm = TRUE))
+                          rowSums(Bmat[, 1:8] * Cmat, na.rm = TRUE))
       
       # Permanent Environmental Competition effect
-      if( exists('pec', genetic) ) {
+      if (exists('pec', genetic)) {
         components$pec <- c(rep(NA, Nfull-Nobs),
-                            rnorm(Nobs, sd = sqrt(genetic$pec)))
-        Pmat <- matrix(components$pec[Bmat[, 1+8+1:8]], nrow = Nobs)
+                            rnorm(Nobs, sd = sqrt(genetic$pec$var.ini)))
+        Pmat <- matrix(components$pec[Bmat[, 8+1:8]], nrow = Nobs)
         components$wnp <- c(rep(NA, Nfull-Nobs),
-                            rowSums(Bmat[, 1+1:8] * Pmat, na.rm = TRUE))
+                            rowSums(Bmat[, 1:8] * Pmat, na.rm = TRUE))
       }
       
     }

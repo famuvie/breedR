@@ -10,9 +10,9 @@ build_grid(coordinates, autofill = TRUE)
 \item{coordinates}{two-column matrix-like set of row and column coordinates
 of observational units}
 
-\item{autofill}{logical. If TRUE it will try to fill missing rows or columns
-  with missing observations. Otherwise, will treat individuals as neighbours
-  even if they are across an empty line.}
+\item{autofill}{logical. If TRUE (default) it will try to fill missing rows
+  or columns with missing observations. Otherwise, will treat individuals as
+  neighbours even if they are across an empty line.}
 }
 \value{
 The parameters defining the grid, and the index of the observed
@@ -24,5 +24,9 @@ The parameters defining the grid, and the index of the observed
 }
 \description{
 Build the minimal regularly-spaced grid containing a given set of points.
+}
+\details{
+Note that \code{autofill = FALSE} virtually removes the empty lines,
+considering the spacing as constant.
 }
 

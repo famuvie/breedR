@@ -21,6 +21,9 @@ Other metagene: \code{\link{$.metagene}},
   \code{\link{as.data.frame.metagene}};
   \code{\link{as.data.frame.pedigree}};
   \code{\link{get_ntraits}}; \code{\link{get_pedigree}},
+  \code{\link{get_pedigree.breedr_modelframe}},
+  \code{\link{get_pedigree.effect_group}},
+  \code{\link{get_pedigree.genetic}},
   \code{\link{get_pedigree.metagene}},
   \code{\link{get_pedigree.remlf90}};
   \code{\link{ngenerations}}; \code{\link{plot.metagene}};

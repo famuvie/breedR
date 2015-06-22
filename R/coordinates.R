@@ -2,9 +2,14 @@
 # Register the S3 classes from breedR as S4 classes
 setOldClass('breedR')
 setOldClass('effect_group')
-setOldClass(c('splines', 'spatial'))
-setOldClass(c('ar', 'spatial'))
 setOldClass(c('blocks', 'spatial'))
+setOldClass(c('ar', 'spatial'))
+setOldClass(c('splines', 'spatial'))
+setOldClass(c('additive_genetic_competition',
+              'additive_genetic', 'genetic',
+              'competition', 'spatial'))
+setOldClass(c("permanent_environmental_competition",
+              "competition", "spatial"))
 
 #' @importFrom methods setOldClass setMethod
 #' @export
@@ -15,38 +20,32 @@ setMethod('coordinates', signature = 'breedR',
             ## assigned with coordinates <- 
             
             ## effect_groups in the list of effects
-            ## (all, after refactoring)
-            eg.idx <- vapply(obj$effects, inherits, TRUE, 'effect_group')
+            eg.idx <- which(lapply(obj$effects, effect_type) == 'random')
             
             ## Coordinates of each one (if any)
             ## But only those with some 
             coord.lst <- lapply(obj$effects[eg.idx], coordinates)
             coord.lst <- coord.lst[vapply(coord.lst, length, 0) > 1]
             
-            ## Non-refactored components:
-            cl2 <- list()
-            if (!is.null(obj$effects$spatial$sp$coord)) {
-              cl2 <- c(cl2, list(obj$effects$spatial$sp$coord))
-            }
-            if (!is.null(obj$effects$genetic$gen$coord)) {
-              cl2 <- c(cl2, list(obj$effects$genetic$gen$coord))
-            }
-            
-            ## Collected coordinates
-            coord.lst <- c(coord.lst, cl2)
-            
-            ## If none was found, give a message and return NULL
             if (length(coord.lst) == 0) {
-              message("This breedR object has no spatial structure.\n")
-              return(invisible(NULL))
+              ## Check for an specific list item
+              if ('coordinates' %in% names(obj)) {
+                coord.lst <- list(obj$coordinates)
+              } else {
+                ## If none was found, give a message and return NULL
+                message("This breedR object has no spatial structure.\n")
+                return(invisible(NULL))
+              }
             }
             
             ## If there are several sets of coordinates,
             ## check that they are the same
-            if (length(coord.lst) > 1) {
-              if (!all.equal(coord.lst[1], coord.lst[-1]))
-                stop(paste('There are different coordinate sets in the model components.',
-                           'I do not know which one to use.'))
+            if ((nc <- length(coord.lst)) > 1) {
+              for (i in 2:nc){
+                if (!isTRUE(all.equal(coord.lst[[1]], coord.lst[[i]])))
+                  stop(paste('There are different coordinate sets in the model components.',
+                             'I do not know which one to use.'))
+              }
             }
             
             ## Take the first element as a representative
@@ -62,17 +61,13 @@ setMethod('coordinates<-', signature = 'breedR',
             # sp::coordinates() performs some sanity checks
             # like coords to be positive integers, not NA, etc.
             cc <- as.data.frame(sp::coordinates(value))
-            if( !object$components$spatial ) {
-              object$effects$spatial <- list(name = 'none',
-                                             sp = list(coord = cc))
-              # Now it is a "spatial" object, although there is no
-              # spatial model.
-              # Not a good idea. It then confuses other methods that assume
-              # that if it is 'spatial' then it has further things like
-              # an incidence matrix (e.g. model.matrix)
-              # object$components$spatial = TRUE
+            
+            if (is.null(suppressMessages(coordinates(object)))) {
+              object$coordinates <- cc
             } else {
-              object$effects$spatial$sp$coord = cc
+              ## This object already has coordinates
+              ## give message and do nothing
+              message("This breedR object already has coordinates.\n")
             }
             return(object)
           }

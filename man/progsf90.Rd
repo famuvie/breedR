@@ -6,6 +6,15 @@
 \usage{
 progsf90(mf, effects, opt = c("sol se"), res.var.ini = 10)
 }
+\arguments{
+\item{mf}{model.frame for fixed and diagonal random effects}
+
+\item{effects}{breedr_modelframe}
+
+\item{opt}{character. Options to be passed to Misztal's programs}
+
+\item{res.var.ini}{positive number. Initial value for the residual variance.}
+}
 \description{
 This function parses a model frame and extracts the relevant fields
 that are to be written in the parameter, data and auxiliary files

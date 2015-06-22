@@ -10,9 +10,9 @@ loc_grid(coordinates, autofill)
 \item{coordinates}{two-column matrix-like set of row and column coordinates
 of observational units}
 
-\item{autofill}{logical. If TRUE it will try to fill missing rows or columns
-  with missing observations. Otherwise, will treat individuals as neighbours
-  even if they are across an empty line.}
+\item{autofill}{logical. If TRUE (default) it will try to fill missing rows
+  or columns with missing observations. Otherwise, will treat individuals as
+  neighbours even if they are across an empty line.}
 }
 \value{
 list of row and column coordinates of spatial units

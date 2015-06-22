@@ -28,7 +28,7 @@ get_structure.effect_group <- function(x) {
         
     if (length(unique(str.types)) == 1) {
       ## Compare matrices all of the same type
-      stopifnot(all.equal(str.list[1], str.list[-1]))
+      stopifnot(isTRUE(all.equal(str.list[[1]], str.list[[-1]])))
     } else {
       ## Compare matrices of the corresponding types
       str.list.cov <- str.list[str.types == 'covariance']
