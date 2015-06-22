@@ -127,12 +127,11 @@ test_that("model.frame() gets an Nx2 data.frame with a 'terms' attribute", {
 test_that("model.matrix() gets a named list of fixed and random incidence matrices", {
   x <- model.matrix(res)
   expect_is(x, 'list')
-  expect_named(x, c('fixed', 'random'))
-  expect_equal(dim(x$fixed), c(n.obs, nlevels.fixed))
-  expect_is(x$random, 'list')
-  expect_named(x$random, c('bl'))
-  expect_is(x$random$bl, 'sparseMatrix')
-  expect_equal(dim(x$random$bl), c(n.obs, nlevels.random))
+  expect_named(x, names(res$effects))
+  expect_equal(dim(x$gg), c(n.obs, nlevels.fixed-1))
+  expect_equal(dim(x$x), c(n.obs, 1))
+  expect_is(x$bl, 'sparseMatrix')
+  expect_equal(dim(x$bl), c(n.obs, nlevels.random))
 })
 
 test_that("nobs() gets the number of observations", {

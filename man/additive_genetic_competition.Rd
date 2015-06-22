@@ -18,9 +18,9 @@ of observational units}
 \item{decay}{numeric. The positive value of the decay parameter \eqn{\alpha}.
 Typically 1 or 2. See Details.}
 
-\item{autofill}{logical. If TRUE it will try to fill missing rows or columns
-  with missing observations. Otherwise, will treat individuals as neighbours
-  even if they are across an empty line.}
+\item{autofill}{logical. If TRUE (default) it will try to fill missing rows
+  or columns with missing observations. Otherwise, will treat individuals as
+  neighbours even if they are across an empty line.}
 }
 \value{
 A list with elements \code{pedigree}, \code{incidence.matrix},
@@ -44,6 +44,6 @@ dat <- data.frame(id   = 1:5,
                   x    = c(rep(1:2, times = 2), 3),
                   y    = c(rep(1:2, each = 2), 3))
 ped <- build_pedigree(1:3, data = dat)
-additive_genetic_competition(ped, coord = dat[, c('x', 'y')], dat$id, 2)
+breedR:::additive_genetic_competition(ped, coord = dat[, c('x', 'y')], dat$id, 2)
 }
 

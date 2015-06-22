@@ -17,7 +17,7 @@ test_that("determine.n.knots fails with few data points", {
 
 
 
-context("Splines infraestructure") 
+context("Splines infrastructure") 
 ########################
 
 test_that("breedr_splines() constructor gives a list with six elements of correct sizes", {
@@ -31,7 +31,7 @@ test_that("breedr_splines() constructor gives a list with six elements of correc
   n.splines <- ncol(cov.mat)
   
   expect_is(result, c('splines', 'spatial, random', 'breedr_effect'))
-  expect_that(length(result), equals(6))
+  expect_that(length(result), equals(7))
   expect_equal(n.knots,
                sapply(sapply(list(x.loc, y.loc), length), determine.n.knots)+6,
                check.attributes = FALSE)
@@ -117,12 +117,10 @@ test_that("model.frame() gets an Nx2 data.frame with a 'terms' attribute", {
 test_that("model.matrix() gets a named list of fixed and random incidence matrices", {
   x <- model.matrix(res)
   expect_is(x, 'list')
-  expect_named(x, c('fixed', 'random'))
-  expect_equal(dim(x$fixed), c(n.obs, nlevels.fixed))
-  expect_is(x$random, 'list')
-  expect_named(x$random, c('spatial'))
-  expect_is(x$random$spatial, 'matrix')
-  expect_equal(dim(x$random$spatial), c(n.obs, n.splines))
+  expect_named(x, names(res$effects))
+  expect_equal(dim(x$sex), c(n.obs, nlevels.fixed))
+  expect_is(x$spatial, 'sparseMatrix')
+  expect_equal(dim(x$spatial), c(n.obs, n.splines))
 })
 
 test_that("nobs() gets the number of observations", {

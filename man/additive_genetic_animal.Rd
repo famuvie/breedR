@@ -30,6 +30,6 @@ dat <- data.frame(id = 1:4,
                   sire = c(11, 11, 2, 3),
                   dam  = c(12, NA, 1, 12))
 ped <- build_pedigree(1:3, data = dat)
-additive_genetic_animal(ped, dat$id)
+breedR:::additive_genetic_animal(ped, dat$id)
 }
 

@@ -41,11 +41,7 @@ competition <- function(coordinates,
   grid <- build_grid(coordinates, autofill)
   
   # Check: is this a regular grid?
-  # if regular, n_x \times n_y ~ n_obs
-  # if irregular, n_x \times n_y ~ n_obs^2
-  # We assume it is regular if
-  # n_x \times n_y < n_obs + (n_obs^2 - n_obs)/4
-  if( prod(grid$length) > nrow(coordinates)*(nrow(coordinates) + 3)/4 )
+  if (!grid$regular)
     stop('The competition model can only be fitted to regular grids.')
   
   # Check: the grid should be actually 2d
@@ -111,7 +107,7 @@ competition <- function(coordinates,
 #' @inheritParams build_grid
 #' @inheritParams competition
 #'   
-#' @return An object inheriting from \link{\code{competition}} with the
+#' @return An object inheriting from \code{\link{competition}} with the
 #'   incidence and structure matrices for the random effect.
 #' @examples 
 #' dat <- data.frame(id   = 1:5,
@@ -119,7 +115,7 @@ competition <- function(coordinates,
 #'                   dam  = c(12, NA, 1, 12, 1),
 #'                   x    = c(rep(1:2, times = 2), 3),
 #'                   y    = c(rep(1:2, each = 2), 3))
-#' permanent_environmental_competition(coord = dat[, c('x', 'y')], decay = 2)
+#' breedR:::permanent_environmental_competition(coord = dat[, c('x', 'y')], decay = 2)
 permanent_environmental_competition <- function(coordinates,
                                                 decay,
                                                 autofill = TRUE) {

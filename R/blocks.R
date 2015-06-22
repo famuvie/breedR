@@ -4,21 +4,23 @@
 #' and the logical autofill, build the incidence and covariance matrices of a
 #' blocks model.
 #' 
-#' @param coord matrix(-like) of observation coordinates
+#' @param coordinates matrix(-like) of observation coordinates
 #' @param id factor of the same length as observations, giving the block id for
 #'   each observation.
 #' @param autofill logical. If \code{TRUE} (default) it will try to fill gaps in
 #'   the rows or columns. Otherwise, it will treat gaps the same way as adjacent
 #'   rows or columns.
-breedR_blocks <- function (coord,
+#' @param ... Not used.
+breedr_blocks <- function (coordinates,
                            id,
-                           autofill = TRUE) {
+                           autofill = TRUE,
+                           ...) {
   
   ## Checks
   if (!is.factor(id))  id <- as.factor(id)
   
   # Consider matrix-like coordinates
-  coordinates <- as.data.frame(coord)
+  coordinates <- as.data.frame(coordinates)
   
   ## Encompassing grid
   grid <- build_grid(coordinates, autofill)
@@ -30,14 +32,13 @@ breedR_blocks <- function (coord,
   # Structure matrix for the blocks (identity)
   # (needed by vcov())
   n.blocks <- nlevels(id)
-  cov.mat <- diag(n.blocks)
+  cov.mat <- Matrix::Diagonal(n.blocks)
   
-  inc.mat <- Matrix::sparseMatrix(i = seq.int(id),
-                                  j = as.numeric(id),
-                                  x = 1)
-
+  inc.mat <- as(as.numeric(id), 'indMatrix')
+  colnames(inc.mat) <- levels(id)
+  
   ## Build the spatial effect, return the autoregressive parameters
-  ## and further specify the ar class
+  ## and further specify the blocks class
   ans <- spatial(coordinates, incidence = inc.mat, covariance = cov.mat)
   ans$param <- list(n.blocks = n.blocks)
   attr(ans, 'grid') <- grid

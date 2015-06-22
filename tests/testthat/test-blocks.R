@@ -1,10 +1,10 @@
 old.op <- options(warn = -1)  # suppressWarnings
 on.exit(options(old.op))
 
-context("Blocks infraestructure")
+context("Blocks infrastructure")
 ########################
 
-test_that("breedR_blocks() constructor gives a list with 5 elements of correct sizes", {
+test_that("breedr_blocks() constructor gives a list with 5 elements of correct sizes", {
   x.loc <- 1:100
   y.loc <- seq(1000, by = 5, length = 51)
   n.blocks <- 10
@@ -13,7 +13,7 @@ test_that("breedR_blocks() constructor gives a list with 5 elements of correct s
   coord <- full.coord[sample(nrow(full.coord), nrow(full.coord)/2), ]
   block <- factor(sample(n.blocks, nrow(coord), replace = TRUE))
 
-  result <- breedR_blocks(coord, id = block)
+  result <- breedr_blocks(coord, id = block)
   inc.mat <- model.matrix(result)
   cov.mat <- get_structure(result)
 
@@ -35,28 +35,38 @@ context("Extraction of results from spatial blocks model")
 data(globulus)
 dat <- globulus
 
-fixed.fml <- phe_X ~ sex
+fixed.fml <- phe_X ~ gg
 
 n.obs     <- nrow(dat)
 n.fixed   <- length(attr(terms(fixed.fml), 'term.labels'))
-nlevels.fixed <- nlevels(dat$sex)
+nlevels.fixed <- nlevels(dat$gg)
 n.blocks   <- nlevels(dat$bl)
 
 res <- try(remlf90(fixed = fixed.fml, 
                    spatial = list(model = 'blocks', 
-                                  coord = coordinates(m1),
+                                  coord = globulus[, c('x', 'y')],
                                   id = dat$bl), 
                    data = dat),
            silent = TRUE)
 
+# # Manual verification of block estimates:
+# library(dplyr)
+# fixef(res)
+# globulus %>% group_by(gg) %>% summarise(group_mean = mean(phe_X))
 
-test_that("The splines model runs with EM-REML without errors", {
+# Debug
+# tb <- breedr_blocks(globulus[, c('x', 'y')], dat$bl)
+# 
+# effpf90 <- renderpf90.breedr_modelframe(res$effects, 1)
+# pf90 <- progsf90(res$mf, res$effects, opt = '', res.var.ini = 10)
+
+test_that("The blocks model runs with EM-REML without errors", {
   expect_that(!inherits(res, "try-error"), is_true())
 })
 
 test_that("coef() gets a named vector of coefficients", {
   expect_is(coef(res), 'numeric')
-  expect_equal(length(coef(res)), nlevels.fixed + n.splines)
+  expect_equal(length(coef(res)), nlevels.fixed + n.blocks)
   expect_named(coef(res))
 })
 
@@ -99,13 +109,12 @@ test_that("model.frame() gets an Nx2 data.frame with a 'terms' attribute", {
 test_that("model.matrix() gets a named list of fixed and random incidence matrices", {
   x <- model.matrix(res)
   expect_is(x, 'list')
-  expect_named(x, c('fixed', 'random'))
-  expect_equal(dim(x$fixed), c(n.obs, nlevels.fixed))
-  expect_is(x$random, 'list')
-  expect_named(x$random, c('spatial'))
-  expect_is(x$random$spatial, 'matrix')
-  expect_equal(dim(x$random$spatial), c(n.obs, n.splines))
+  expect_named(x, names(res$effects))
+  expect_equal(dim(x$gg), c(n.obs, nlevels.fixed))
+  expect_is(x$spatial, 'sparseMatrix')
+  expect_equal(dim(x$spatial), c(n.obs, n.blocks))
 })
+
 
 test_that("nobs() gets the number of observations", {
   expect_equal(nobs(res), n.obs)
@@ -131,11 +140,11 @@ test_that("ranef() gets a ranef.breedR object with random effect BLUPs and their
   expect_named(x, c('spatial'))
 
   expect_is(x$spatial, 'numeric')
-  expect_equal(length(x$spatial), n.splines)
+  expect_equal(length(x$spatial), n.blocks)
   expect_false(is.null(xse <- attr(x$spatial, 'se')))
   
   expect_is(xse, 'numeric')
-  expect_equal(length(xse), n.splines)
+  expect_equal(length(xse), n.blocks)
 })
 
 test_that("residuals() gets a vector of length N", {
@@ -146,7 +155,7 @@ test_that("residuals() gets a vector of length N", {
 
 test_that("summary() shows summary information", {
   expect_output(summary(res), 'Variance components')
-  expect_output(summary(res), 'knots:')
+  expect_output(summary(res), 'blocks')
 })
 
 test_that("vcov() gets the covariance matrix of the spatial component of the observations", {

@@ -4,10 +4,10 @@
 \alias{distribute_knots_uniformgrid}
 \title{Distribute knots uniformly in a grid}
 \usage{
-distribute_knots_uniformgrid(coord, n.knots, autofill)
+distribute_knots_uniformgrid(coordinates, n.knots, autofill)
 }
 \arguments{
-\item{coord}{matrix(-like) of observation coordinates}
+\item{coordinates}{matrix(-like) of observation coordinates}
 
 \item{n.knots}{numeric. Vector of length two with an integer number of knots
 in each dimension.}

@@ -46,7 +46,7 @@ effect_group <- function(x, cov.ini) {
   ev <- eigen(cov.ini, symmetric = TRUE, only.values = TRUE)$values
   stopifnot(all(ev > 0))
   
-  ## all elements are breer_effects
+  ## all elements are breedr_effects
   if (!all(sapply(x, inherits, 'breedr_effect')))
     stop('All of the effects must be of class breedr_effect.')
   

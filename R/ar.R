@@ -4,28 +4,30 @@
 #' and the autofill logical value, computes the incidence 
 #' matrix B and the covariance matrix U
 #' 
-#' @param coord matrix(-like) of observation coordinates
+#' @param coordinates matrix(-like) of observation coordinates
 #' @param rho numeric. Vector of length two with the autocorrelation parameter 
 #'   in each dimension, with values in the open interval (-1, 1).
 #' @param autofill logical. If \code{TRUE} (default) it will try to fill gaps in
 #'   the rows or columns. Otherwise, it will treat gaps the same way as adjacent
 #'   rows or columns.
+#' @param ... Not used.
 #'   
 #' @return a list with
 #' - the autocorrelation parameters
 #' - the coordinates original coordinates as a data frame
 #' - the incidence matrix (encoded as a vector)
 #' - the covariance matrix (of the full grid, in triplet form)
-breedr_ar <- function (coord,
+breedr_ar <- function (coordinates,
                        rho,
-                       autofill = TRUE) {
+                       autofill = TRUE,
+                       ...) {
   
   # Checks
   if( !all(abs(rho) < 1) )
     stop('The autoregressive parameters rho must be strictly in (-1, 1).\n')
 
   # Consider matrix-like coordinates
-  coordinates <- as.data.frame(coord)
+  coordinates <- as.data.frame(coordinates)
   
   ## Encompassing grid
   grid <- build_grid(coordinates, autofill)
@@ -39,11 +41,13 @@ breedr_ar <- function (coord,
     stop('Are you kidding? This is a line!')
   
   ## Incidence matrix
-  inc.mat <- Matrix::sparseMatrix(i = seq_along(grid$idx),
-                                  j = grid$idx,
-                                  x = 1,
-                                  dims = c(length(grid$idx),
-                                           prod(grid$length)))
+  inc.mat <- as(
+    Matrix::sparseMatrix(i = seq_along(grid$idx),
+                         j = grid$idx,
+                         x = 1,
+                         dims = c(length(grid$idx),
+                                  prod(grid$length))),
+    'indMatrix')
   
   
   # Precision matrix for the AR1(rho_x) x AR1(rho_y) process

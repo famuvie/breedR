@@ -12,37 +12,39 @@
 #' with RAM size. The covariance matrix is always stored in sparse format, as it
 #' is particularly sparse.
 #' 
-#' @param coord matrix(-like) of observation coordinates
+#' @param coordinates matrix(-like) of observation coordinates
 #' @param n.knots numeric. Vector of length two with an integer number of knots 
 #'   in each dimension.
 #' @param autofill logical. If \code{TRUE} (default) it will try to fill gaps in
 #'   the rows or columns. Otherwise, it will treat gaps the same way as adjacent
 #'   rows or columns.
 #' @param degree integer. Degree of the B-spline polynomials.
-#' @param sparse logical. If \code{TRUE} the incidence matrix will be stored in 
-#'   sparse format. Default is \code{FALSE}.
-#' @param strategy character. Strategy for placing spline knots. Only
+#' @param sparse logical. If \code{TRUE} (default) the incidence matrix will be stored in 
+#'   sparse format. Current implementation ignores a value of FALSE.
+#' @param strategy character. Strategy for placing spline knots. Only 
 #'   \code{uniformgrid} available for the moment.
+#' @param ... Not used.
 #'   
 #' @return A list with elements \code{incidence.matrix}, \code{structure.matrix}
 #'   and \code{structure.type}, which is a string indicating either 
 #'   \code{covariance} or \code{precision}.
-breedr_splines <- function(coord,
+breedr_splines <- function(coordinates,
                            n.knots  = NULL,
                            autofill = TRUE,
                            degree   = 3,
                            sparse   = TRUE,
-                           strategy = 'uniformgrid') {
+                           strategy = 'uniformgrid',
+                           ...) {
   
   
   strategy <- match.arg(strategy)
   
   ## Coordinates of knots in each dimension
   if (strategy == 'uniformgrid') {
-    knots <- distribute_knots_uniformgrid(coord, n.knots, autofill)
+    knots <- distribute_knots_uniformgrid(coordinates, n.knots, autofill)
   }
   
-  B <- bispline_incidence(knots, coord, degree + 1, sparse = TRUE)
+  B <- bispline_incidence(knots, coordinates, degree + 1, sparse)
   
   # The sparse incidence matrix weights 3.5 less than the non-sparse version,
   # but it takes longer processing time. Besides, the gmean computation it also
@@ -60,11 +62,11 @@ breedr_splines <- function(coord,
                gmean(diag(B %*% tcrossprod(U, B))))
   Uscaled <- as(U/sc, 'CsparseMatrix')
   
-
   ## Build the spatial effect, return the knot coordinates
   ## and further specify the splines class
-  ans <- spatial(coord, incidence = B, covariance = Uscaled)
+  ans <- spatial(coordinates, incidence = B, covariance = Uscaled)
   ans$knots <- knots
+  ans$param <- list(n.knots = unname(vapply(knots, length, 1)))
   ans$degree <- degree
   class(ans) <- c('splines', class(ans))
   
@@ -80,11 +82,11 @@ breedr_splines <- function(coord,
 #' The margin is calculated as half the median separation between observations. 
 #' Furthermore, three more knots are added with equal spacing at each side, for
 #' each dimension.
-#' @inheritParams splines
-distribute_knots_uniformgrid <- function (coord, n.knots, autofill) {
+#' @inheritParams breedr_splines
+distribute_knots_uniformgrid <- function (coordinates, n.knots, autofill) {
   # lattice of spatial locations
   # possibly with automatic filling of empty rows or columns
-  obs.loc <- loc_grid(coord, autofill)
+  obs.loc <- loc_grid(coordinates, autofill)
   
   # Determine the number of (inner) knots for rows and columns
   # or use the number provided by the user
@@ -109,14 +111,14 @@ distribute_knots_uniformgrid <- function (coord, n.knots, autofill) {
                         SIMPLIFY = FALSE)
   
   # Add n.add additional knots before and after the inner knots
-  add.knots <- function(x.inner, n.add, coord) {
+  add.knots <- function(x.inner, n.add, coordinates) {
     # Use the mean spacing between the inner knots
     # or use the observations range if there are less than two inner knots
     if( length(x.inner) > 1) {
       spacing  <- mean(diff(x.inner))
       extremes <- range(x.inner)
       #     } else if( length(x.inner) == 1) {
-      #       spacing  <- diff(range(coord))/2
+      #       spacing  <- diff(range(coordinates))/2
       #       extremes <- rep(x.inner, 2)
     } else {
       stop('At least two inner knots are needed for each dimension')
