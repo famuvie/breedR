@@ -135,10 +135,10 @@ breedR.move_vignettes <- function(pkg, vigns, out, wiki_dir) {
 
 breedR.clean_vignettes <- function(vigns) {
   f <- list.files(vigns$dir, all.files = TRUE, no.. = TRUE)
-  if (file.exists(".build.timestamp")) {
+  if (file.exists(file.path(vigns$dir, ".build.timestamp"))) {
     newer <- file_test("-nt", f, ".build.timestamp")
     unlink(f[newer], recursive = TRUE)
-    file.remove(".build.timestamp")
+    file.remove(file.path(vigns$dir, ".build.timestamp"))
     return(invisible(TRUE))
   }
   invisible(FALSE)

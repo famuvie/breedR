@@ -174,7 +174,7 @@ res.spl  <- remlf90(fixed   = phe_X ~ 1,
                                    coord   = globulus[, c('x','y')]), 
                     data    = globulus, method  = 'em')
 
-## ----globulus-fit, message = FALSE-----------------------------------------------------------------------------------------
+## ----globulus-fit, message = FALSE---------------------------------------
 res.ar1  <- remlf90(fixed   = phe_X ~ 1,
                     random  = ~ gg,
                     genetic = gen.globulus, 
@@ -183,36 +183,36 @@ res.ar1  <- remlf90(fixed   = phe_X ~ 1,
                     data    = globulus)
 
 
-## ----change-residuals, fig.width = 8---------------------------------------------------------------------------------------
+## ----change-residuals, fig.width = 8-------------------------------------
 compare.plots(
   list(`Animal model only` = plot(res.animal, 'residuals'),
        `Animal/blocks model` = plot(res.blk, 'residuals'),
        `Animal/splines model` = plot(res.spl, 'residuals'),
        `Animal/AR1 model` = plot(res.ar1, 'residuals')))
 
-## ----spatial-components, fig.width = 8-------------------------------------------------------------------------------------
+## ----spatial-components, fig.width = 8-----------------------------------
 compare.plots(list(Blocks  = plot(res.blk, type = 'spatial'),
                    Splines = plot(res.spl, type = 'spatial'),
                    AR1xAR1 = plot(res.ar1, type = 'spatial')))
 
 
-## ----spatial-fullcomponents, fig.width = 8---------------------------------------------------------------------------------
+## ----spatial-fullcomponents, fig.width = 8-------------------------------
 compare.plots(list(Blocks  = plot(res.blk, type = 'fullspatial'),
                    Splines = plot(res.spl, type = 'fullspatial'),
                    AR1xAR1 = plot(res.ar1, type = 'fullspatial')))
 
 
-## ----determine-nknots, fig.width = 5, fig.height = 2, echo = FALSE---------------------------------------------------------
+## ----determine-nknots, fig.width = 5, fig.height = 2, echo = FALSE-------
 ggplot(transform(data.frame(x = 10:1e3),
                  nok = breedR:::determine.n.knots(x)),
        aes(x, nok)) + 
   geom_line()
 
-## ----spatial-exercise------------------------------------------------------------------------------------------------------
+## ----spatial-exercise----------------------------------------------------
 rho.grid <- expand.grid(rho_r = seq(.7, .95, length = 4),
                         rho_c = seq(.7, .95, length = 4))
 
-## ----competition-data------------------------------------------------------------------------------------------------------
+## ----competition-data----------------------------------------------------
 # Simulation parameters
 grid.size <- c(x=20, y=25) # cols/rows
 coord <- expand.grid(sapply(grid.size,
@@ -254,7 +254,7 @@ dat <- subset(simdat,
                 & is.na(simdat$dam)))
 
 
-## ----competition-fit, message = FALSE--------------------------------------------------------------------------------------
+## ----competition-fit, message = FALSE------------------------------------
 system.time(
   res.comp <- remlf90(fixed   = phenotype ~ 1,
                       genetic = list(model = 'competition',
@@ -270,7 +270,7 @@ system.time(
                       method = 'em')  # AI diverges
   )
 
-## ----competition-results, results = 'asis', echo = FALSE, fig.width = 3----------------------------------------------------
+## ----competition-results, results = 'asis', echo = FALSE, fig.width = 3----
 var.comp <- 
   data.frame(True = c(sigma2_a, sigma2_c, rho, sigma2_s, sigma2_p, sigma2),
              Estimated = with(res.comp$var,
@@ -282,7 +282,7 @@ var.comp <-
 
 knitr::kable(var.comp)
 
-## ----competition-results-plot, echo = FALSE--------------------------------------------------------------------------------
+## ----competition-results-plot, echo = FALSE------------------------------
 labels <- c(paste0(rep('sigma', 5),
                  c('[A]', '[C]', '[S]', '[P]', ''), '^2'),
             'rho')[c(1:2, 6, 3:5)]
@@ -293,14 +293,26 @@ ggplot(var.comp, aes(True, Estimated)) +
   geom_text(label = labels, parse = TRUE, hjust = -.5)
 
 
-## ----prediction-remove-measure---------------------------------------------------------------------------------------------
+## ----generic-example, message = FALSE------------------------------------
+## Fit a blocks effect using generic
+inc.mat <- model.matrix(~ 0 + bl, globulus)
+cov.mat <- diag(nlevels(globulus$bl))
+res.blg <- remlf90(fixed  = phe_X ~ gg,
+                   generic = list(block = list(inc.mat,
+                                               cov.mat)),
+                   data   = globulus)
+
+## ----summary-generic-----------------------------------------------------
+summary(res.blg)
+
+## ----prediction-remove-measure-------------------------------------------
 rm.idx <- 8
 rm.exp <- with(dat[rm.idx, ],
                phenotype - resid)
 dat.loo <- dat
 dat.loo[rm.idx, 'phenotype'] <- NA
 
-## ----prediction-fit, echo = FALSE, message=FALSE---------------------------------------------------------------------------
+## ----prediction-fit, echo = FALSE, message=FALSE-------------------------
 res.comp.loo <- remlf90(fixed   = phenotype ~ 1,
                         genetic = list(model = 'competition',
                                        pedigree = dat[, 1:3],
@@ -314,7 +326,7 @@ res.comp.loo <- remlf90(fixed   = phenotype ~ 1,
                         data = dat.loo,
                         method = 'em')  
 
-## ----prediction-validation, echo = FALSE, results='asis'-------------------------------------------------------------------
+## ----prediction-validation, echo = FALSE, results='asis'-----------------
 ## compute the predicted effects for the observations
 ## by matrix multiplication of the incidence matrix and the BLUPs
 Zd <- model.matrix(res.comp)$'genetic_direct'
@@ -331,6 +343,6 @@ valid.pred <-
 
 knitr::kable(round(valid.pred, 2))
 
-## ----breedR-options--------------------------------------------------------------------------------------------------------
+## ----breedR-options------------------------------------------------------
 breedR.getOption()
 
