@@ -408,9 +408,9 @@ validate_generic_element <- function(incidence, covariance, precision, var.ini) 
     structure <- covariance
     str.name <- 'covariance'
   }
-  if(!is.matrix(incidence))
+  if(!is.matrix(incidence) && !inherits(incidence, 'Matrix'))
     stop(paste('Argument incidence must be of type matrix'))
-  if(!is.matrix(structure))
+  if(!is.matrix(structure) && !inherits(structure, 'Matrix'))
     stop(paste(str.name, 'must be of type matrix'))
   if(ncol(incidence) != nrow(structure))
     stop(paste('Non conformant incidence and', str.name, 'matrices'))

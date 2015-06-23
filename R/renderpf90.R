@@ -209,27 +209,36 @@ renderpf90.effect_group <- function(x) {
 renderpf90.generic <- function(x) {
   
   ## Incidence matrix in 'reduced' form
-  mm <- as.matrix(model.matrix(x))
-  mmpf90 <- renderpf90.matrix(mm)
+  mmpf90 <- renderpf90.matrix(model.matrix(x))
   
   ## Number of 'virtual' effects
   ## i.e. half the number of columns in the reduced matrix
   ## except in the case of one column
-  if ((nve <- ncol(mmpf90)) > 1)
-    nve <- nve/2
+  if ((nve <- nc <- ncol(mmpf90)) > 1)
+    nve <- nc/2
   
   ## Structure matrix (either covariance or precision)
   sm <- vcov(x)
   smpf90 <- as.triplet(sm)
   
-  if(nve > 1) {
-    nest <- nve + 1:nve 
-    type <- rep('cov', nve)
-  } else {
+  ## Represent the data with a single factor
+  ## if either the mm is one column (e.g. AR)
+  ## or is a degenerate nested case: each row exactly one non-zero value
+  ## (i.e. first column of 1). Note that there are two-column settings
+  ## where some rows are full 0.
+  single.column <- nc == 1 || (nc == 2 && all(mmpf90[, 1] == 1))
+  
+  if(single.column) {
+    ## Reduced one-column form
     nest <- NA
     type <- 'cross'
+    dat  <- mmpf90[, ncol(mmpf90), drop = FALSE] # last col (i.e. 1 or 2)
+  } else {
+    nest <- nve + 1:nve 
+    type <- rep('cov', nve)
+    dat  <- mmpf90
   }
-  
+
   ## Number of levels for each of the effects in progsf90
   ans <- list(
     pos       = seq_len(nve),
@@ -239,7 +248,7 @@ renderpf90.generic <- function(x) {
     model     = ifelse(attr(sm, 'inverse'), 'user_file', 'user_file_i'),
     file_name = 'generic',
     file      = smpf90,
-    data      = mmpf90
+    data      = dat
   )
   return(ans)
 }

@@ -4,7 +4,7 @@ all.equal.remlf90 <- function(target, current, check.attributes = TRUE, use.name
   ## Exclude some elements of the remlf90 objects
   ## that do not include numerical results
   ## and are not usually interesting for comparison
-  exclusions <- c('call', 'method', 'components', 'effects', 'mf', 'mm', 'reml')
+  exclusions <- c('call', 'method', 'components', 'effects', 'mf', 'reml')
   thin_tg <- target[-match(exclusions, names(target))]
   thin_cr <- current[-match(exclusions, names(target))]
   

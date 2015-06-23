@@ -55,7 +55,7 @@ res <- remlf90(fixed  = phe_X ~ 1,
                               id = 'self'),
                data   = globulus)
 
-Zd <- model.matrix(res)$random$genetic
+Zd <- model.matrix(res)$genetic
 PBV <- Zd \%*\% ranef(res)$genetic
 
 # variogram() needs coordinates to compute distances
@@ -78,7 +78,7 @@ res.sp<- remlf90(fixed  = phe_X ~ 1,
                                 id = 'self'),
                  data   = globulus)
 
-Zd <- model.matrix(res.sp)$random$genetic
+Zd <- model.matrix(res.sp)$genetic
 PBV <- Zd \%*\% ranef(res.sp)$genetic
 
 variogram(res.sp)

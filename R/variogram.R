@@ -45,7 +45,7 @@
 #'                               id = 'self'),
 #'                data   = globulus)
 #' 
-#' Zd <- model.matrix(res)$random$genetic
+#' Zd <- model.matrix(res)$genetic
 #' PBV <- Zd %*% ranef(res)$genetic
 #' 
 #' # variogram() needs coordinates to compute distances
@@ -68,7 +68,7 @@
 #'                                 id = 'self'),
 #'                  data   = globulus)
 #' 
-#' Zd <- model.matrix(res.sp)$random$genetic
+#' Zd <- model.matrix(res.sp)$genetic
 #' PBV <- Zd %*% ranef(res.sp)$genetic
 #' 
 #' variogram(res.sp)

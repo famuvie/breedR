@@ -36,7 +36,7 @@ check_build.ar.model <- function(x) {
   })
 }
 
-for( x in reslst) check_build.ar.model(x)
+for (x in reslst) check_build.ar.model(x)
 
 
 

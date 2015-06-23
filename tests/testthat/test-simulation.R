@@ -14,9 +14,9 @@ dat <- try(breedR.sample.phenotype(fixed   = c(mu = 10, x = 2),
                                                   competition_decay = 1,
                                                   check.factorial = FALSE,
                                                   pec = 0.5),
-                                   spatial = list(model     = 'splines',
+                                   spatial = list(model     = 'AR',
                                                   grid.size = c(10, 10),
-                                                  n.knots   = c(3, 3),
+                                                  rho   = c(.9, .5),
                                                   sigma2_s  = 1),
                                    residual.variance = 1))
 
