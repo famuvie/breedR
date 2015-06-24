@@ -16,9 +16,9 @@ For the latest development version, please refer to the [development site](https
 - Install the `devtools` R-package: `install.packages('devtools')`
 
 {% highlight r %}
-## Installation of breedR (latest stable version)
+## Installation of breedR (latest development version)
 library(devtools)
-install_github('famuvie/breedR', ref = github_release())
+install_github('famuvie/breedR')
 {% endhighlight r %}
 
 ### Getting started
