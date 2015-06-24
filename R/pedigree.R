@@ -76,6 +76,10 @@ build_pedigree <- function(x, self = x[[1]], sire = x[[2]], dam = x[[3]], data) 
 
   # Order by identity
   pedx <- pedx[order(pedx$self), ]
+  
+  # Remove replicated observations
+  pedx <- pedx[!duplicated(pedx),]
+  
   ### Check pedigree rules
   checks <- check_pedigree(pedx)
   
