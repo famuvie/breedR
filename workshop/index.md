@@ -37,20 +37,25 @@ Participants are expected to arrive in the course of the morning.
 - Statistical inference (frequentist/Bayesian; (RE)ML/MCMC)
 - Linear Mixed Models
 
-**11.00** Morning Workshop (3 hs.) 
+**11.00** Morning Workshop (3 hs.) Facundo Muñoz (INRA Orléans)
 
-- breedR overview
-- case studies in common field trials
+- breedR overview:
+  - Case studies in common field trials
+  - The additive genetic model
+  - breedR models for spatial autocorrelation and competition
 
 **Genetic models, spatial autocorrelation and competition**
 
-**14.00** Theoretical session (1.5 hs.) Facundo Muñoz (INRA Orléans)
-- The additive genetic model
-- Spatial models
-- Models for competition
+**14.00** Theoretical session (1.5 hs.) Eduardo Cappa (INTA Buenos Aires)
+- Introduction to environment heterogeneity and competition effects
+- Diagnosis of spatial and competition effects
+- Autoregressive and splines spatial models
+- Competition model
+- Examples of application
 
 
-**16.00** Afternoon Workshop (3 hs.) Eduardo Cappa (INTA Buenos Aires)
+**16.00** Afternoon Workshop (3 hs.) Facundo Muñoz (INRA Orléans); Eduardo Cappa (INTA Buenos Aires)
+- Diagnosis of spatial and competition effects
 - Analysis of spatial autocorrelation
 - Analysis of Competition
 
