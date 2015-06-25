@@ -39,10 +39,21 @@ renderpf90.diagonal <- function(x) {
   ## Do not use model.matrix() as this can be a factor
   mmx <- x$incidence.matrix
   
-  dat <- factor(mmx@perm, labels = colnames(mmx))
+  if (inherits(mmx, 'indMatrix')) {
+    ## there are no missing values
+    ## but there might be unobserved levels
+    dat <- mmx@perm
+  } else {
+    ## general sparse matrix format: dgCMatrix
+    stopifnot(all(mmx@x == 1))
+    dp <- diff(mmx@p)
+    j <- rep(seq_along(dp),dp)
+    dat <- vector('integer', length = nrow(mmx))
+    dat[mmx@i + 1] <- j
+  }
   
   ans <- list(pos = 1,
-              levels = nlevels(dat),
+              levels = ncol(mmx),
               type   = 'cross',
               nest = NA,
               model = 'diagonal',
@@ -90,9 +101,9 @@ renderpf90.matrix <- function(x) {
   ans <- t(apply(x, 1, which_n_where, ncol_eff))
   
   ## Exception: case of indicator matrix
-  ## ncol_eff = 1, all values are 1
+  ## ncol_eff = 1, all values are 1 (or 0 if missing)
   ## return only column with positions
-  if (ncol_eff == 1 && all(ans[, 1] == 1))
+  if (ncol_eff == 1 && all(ans[, 1] <= 1))
     ans <- ans[, 2, drop = FALSE]
   
   return(ans)

@@ -37,6 +37,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
   ## Random effects
   mf.rnd <- mf[, names(which(attr(mt, 'term.types') == 'random')),
                drop = FALSE]
+
   for (x in names(mf.rnd)) {
     effect.item <- effect_group(list(diagonal(mf.rnd[[x]])),
                                 cov.ini = var.ini[[x]])
@@ -44,40 +45,6 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
                                   names = x)
     effects <- c(effects, effect.item.list)
   }
-  
-  #   # Parameters for every single effect in the formula
-  #   # Increases pos by one each time
-  #   eff.par.f <- function(name) {
-  #     # position (in the data file)
-  #     pos <- parent.env(environment())$pos
-  #     assign('pos', pos + 1, envir = parent.env(environment()))
-  #     # number of levels
-  #     nl <- ifelse(inherits(mf[[name]], 'factor'), nlevels(mf[[name]]), 1)
-  #     # type: factors = "cross"; continuous = "cov"
-  #     type <- switch(attr(mt, 'dataClasses')[name],
-  #                    ordered = 'cross',
-  #                    factor = 'cross',
-  #                    numeric = 'cov',
-  #                    'cross')
-  #     # nested effects
-  #     # TODO
-  #     return(list(pos=pos, levels=nl, type=type))
-  #   }
-  #   
-  #   # Parameters for all effects in the fixed formula
-  #   effects <- c(effects, lapply(attr(mt, 'term.labels'), eff.par.f))
-  #   ef_names <- attr(mt, 'term.labels')
-  #   names(effects)[pos-ntraits - length(ef_names):1] <- ef_names
-  #   
-  #   # Unstructured random effects
-  #   # We need to specify 'model', 'file' and 'var'
-  #   rnd.idx <- which(attr(mt, 'term.types') == 'random')
-  #   for (term in rnd.idx) {
-  #     effects[[term]] <- c(effects[[term]], 
-  #                          list(model = 'diagonal',
-  #                               file  = '',
-  #                               var   = var.ini[[names(effects)[term]]]))
-  #   }
   
   # Genetic effect
   # Both the additive genetic and spatial terms are "cross"

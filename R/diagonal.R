@@ -17,7 +17,18 @@ diagonal <- function (x) {
     stopifnot(ncol(as.matrix(x)) == 1)
   x <- as.factor(x)
   
-  inc.mat <- as(as.integer(x), 'indMatrix')
+  ## with indMatrix-class, all rows must have exactly one non-zero value
+  ## this do not work with diagonal factors with missing values.
+  ## Use a more general sparse format that
+  if (any(nax <- is.na(x))) {
+    inc.mat <- Matrix::sparseMatrix(i = which(!nax),
+                                    j = as.integer(x)[!nax],
+                                    x = 1,
+                                    dims = c(length(x), nlevels(x)))
+  } else {
+    inc.mat <- as(as.integer(x), 'indMatrix')
+  }
+  
   colnames(inc.mat) <- levels(x)
   
   eff <- random(incidence = inc.mat,
