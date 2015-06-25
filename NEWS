@@ -8,7 +8,9 @@ breedR 0.10
 
 * `vcov()` works now with any of the non-diagonal random effects.
 
-* Much more exhaustive testing assures greater stability.
+* Much more exhaustive testing ensures greater stability.
+
+* New datasets Douglas (multi-site) and Larix (repeated measurements)
 
 
 breedR 0.9

@@ -143,3 +143,21 @@ breedR.clean_vignettes <- function(vigns) {
   }
   invisible(FALSE)
 }
+
+# Download (recirsive) dependencies
+# specify where to store packages and type
+breedR.download_deps <- function(dir, type) {
+  
+  typelst <- c('source', 'win.binary', 'mac.binary', 'mac.binary.mavericks')
+  if (missing(type)) type <- getOption("pkgType")
+  type <- match.arg(type, c('all', typelst), several.ok = TRUE)
+  if ('all' %in% type) type <- typelst
+  
+  pkgnms <- dev_package_deps(dependencies = TRUE)$package
+  
+  for (t in type) {
+    dest <- file.path(dir, t)
+    dir.create(dest)
+    download.packages(pkgnms, destdir = dest, type = t)
+  }
+}

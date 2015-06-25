@@ -160,7 +160,7 @@ additive_genetic_competition <- function(pedigree,
   
   ## the internal codes of the observed individuals are the indices
   ## of the corresponding levels of the random effect
-  if ('map' %in% attributes(pedigree)) {
+  if ('map' %in% names(attributes(pedigree))) {
     id.internal  <- attr(pedigree, 'map')[id]
   } else {
     id.internal <- id
