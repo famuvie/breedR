@@ -27,6 +27,12 @@ diagonal <- function (x) {
                                     dims = c(length(x), nlevels(x)))
   } else {
     inc.mat <- as(as.integer(x), 'indMatrix')
+    
+    ## A small hack to make sure that the matrix has the right dimension:
+    ## if the last level(s) of x has not been observed, the conversion
+    ## to integer will drop this infomation, and the matrix will miss
+    ## the last columns
+    inc.mat@Dim[2] <- nlevels(x)
   }
   
   colnames(inc.mat) <- levels(x)
