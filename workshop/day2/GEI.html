@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GxE Interaction</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="generator" content="pandoc" />
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <link rel="stylesheet" media="all" href="GEI_files/ioslides-13.5.1/fonts/fonts.css">
+
+  <link rel="stylesheet" media="all" href="GEI_files/ioslides-13.5.1/theme/css/default.css">
+  <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="GEI_files/ioslides-13.5.1/theme/css/phone.css">
+
+  <base target="_blank">
+
+  <script type="text/javascript">
+    var SLIDE_CONFIG = {
+      // Slide settings
+      settings: {
+                title: 'GxE Interaction',
+                        useBuilds: true,
+        usePrettify: true,
+        enableSlideAreas: true,
+        enableTouch: true,
+                favIcon: 'GEI_files/logo.png',
+              },
+
+      // Author information
+      presenters: [
+            {
+        name:  'Facundo Muñoz' ,
+        company: '',
+        gplus: '',
+        twitter: '',
+        www: '',
+        github: ''
+      },
+            ]
+    };
+  </script>
+
+  <style type="text/css">
+
+    b, strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    slides > slide {
+      -webkit-transition: all 0.4s ease-in-out;
+      -moz-transition: all 0.4s ease-in-out;
+      -o-transition: all 0.4s ease-in-out;
+      transition: all 0.4s ease-in-out;
+    }
+
+    .auto-fadein {
+      -webkit-transition: opacity 0.6s ease-in;
+      -webkit-transition-delay: 0.4s;
+      -moz-transition: opacity 0.6s ease-in 0.4s;
+      -o-transition: opacity 0.6s ease-in 0.4s;
+      transition: opacity 0.6s ease-in 0.4s;
+      opacity: 0;
+    }
+
+    slides > slide:not(.nobackground):before {
+      font-size: 12pt;
+      content: "";
+      position: absolute;
+      bottom: 20px;
+      left: 60px;
+      background: url(GEI_files/logo.png) no-repeat 0 50%;
+      -webkit-background-size: 30px 30px;
+      -moz-background-size: 30px 30px;
+      -o-background-size: 30px 30px;
+      background-size: 30px 30px;
+      padding-left: 40px;
+      height: 30px;
+      line-height: 1.9;
+    }
+  </style>
+
+
+
+</head>
+
+<body style="opacity: 0">
+
+<slides>
+
+  <slide class="title-slide segue nobackground">
+        <aside class="gdbar"><img src="GEI_files/logo.png"></aside>
+        <!-- The content of this hgroup is replaced programmatically through the slide_config.json. -->
+    <hgroup class="auto-fadein">
+      <h1 data-config-title><!-- populated from slide_config.json --></h1>
+      <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
+      <p data-config-presenter><!-- populated from slide_config.json --></p>
+            <p style="margin-top: 6px; margin-left: -2px;">2015-07-01 breedR version: 0.10.8</p>
+          </hgroup>
+  </slide>
+
+<slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Douglas dataset</h2></hgroup><article  id="douglas-dataset">
+
+</article></slide><slide class=''><hgroup><h2>Description of Douglas dataset</h2></hgroup><article  id="description-of-douglas-dataset">
+
+<pre class = 'prettyprint lang-r'>data(&quot;douglas&quot;)
+str(douglas)</pre>
+
+<pre >&#39;data.frame&#39;:   9630 obs. of  15 variables:
+ $ self : num  135 136 137 138 139 140 141 142 143 144 ...
+ $ dad  : num  41 41 41 41 41 41 41 41 41 41 ...
+ $ mum  : num  21 21 21 21 21 21 21 21 21 21 ...
+ $ orig : Factor w/ 11 levels &quot;pA&quot;,&quot;pB&quot;,&quot;pC&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+ $ site : Factor w/ 3 levels &quot;s1&quot;,&quot;s2&quot;,&quot;s3&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+ $ block: Factor w/ 127 levels &quot;s1:1&quot;,&quot;s1:2&quot;,..: 11 44 24 28 13 35 8 40 3 15 ...
+ $ x    : num  6 27 45 57 57 60 63 66 66 75 ...
+ $ y    : num  81 135 90 45 327 474 450 21 234 483 ...
+ $ H02  : int  NA NA NA NA NA NA NA NA NA NA ...
+ $ H03  : int  NA NA NA NA NA NA NA NA NA NA ...
+ $ H04  : int  NA NA NA NA NA NA NA NA NA NA ...
+ $ H05  : int  634 581 611 370 721 488 574 498 528 620 ...
+ $ C13  : int  586 474 715 372 665 558 490 372 527 612 ...
+ $ AN   : Factor w/ 5 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: NA NA NA NA NA NA NA NA NA NA ...
+ $ BR   : Factor w/ 5 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: NA NA NA NA NA NA NA NA NA NA ...</pre>
+
+</article></slide><slide class=''><hgroup><h2>Origins by site</h2></hgroup><article  id="origins-by-site">
+
+<pre class = 'prettyprint lang-r'>with(douglas, table(orig, site))</pre>
+
+<pre >    site
+orig   s1   s2   s3
+  pA 1381 1326  635
+  pB  870  815  111
+  pC  930 1030   80
+  pD   28    1    0
+  pE  265    0    0
+  pF  502  673  388
+  pG    0  116   26
+  pH    0   78   54
+  pI    0   78   52
+  pJ    0   78   55
+  pK    0    0   58</pre>
+
+</article></slide><slide class=''><hgroup><h2>Spatial arrangement</h2></hgroup><article  id="spatial-arrangement">
+
+<pre class = 'prettyprint lang-r'>ggplot(douglas, aes(x, y, color = block)) +
+  geom_point(show_guide = FALSE) +
+  facet_wrap(~ site)</pre>
+
+<img src='GEI_files/figure-html/description-visualization-1.png' title=''/>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Model fit</h2></hgroup><article  id="model-fit">
+
+</article></slide><slide class=''><hgroup><h2>Statistical model</h2></hgroup><article  id="statistical-model">
+
+<p><strong>Excercise</strong>: write the following model in breedR:</p>
+
+<p>\[
+\begin{aligned}
+\mathrm{CR13} = &amp; \mathrm{site} + \mathrm{orig} + 
+fam + bl_\mathrm{site} + fsi + \varepsilon\\
+fam  \sim &amp; \mathcal{N}(0, \sigma_f^2) \\
+bl_s   \sim &amp; \mathcal{N}(0, \sigma_{b(s)}^2), \quad s = 1, 2, 3 \\
+fsi  \sim &amp; \mathcal{N}(0, \sigma_{i}^2) \\
+\varepsilon  \sim &amp; \mathcal{N}(0, \sigma^2) 
+\end{aligned}
+\]</p>
+
+<ul>
+<li>Adjust for blocks <strong>within</strong> each site</li>
+<li>(possibly with different variabilities)</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Preparation of dataset</h2></hgroup><article  id="preparation-of-dataset">
+
+<pre class = 'prettyprint lang-r'>## create site-wise block variables (i.e. bl_i = bl * Ind(i))
+dat &lt;- transform(douglas, bl1 = block, bl2 = block, bl3 = block)
+dat$bl1[dat$site != &quot;s1&quot;] &lt;- NA
+dat$bl2[dat$site != &quot;s2&quot;] &lt;- NA
+dat$bl3[dat$site != &quot;s3&quot;] &lt;- NA
+dat &lt;- droplevels(dat)
+
+## variable family (taken as a maternal effect)
+dat$fam &lt;- factor(dat$mum)
+
+## family-site interaction variable
+dat &lt;- transform(dat, famxsite = factor(fam:site))</pre>
+
+</article></slide><slide class=''><hgroup><h2>Basic Family-Site interaction model</h2></hgroup><article  id="basic-family-site-interaction-model">
+
+<p>Model with origin and site as fixed effects, and family, blocks and family-site interaction as random effects</p>
+
+<pre class = 'prettyprint lang-r'>reml.tree &lt;- remlf90(fixed  = C13 ~ site + orig,
+                     random = ~ fam + bl1 + bl2 + bl3 + famxsite,
+                     data = dat, method = &#39;ai&#39;)</pre>
+
+</article></slide><slide class=''><hgroup><h2>Model summary</h2></hgroup><article  id="model-summary" class="smaller columns-2">
+
+<pre >Linear Mixed Model with pedigree and spatial effects fit by AI-REMLF90 ver. 1.110 
+   Data: dat 
+    AIC    BIC logLik
+ 109427 109470 -54708
+
+Parameters of special components:
+
+
+Variance components:
+         Estimated variances   S.E.
+fam                  1339.70 235.07
+bl1                   736.37 182.76
+bl2                    66.46  50.84
+bl3                  1233.80 385.47
+famxsite              118.43  61.54
+Residual            13653.00 211.56
+
+Fixed effects:
+           value    s.e.
+site.s1 503.4873  7.4887
+site.s2 550.2785  6.7923
+site.s3 474.9609  9.6581
+orig.pA  -8.9503  4.4835
+orig.pB   0.0000  0.0000
+orig.pC -42.4425  9.4899
+orig.pD  52.2017 44.8236
+orig.pE -26.2352 18.7055
+orig.pF -37.0728 11.3151
+orig.pG -47.1587 23.2942
+orig.pH -14.7085 26.4218
+orig.pI -49.8486 29.8747
+orig.pJ -57.2313 26.3383
+orig.pK -53.7943 28.7336</pre>
+
+</article></slide><slide class=''><hgroup><h2>Minimal model diagnosis</h2></hgroup><article  id="minimal-model-diagnosis">
+
+<p><strong>Excercise</strong>: produce the following plots:</p>
+
+<ul>
+<li>histogram of residuals</li>
+<li>fitted vs. observations</li>
+</ul>
+
+<div class="columns-2">
+<p><img src='GEI_files/figure-html/diagnostics-1.png' title=''/> <img src='GEI_files/figure-html/diagnostics-2.png' title=''/></p></div>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Derivation of results</h2></hgroup><article  id="derivation-of-results">
+
+</article></slide><slide class=''><hgroup><h2>Type-B correlation</h2></hgroup><article  id="type-b-correlation">
+
+<pre class = 'prettyprint lang-r'>reml.tree$var</pre>
+
+<pre >         Estimated variances    S.E.
+fam                 1339.700 235.070
+bl1                  736.370 182.760
+bl2                   66.463  50.844
+bl3                 1233.800 385.470
+famxsite             118.430  61.543
+Residual           13653.000 211.560</pre>
+
+<pre class = 'prettyprint lang-r'>with(reml.tree,
+     var[&#39;fam&#39;, 1] / (var[&#39;fam&#39;, 1] + var[&#39;famxsite&#39;, 1])) %&gt;% 
+  round(2)</pre>
+
+<pre >[1] 0.92</pre>
+
+</article></slide><slide class=''><hgroup><h2>Interaction effect</h2></hgroup><article  id="interaction-effect">
+
+<p><strong>Excercise</strong>: produce the following <em>interaction</em> plot:</p>
+
+<ul>
+<li>predicted family-site interaction by site</li>
+<li><em>connect</em> values for the same family with a line</li>
+</ul>
+
+<img src='GEI_files/figure-html/plot-interaction-effect-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Ecovalence</h2></hgroup><article  id="ecovalence">
+
+<p>Consider only families present in all the 3 sites</p>
+
+<pre class = 'prettyprint lang-r'>famxsite.tbl &lt;- table(dat$fam, dat$site)
+fam3.idx &lt;- apply(famxsite.tbl, 1, function(x) all(x&gt;0))
+table(fam3.idx)</pre>
+
+<pre >fam3.idx
+FALSE  TRUE 
+   64    45 </pre>
+
+</article></slide><slide class=''><hgroup><h2>Compute ecovalence by family</h2></hgroup><article  id="compute-ecovalence-by-family" class="smaller">
+
+<p>Sum of squares by family (across sites) divided by total sum of squares</p>
+
+<ul>
+<li>(a bit of data-wrangling using <code>dplyr</code>)</li>
+</ul>
+
+<div class="columns-2">
+<pre class = 'prettyprint lang-r'>(dat.ecov &lt;- 
+  dat.fsi %&gt;%
+  group_by(fam) %&gt;%
+  summarise(ssfam =
+              sum(pred_fsi**2)) %&gt;%
+  filter(fam3.idx) %&gt;% 
+  mutate(fratio = ssfam / sum(ssfam)))
+
+## Check
+stopifnot(
+  all.equal(sum(dat.ecov$fratio), 1)
+)</pre>
+
+<pre >Source: local data frame [45 x 3]
+
+   fam      ssfam      fratio
+1    1  18.447072 0.006589986
+2    2   8.286972 0.002960417
+3    3  58.993908 0.021074836
+4    4 109.377567 0.039073769
+5    5   4.886922 0.001745792
+6    7  20.096726 0.007179304
+7    8  33.322147 0.011903920
+8    9  10.683869 0.003816679
+9   10  18.413615 0.006578034
+10  11  67.250109 0.024024261
+.. ...        ...         ...</pre></div>
+
+</article></slide><slide class=''><hgroup><h2>Determine most interactive families</h2></hgroup><article  id="determine-most-interactive-families">
+
+<pre class = 'prettyprint lang-r'>threshold &lt;- 0.05
+dat.ecov$hi &lt;- dat.ecov$fratio &gt; threshold
+ggplot(dat.ecov, aes(fratio, fill = hi)) +
+  geom_histogram(show_guide = FALSE)</pre>
+
+<pre >Most interactive families:  24 28 38 48 105 106</pre>
+
+<img src='GEI_files/figure-html/identify-interactive-families-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Plot most interactive families</h2></hgroup><article  id="plot-most-interactive-families">
+
+<p>Represent the families which interact the most with the sites:</p>
+
+<img src='GEI_files/figure-html/plot-most-interactive-families-1.png' title=''/>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Correlations of genetic effects across sites</h2></hgroup><article  id="correlations-of-genetic-effects-across-sites">
+
+</article></slide><slide class=''><hgroup><h2>Compute total genetic value</h2></hgroup><article  id="compute-total-genetic-value">
+
+<p>The predicted genetic effect is the sum of the family effect and the family-site interaction (<strong>Excercise</strong>).</p>
+
+<img src='GEI_files/figure-html/predicted-genetic-effects-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Reshape data</h2></hgroup><article  id="reshape-data" class="smaller columns-2">
+
+<pre class = 'prettyprint lang-r'>## reshape the genetic values
+## by family
+
+(dat.gen &lt;- 
+   
+   dat.fsi %&gt;% 
+   
+   select(fam, site, pred_gen) %&gt;% 
+   
+   tidyr::spread(site, pred_gen) %&gt;% 
+   
+   tbl_df()
+)</pre>
+
+<pre >Source: local data frame [109 x 4]
+
+   fam          s1         s2         s3
+1    1   0.7708066   4.629670   6.755107
+2    2 -54.7085993 -55.876654 -55.599421
+3    3 -27.5767262 -17.541736 -19.202094
+4    4  18.6370661  22.462160  32.831870
+5    5  -9.5945562  -9.072929  -6.714122
+6    6 -36.1778425 -31.010280         NA
+7    7  44.9607625  39.364452  42.434652
+8    8  41.1998076  44.446619  48.712357
+9    9  40.6242870  36.905050  39.053858
+10  10  14.6311835  10.742742   8.711473
+.. ...         ...        ...        ...</pre>
+
+</article></slide><slide class=''><hgroup><h2>Compute correlations</h2></hgroup><article  id="compute-correlations">
+
+<img src='GEI_files/figure-html/correlations-compute-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Rank correlations</h2></hgroup><article  id="rank-correlations">
+
+<ul>
+<li><p>Kendall (top) and Spearman (bottom)</p>
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="left"></th>
+<th align="left">s1</th>
+<th align="left">s2</th>
+<th align="left">s3</th>
+</tr>
+<tr class="odd">
+<td align="left">s1</td>
+<td align="left">1.000</td>
+<td align="left">0.875</td>
+<td align="left">0.834</td>
+</tr>
+<tr class="even">
+<td align="left">s2</td>
+<td align="left">0.970</td>
+<td align="left">1.000</td>
+<td align="left">0.851</td>
+</tr>
+<tr class="odd">
+<td align="left">s3</td>
+<td align="left">0.951</td>
+<td align="left">0.959</td>
+<td align="left">1.000</td>
+</tr>
+</table></li>
+</ul>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Prototype zone</h2></hgroup><article  id="prototype-zone">
+
+</article></slide><slide class=''><hgroup><h2>site-specific interaction variance?</h2></hgroup><article  id="site-specific-interaction-variance">
+
+<ul>
+<li>The model forced one single variance for the three sites.</li>
+<li>Should we allow different variances?</li>
+</ul>
+
+<div class = 'columns-2'>
+
+
+<p><img src='GEI_files/figure-html/describe-variances-1.png' title=''/> <img src='GEI_files/figure-html/describe-variances-2.png' title=''/></p>
+
+<div>
+
+
+
+
+</article></slide><slide class=''><hgroup><h2>Statistical model</h2></hgroup><article  id="statistical-model-1">
+
+<ul>
+<li><strong>Independent</strong> site-wise family effects</li>
+<li>Analogous to the blocks effects</li>
+</ul>
+
+<p>\[
+\begin{aligned}
+\mathrm{CR13} = &amp; \mathrm{site} + \mathrm{orig} + 
+fam + bl_\mathrm{site} + f_\mathrm{site} + \varepsilon\\
+fam  \sim &amp; \mathcal{N}(0, \sigma_f^2) \\
+bl_s   \sim &amp; \mathcal{N}(0, \sigma_{b(s)}^2), \quad s = 1, 2, 3 \\
+f_s  \sim &amp; \mathcal{N}(0, \sigma_{f(s)}^2), \quad s = 1, 2, 3 \\
+\varepsilon  \sim &amp; \mathcal{N}(0, \sigma^2) 
+\end{aligned}
+\]</p>
+
+</article></slide><slide class=''><hgroup><h2>Model summary</h2></hgroup><article  id="model-summary-1" class="smaller columns-2">
+
+<p>Things improve a bit wrt the previous model with a single variance. It seems that in site 2 there is not much variation, nor from blocks or for GxE.</p>
+
+<pre >Linear Mixed Model with pedigree and spatial effects fit by REMLF90 ver. 1.78 
+   Data: dat 
+    AIC     BIC logLik
+ 109421 unknown -54703
+
+Parameters of special components:
+
+
+Variance components:
+         Estimated variances
+fam                 1323.000
+bl1                  738.100
+bl2                   66.610
+bl3                 1237.000
+f1                    93.980
+f2                     5.789
+f3                   662.900
+Residual           13630.000
+
+Fixed effects:
+           value    s.e.
+site.s1 503.3411  7.4347
+site.s2 549.4791  6.6367
+site.s3 474.4960 10.2681
+orig.pA  -8.6398  4.4893
+orig.pB   0.0000  0.0000
+orig.pC -42.1887  9.3639
+orig.pD  52.3152 44.3471
+orig.pE -25.6809 18.4917
+orig.pF -37.6245 11.2208
+orig.pG -37.9558 22.4106
+orig.pH  10.1126 25.9501
+orig.pI -40.8323 29.5035
+orig.pJ -48.0630 26.0029
+orig.pK -49.6943 36.9587</pre>
+
+</article></slide><slide class=''><hgroup><h2>Minimal model diagnosis</h2></hgroup><article  id="minimal-model-diagnosis-1">
+
+<p><img src='GEI_files/figure-html/diagnostics-independent-fsi-1.png' title=''/> <img src='GEI_files/figure-html/diagnostics-independent-fsi-2.png' title=''/></p>
+
+</article></slide><slide class=''><hgroup><h2>Predicted interaction effects</h2></hgroup><article  id="predicted-interaction-effects">
+
+<img src='GEI_files/figure-html/plot-interaction-independent-effect-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Differences in model predictions</h2></hgroup><article  id="differences-in-model-predictions">
+
+<ul>
+<li>Main family and interaction effects</li>
+<li>Independent interactions model vs. Single interaction effect</li>
+</ul>
+
+<p><img src='GEI_files/figure-html/unified-effect-vs-independent-effects-1.png' title=''/> <img src='GEI_files/figure-html/unified-effect-vs-independent-effects-2.png' title=''/></p>
+
+</article></slide><slide class=''><hgroup><h2>Correlations</h2></hgroup><article  id="correlations">
+
+<img src='GEI_files/figure-html/correlations-reshape-indep-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Full genetic effect</h2></hgroup><article  id="full-genetic-effect">
+
+<img src='GEI_files/figure-html/genetic-effects-indep-1.png' title=''/>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Correlated effects</h2></hgroup><article  id="correlated-effects">
+
+</article></slide><slide class=''><hgroup><h2>Statistical model</h2></hgroup><article  id="statistical-model-2">
+
+<ul>
+<li><p>The most effective way is to introduce the (expected) correlation between interaction effects across sites into a model parameter.</p></li>
+<li><p>Among other things, this allows us to predict the genetic value of a family in a site where it was not observed.</p></li>
+</ul>
+
+<p>\[
+\begin{aligned}
+\mathrm{CR13} = &amp; \mathrm{site} + \mathrm{orig} + 
+fam + bl_\mathrm{site} + fsi + \varepsilon\\
+fam  \sim &amp; \mathcal{N}(0, \sigma_f^2) \\
+bl_s   \sim &amp; \mathcal{N}(0, \sigma_{b(s)}^2), \quad s = 1, 2, 3 \\
+fsi = \begin{pmatrix} f_1 \\ f_2 \\ f_3 \end{pmatrix} 
+  \sim &amp; \mathcal{N}(0, \Sigma_i \otimes \mathrm{I}) \\
+\varepsilon  \sim &amp; \mathcal{N}(0, \sigma^2) 
+\end{aligned}
+\]</p>
+
+</article></slide><slide class=''><hgroup><h2>Model summary</h2></hgroup><article  id="model-summary-2" class="columns-2 smaller">
+
+<pre >Linear Mixed Model with pedigree and spatial effects fit by REMLF90 ver. 1.78 
+   Data: dat 
+    AIC     BIC logLik
+ 109022 unknown -54500
+
+Parameters of special components:
+
+
+Variance components:
+$fam
+[1] 74.67
+
+$bl1
+[1] 737.6
+
+$bl2
+[1] 67.36
+
+$bl3
+[1] 1238
+
+$fsi
+     f1   f2   f3
+f1 1538 1239 1480
+f2 1239 1009 1277
+f3 1480 1277 2194
+
+$Residual
+[1] 13630
+
+
+Fixed effects:
+            value    s.e.
+site.s1 464.26362 10.1012
+site.s2 510.67612  9.1863
+site.s3 435.08511 12.1330
+orig.pA  30.80217 10.8268
+orig.pB  38.62992 10.9585
+orig.pC  -3.97525 11.3365
+orig.pD  91.39946 46.9925
+orig.pE  21.13727 20.4114
+orig.pF   0.00000  0.0000
+orig.pG  10.58885 21.5913
+orig.pH  59.81861 24.5012
+orig.pI   6.00987 27.6507
+orig.pJ   0.37163 24.6342
+orig.pK  -3.75109 38.3734</pre>
+
+<pre >     [,1] [,2] [,3]
+[1,] 1.00 0.99 0.81
+[2,] 0.99 1.00 0.86
+[3,] 0.81 0.86 1.00</pre>
+
+</article></slide><slide class=''><hgroup><h2>Minimal model diagnosis</h2></hgroup><article  id="minimal-model-diagnosis-2">
+
+<p><img src='GEI_files/figure-html/diagnostics-correlated-fsi-1.png' title=''/> <img src='GEI_files/figure-html/diagnostics-correlated-fsi-2.png' title=''/></p>
+
+</article></slide><slide class=''><hgroup><h2>Predicted interaction effects</h2></hgroup><article  id="predicted-interaction-effects-1">
+
+<img src='GEI_files/figure-html/plot-interaction-correlated-effect-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Differences in predictions</h2></hgroup><article  id="differences-in-predictions">
+
+<ul>
+<li>Main family and interaction effects</li>
+<li>Correlated interactions model vs. Single interaction effect</li>
+</ul>
+
+<p><img src='GEI_files/figure-html/unified-effect-vs-correlated-effects-1.png' title=''/> <img src='GEI_files/figure-html/unified-effect-vs-correlated-effects-2.png' title=''/></p>
+
+</article></slide><slide class=''><hgroup><h2>Correlations</h2></hgroup><article  id="correlations-1">
+
+<img src='GEI_files/figure-html/correlations-reshape-cor-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Full genetic effect</h2></hgroup><article  id="full-genetic-effect-1">
+
+<ul>
+<li>i.e. sum of main and interaction effects</li>
+<li>by family and site</li>
+</ul>
+
+<img src='GEI_files/figure-html/genetic-effects-cor-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Spatial splines model on each site </h2><h3> Model hack</h3></hgroup><article  id="spatial-splines-model-on-each-site-model-hack" class="smaller">
+
+<pre class = 'prettyprint lang-r'>## Use breedR internal functions to compute splines models on each site
+sp1 &lt;- breedR:::breedr_splines(dat[dat$site == &#39;s1&#39;, c(&#39;x&#39;, &#39;y&#39;)])
+sp2 &lt;- breedR:::breedr_splines(dat[dat$site == &#39;s2&#39; &amp; !is.na(dat$x) &amp; !is.na(dat$y), c(&#39;x&#39;, &#39;y&#39;)])
+sp3 &lt;- breedR:::breedr_splines(dat[dat$site == &#39;s3&#39;, c(&#39;x&#39;, &#39;y&#39;)])
+
+## Manually build the full incidence matrices with 0
+## and the values computed before
+mm1 &lt;- model.matrix(sp1)
+inc.sp1 &lt;- Matrix::Matrix(0, nrow = nrow(dat), ncol = ncol(mm1))
+inc.sp1[dat$site == &#39;s1&#39;, ] &lt;- mm1
+
+mm2 &lt;- model.matrix(sp2)
+inc.sp2 &lt;- Matrix::Matrix(0, nrow = nrow(dat), ncol = ncol(mm2))
+inc.sp2[dat$site == &#39;s2&#39; &amp; !is.na(dat$x) &amp; !is.na(dat$y), ] &lt;- mm2
+
+mm3 &lt;- model.matrix(sp3)
+inc.sp3 &lt;- Matrix::Matrix(0, nrow = nrow(dat), ncol = ncol(mm3))
+inc.sp3[dat$site == &#39;s3&#39;, ] &lt;- mm3
+
+reml.spl &lt;- remlf90(fixed  = C13 ~ site + orig,
+                     random = ~ fam + famxsite,
+                     generic = list(sp1 = list(inc.sp1,
+                                               breedR:::get_structure(sp1)),
+                                    sp2 = list(inc.sp2,
+                                               breedR:::get_structure(sp2)),
+                                    sp3 = list(inc.sp3,
+                                               breedR:::get_structure(sp3))),
+                     data = dat,
+                     method = &#39;em&#39;)</pre>
+
+</article></slide><slide class=''><hgroup><h2>Spatial effects by site</h2></hgroup><article  id="spatial-effects-by-site">
+
+<p><img src='GEI_files/figure-html/plot-splines-1.png' title=''/> <img src='GEI_files/figure-html/plot-splines-2.png' title=''/> <img src='GEI_files/figure-html/plot-splines-3.png' title=''/></p></article></slide>
+
+
+  <slide class="backdrop"></slide>
+
+</slides>
+
+<script src="GEI_files/ioslides-13.5.1/js/modernizr.custom.45394.js"></script>
+<script src="GEI_files/ioslides-13.5.1/js/prettify/prettify.js"></script>
+<script src="GEI_files/ioslides-13.5.1/js/prettify/lang-r.js"></script>
+<script src="GEI_files/ioslides-13.5.1/js/prettify/lang-yaml.js"></script>
+<script src="GEI_files/ioslides-13.5.1/js/hammer.js"></script>
+<script src="GEI_files/ioslides-13.5.1/js/slide-controller.js"></script>
+<script src="GEI_files/ioslides-13.5.1/js/slide-deck.js"></script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "GEI_files/mathjax-local/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+<!-- map slide visiblity events into shiny -->
+<script>
+  (function() {
+    if (window.jQuery) {
+       window.jQuery(document).on('slideleave', function(e) {
+         window.jQuery(e.target).trigger('hidden');
+      });
+       window.jQuery(document).on('slideenter', function(e) {
+         window.jQuery(e.target).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>

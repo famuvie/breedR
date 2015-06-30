@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BreedR Overview</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="generator" content="pandoc" />
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <link rel="stylesheet" media="all" href="Overview_files/ioslides-13.5.1/fonts/fonts.css">
+
+  <link rel="stylesheet" media="all" href="Overview_files/ioslides-13.5.1/theme/css/default.css">
+  <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="Overview_files/ioslides-13.5.1/theme/css/phone.css">
+
+  <base target="_blank">
+
+  <script type="text/javascript">
+    var SLIDE_CONFIG = {
+      // Slide settings
+      settings: {
+                title: 'BreedR Overview',
+                        useBuilds: true,
+        usePrettify: true,
+        enableSlideAreas: true,
+        enableTouch: true,
+                favIcon: 'Overview_files/logo.png',
+              },
+
+      // Author information
+      presenters: [
+            {
+        name:  'Facundo Muñoz' ,
+        company: '',
+        gplus: '',
+        twitter: '',
+        www: '',
+        github: ''
+      },
+            ]
+    };
+  </script>
+
+  <style type="text/css">
+
+    b, strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    slides > slide {
+      -webkit-transition: all 0.4s ease-in-out;
+      -moz-transition: all 0.4s ease-in-out;
+      -o-transition: all 0.4s ease-in-out;
+      transition: all 0.4s ease-in-out;
+    }
+
+    .auto-fadein {
+      -webkit-transition: opacity 0.6s ease-in;
+      -webkit-transition-delay: 0.4s;
+      -moz-transition: opacity 0.6s ease-in 0.4s;
+      -o-transition: opacity 0.6s ease-in 0.4s;
+      transition: opacity 0.6s ease-in 0.4s;
+      opacity: 0;
+    }
+
+    slides > slide:not(.nobackground):before {
+      font-size: 12pt;
+      content: "";
+      position: absolute;
+      bottom: 20px;
+      left: 60px;
+      background: url(Overview_files/logo.png) no-repeat 0 50%;
+      -webkit-background-size: 30px 30px;
+      -moz-background-size: 30px 30px;
+      -o-background-size: 30px 30px;
+      background-size: 30px 30px;
+      padding-left: 40px;
+      height: 30px;
+      line-height: 1.9;
+    }
+  </style>
+
+
+
+</head>
+
+<body style="opacity: 0">
+
+<slides>
+
+  <slide class="title-slide segue nobackground">
+        <aside class="gdbar"><img src="Overview_files/logo.png"></aside>
+        <!-- The content of this hgroup is replaced programmatically through the slide_config.json. -->
+    <hgroup class="auto-fadein">
+      <h1 data-config-title><!-- populated from slide_config.json --></h1>
+      <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
+      <p data-config-presenter><!-- populated from slide_config.json --></p>
+            <p style="margin-top: 6px; margin-left: -2px;">2015-06-30 breedR version: 0.10.7</p>
+          </hgroup>
+  </slide>
+
+<slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Intro</h2></hgroup><article  id="intro">
+
+</article></slide><slide class=''><hgroup><h2>What is <strong>breedR</strong></h2></hgroup><article  id="what-is-breedr">
+
+<ul>
+<li>R-package implementing <strong>statistical models</strong> specifically suited for forest genetic resources analysts.</li>
+<li>Ultimately <a href='https://en.wikipedia.org/wiki/Mixed_model' title=''>Mixed Models</a>, but not necessarily easy to implement and use</li>
+<li><p><strong>breedR</strong> acts as an <strong>interface</strong> which provides the means to:</p>
+
+<ol>
+<li><strong>Combine</strong> any number of these models as <strong>components</strong> of a larger model</li>
+<li>Compute automatically <strong>incidence</strong> and <strong>covariance matrices</strong> from a few input parameters</li>
+<li><strong>Fit</strong> the model</li>
+<li>Plot data and results, and perform <strong>model diagnostics</strong></li>
+</ol></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Installation</h2></hgroup><article  id="installation">
+
+<ul>
+<li>Project web page <a href='http://famuvie.github.io/breedR/' title=''><a href='http://famuvie.github.io/breedR/' title=''>http://famuvie.github.io/breedR/</a></a>
+
+<ul>
+<li>download <code>.zip</code> or <code>.tar.gz</code> source files</li>
+<li><code>install.packages(&#39;famuvie-breedR-*&#39;, type = &#39;source&#39;, repos = NULL)</code></li>
+</ul></li>
+<li>GitHub dev-site <a href='https://github.com/famuvie/breedR' title=''><a href='https://github.com/famuvie/breedR' title=''>https://github.com/famuvie/breedR</a></a>
+
+<ul>
+<li><code>if( !require(devtools) ) install.packages(&#39;devtools&#39;)</code></li>
+<li><code>devtools::install_github(&#39;famuvie/breedR&#39;)</code></li>
+</ul></li>
+<li><a href='http://cran.r-project.org/' title=''>CRAN</a> not possible&#8230; ask I. Misztal
+
+<ul>
+<li><code>install.packages(&#39;breedR&#39;)</code></li>
+</ul></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Where to find help</h2></hgroup><article  id="where-to-find-help">
+
+<ul>
+<li>Package&#39;s help: <code>help(package = breedR)</code>
+
+<ul>
+<li>Help pages <code>?remlf90</code></li>
+<li>Code demos <code>demo(topic, package = &#39;breedR&#39;)</code> (omit <code>topic</code> for a list)</li>
+<li>Vignettes <code>vignette(package = &#39;breedR&#39;)</code> (pkg and wiki)</li>
+</ul></li>
+<li><a href='https://github.com/famuvie/breedR/wiki' title=''>Wiki pages</a>
+
+<ul>
+<li>Guides, tutorials, FAQ</li>
+</ul></li>
+<li>Mailing list <a href='http://groups.google.com/group/breedr' title=''><a href='http://groups.google.com/group/breedr' title=''>http://groups.google.com/group/breedr</a></a>
+
+<ul>
+<li>Questions and debates about usage and interface</li>
+</ul></li>
+<li><a href='https://github.com/famuvie/breedR/issues' title=''>Issues page</a>
+
+<ul>
+<li>Bug reports</li>
+<li>Feature requests</li>
+</ul></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>License</h2></hgroup><article  id="license">
+
+<img src='img/gpl-v3-logo.png' title=''/>
+
+<ul>
+<li><strong>breedR</strong> is FOSS. Licensed <a href='http://www.gnu.org/licenses/gpl-3.0.html' title=''>GPL-3</a>
+
+<ul>
+<li><code>RShowDoc(&#39;LICENSE&#39;, package = &#39;breedR&#39;)</code></li>
+</ul></li>
+<li>You can <strong>use</strong> and <strong>distribute</strong> <strong>breedR</strong> for any purpose</li>
+<li>You can <strong>modify</strong> it to suit your needs
+
+<ul>
+<li>we encourage to!</li>
+<li>please consider contributing your improvements</li>
+<li>you can <strong>distribute</strong> your modified version under the GPL</li>
+</ul></li>
+<li>However, <strong>breedR</strong> makes (intensive) use of the <a href='http://nce.ads.uga.edu/wiki/doku.php' title=''><code>BLUPF90</code></a> suite of Fortran programs, which are for <em>free</em> but not <strong>free</strong> (remember CRAN?)</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Roadmap </h2><h3> (very near, promise) Future developments</h3></hgroup><article  id="roadmap-very-near-promise-future-developments">
+
+<ul>
+<li><p>Bayesian inference</p></li>
+<li><p>Multi-trait support</p></li>
+<li><p>Genotype\(\times\)Environment interaction *</p></li>
+<li><p>Support for longitudinal data</p></li>
+</ul>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Functionality</h2></hgroup><article  id="functionality">
+
+<p><a href='https://raw.githubusercontent.com/wiki/famuvie/breedR/img/breedR_functionality.png' title='Functionality'><img src="img/breedR_functionality_crop.png"/></a></p>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Inference</h2></hgroup><article  id="inference">
+
+</article></slide><slide class=''><hgroup><h2>Frequentist</h2></hgroup><article  id="frequentist">
+
+<ul>
+<li><p>Currently, only <strong>frequentist inference</strong> is supported via REML estimation of variance components.</p></li>
+<li><p>The function <code>remlf90()</code>, provides an interface to both <code>REMLF90</code> and <code>AIREMLF90</code> functions in the <a href='http://nce.ads.uga.edu/wiki/doku.php' title=''><code>BLUPF90</code></a> suite of Fortran programs.</p></li>
+<li><p>Type <code>?remlf90</code> for details on the syntax</p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Bayesian</h2></hgroup><article  id="bayesian">
+
+<ul>
+<li><p>It&#39;s on the roadmap by the end of this year</p></li>
+<li><p>Will use a gibbs sampler from <a href='http://nce.ads.uga.edu/wiki/doku.php' title=''><code>BLUPF90</code></a>, and possibly also <a href='http://www.r-inla.org' title=''><code>INLA</code></a></p></li>
+<li><p>The <strong>interface</strong> will change a bit, separating the model specification from the fit</p></li>
+</ul>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Linear Mixed Models with unstructured random effects</h2></hgroup><article  id="linear-mixed-models-with-unstructured-random-effects">
+
+</article></slide><slide class=''><hgroup><h2>Example dataset</h2></hgroup><article  id="example-dataset" class="smaller columns-2">
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="right">self</th>
+<th align="right">dad</th>
+<th align="right">mum</th>
+<th align="left">gen</th>
+<th align="left">gg</th>
+<th align="left">bl</th>
+<th align="right">phe_X</th>
+<th align="right">x</th>
+<th align="right">y</th>
+</tr>
+<tr class="odd">
+<td align="right">69</td>
+<td align="right">0</td>
+<td align="right">64</td>
+<td align="left">1</td>
+<td align="left">14</td>
+<td align="left">13</td>
+<td align="right">15.756</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">70</td>
+<td align="right">0</td>
+<td align="right">41</td>
+<td align="left">1</td>
+<td align="left">4</td>
+<td align="left">13</td>
+<td align="right">11.141</td>
+<td align="right">3</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">71</td>
+<td align="right">0</td>
+<td align="right">56</td>
+<td align="left">1</td>
+<td align="left">14</td>
+<td align="left">13</td>
+<td align="right">19.258</td>
+<td align="right">6</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">72</td>
+<td align="right">0</td>
+<td align="right">55</td>
+<td align="left">1</td>
+<td align="left">14</td>
+<td align="left">13</td>
+<td align="right">4.775</td>
+<td align="right">9</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">73</td>
+<td align="right">0</td>
+<td align="right">22</td>
+<td align="left">1</td>
+<td align="left">8</td>
+<td align="left">13</td>
+<td align="right">19.099</td>
+<td align="right">12</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">74</td>
+<td align="right">0</td>
+<td align="right">50</td>
+<td align="left">1</td>
+<td align="left">14</td>
+<td align="left">13</td>
+<td align="right">19.258</td>
+<td align="right">15</td>
+<td align="right">0</td>
+</tr>
+</table>
+
+<pre >## Eucalyptus Globulus dataset
+## Thanks to Eduardo Cappa and Pablo Pathauer
+## Variables:
+## self = id of the tree
+## dad  = id of sire or 0 if unknown
+## mum  = id of dam or 0 if unknown
+## gen  = generation (there is only 1)
+## gg   = genetic group
+## bl   = block
+## phe_X= observed phenotype
+## x, y = coordinates (in m)</pre>
+
+<pre >## &#39;data.frame&#39;:    1021 obs. of  9 variables:
+##  $ self : int  69 70 71 72 73 74 75 76 77 78 ...
+##  $ dad  : int  0 0 0 0 0 0 0 0 0 4 ...
+##  $ mum  : int  64 41 56 55 22 50 67 59 49 8 ...
+##  $ gen  : Factor w/ 1 level &quot;1&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ gg   : Factor w/ 14 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: 14 4 14 14 8 14 14 14 14 11 ...
+##  $ bl   : Factor w/ 15 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: 13 13 13 13 13 13 13 13 9 9 ...
+##  $ phe_X: num  15.76 11.14 19.26 4.78 19.1 ...
+##  $ x    : int  0 3 6 9 12 15 18 21 24 27 ...
+##  $ y    : int  0 0 0 0 0 0 0 0 0 0 ...</pre>
+
+</article></slide><slide class=''><hgroup><h2>A simple Provenance Test</h2></hgroup><article  id="a-simple-provenance-test">
+
+<p>Specify the <em>genetic group</em> <code>gg</code> as an <strong>unstructured random effect</strong> using the standard <code>formula</code>s in <code>R</code></p>
+
+<p>\[
+\begin{aligned}
+\mathrm{phe}_X  =    &amp; \mu + Z \mathrm{gg} + \varepsilon \\
+\mathrm{gg}  \sim &amp; N(0, \sigma_{\mathrm{gg}}^2) \\
+\varepsilon \sim &amp; N(0, \sigma_\varepsilon^2)
+\end{aligned}
+\]</p>
+
+<pre class = 'prettyprint lang-r'>res &lt;- remlf90(fixed  = phe_X ~ 1,
+               random = ~ gg,
+               data   = globulus)</pre>
+
+<pre >## No specification of initial variances.
+##      Using default value of 1 for all variance components.
+##      See ?breedR.getOption.</pre>
+
+</article></slide><slide class=''><hgroup><h2>Initial variances specification</h2></hgroup><article  id="initial-variances-specification">
+
+<p>To avoid the notification, initial values for <em>all</em> the variance components must be made explicit using the argument <code>var.ini</code>:</p>
+
+<pre class = 'prettyprint lang-r'>res &lt;- remlf90(fixed = phe_X ~ 1,
+               random = ~ gg,
+<b>               var.ini = list(gg = 2, resid = 10),
+</b>               data = globulus)</pre>
+
+<p>Although in most cases the results will not change at all, we encourage to give explicit initial values for variance components. Specially when some estimate can be <a href='http://nce.ads.uga.edu/wiki/doku.php?id=readme.reml#does_remlf90_always_converge' title=''>artifact</a>. This is also useful for checking sensitivity to initial values.</p>
+
+</article></slide><slide class=''><hgroup><h2>Exploring the results</h2></hgroup><article  id="exploring-the-results" class="smaller">
+
+<pre class = 'prettyprint lang-r'>summary(res)</pre>
+
+<pre >## Linear Mixed Model with pedigree and spatial effects fit by AI-REMLF90 ver. 1.110 
+##    Data: globulus 
+##   AIC  BIC logLik
+##  5864 5874  -2930
+## 
+## Parameters of special components:
+## 
+## 
+## Variance components:
+##          Estimated variances   S.E.
+## gg                     2.857 1.3584
+## Residual              17.695 0.7888
+## 
+## Fixed effects:
+##            value   s.e.
+## Intercept 14.799 0.4911</pre>
+
+<ul>
+<li>Note that <code>AI-REML</code> has been used by default.</li>
+<li>You can also specify <code>method = &#39;em&#39;</code>.</li>
+<li>Learn about the <a href='https://github.com/famuvie/breedR/wiki/Available-components-and-inference-methods' title=''>difference</a>.</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Further <em>extractor</em> functions</h2></hgroup><article  id="further-extractor-functions">
+
+<div class="columns-2">
+<pre class = 'prettyprint lang-r'>fixef(res)</pre>
+
+<pre >## $Intercept
+##      value      s.e.
+## 1 14.79913 0.4910935</pre>
+
+<pre class = 'prettyprint lang-r'>ranef(res)</pre>
+
+<pre >## $gg
+##         value      s.e.
+## 1  -1.1113032 0.6582248
+## 2  -0.5850024 0.8241564
+## 3   1.2381745 0.6017960
+## 4  -2.5360696 0.7047334
+## 5   1.0223495 0.6298412
+## 6  -2.7605972 1.0884708
+## 7  -0.5691185 0.9776415
+## 8   0.8700427 0.5933967
+## 9   1.5572487 0.6381501
+## 10 -1.4262293 0.9961142
+## 11  1.7715259 0.6527005
+## 12  1.8079965 0.8241564
+## 13  1.0604399 0.9776415
+## 14 -0.3394576 0.5380187</pre></div>
+
+</article></slide><slide class=''><hgroup><h2>Further <em>extractor</em> functions</h2></hgroup><article  id="further-extractor-functions-1" class="smaller">
+
+<div class="columns-2">
+<pre class = 'prettyprint lang-r'>qplot(
+      fitted(res),
+      globulus$phe_X) +
+  geom_abline(int = 0,
+              sl = 1,
+              col = &#39;darkgrey&#39;)</pre>
+
+<img src='Overview_files/figure-html/extraction-2-1.png' title=''/>
+
+<pre class = 'prettyprint lang-r'>str(resid(res))</pre>
+
+<pre >##  Named num [1:1021] 1.3 -1.12 4.8 -9.68 3.43 ...
+##  - attr(*, &quot;names&quot;)= chr [1:1021] &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...</pre>
+
+<pre class = 'prettyprint lang-r'>extractAIC(res)</pre>
+
+<pre >## [1] 5863.716</pre>
+
+<pre class = 'prettyprint lang-r'>logLik(res)</pre>
+
+<pre >## &#39;log Lik.&#39; -2929.858 (df=2)</pre></div>
+
+</article></slide><slide class=''><hgroup><h2>Hierarchical and Factorial models</h2></hgroup><article  id="hierarchical-and-factorial-models">
+
+<ul>
+<li><p>In globulus, the <strong>family</strong> (<code>mum</code>) is <em>nested</em> within the <strong>provenance</strong> (<code>gg</code>)</p></li>
+<li><p>This is a matter of codification:</p></li>
+</ul>
+
+<div class="columns-2">
+<p>Nested factors</p>
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="right">gg</th>
+<th align="left">mum</th>
+</tr>
+<tr class="odd">
+<td align="right">A</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="right">A</td>
+<td align="left">2</td>
+</tr>
+<tr class="odd">
+<td align="right">B</td>
+<td align="left">3</td>
+</tr>
+<tr class="even">
+<td align="right">B</td>
+<td align="left">4</td>
+</tr>
+</table>
+
+<p>Crossed factors</p>
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="right">gg</th>
+<th align="left">mum</th>
+</tr>
+<tr class="odd">
+<td align="right">A</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="right">A</td>
+<td align="left">2</td>
+</tr>
+<tr class="odd">
+<td align="right">B</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="right">B</td>
+<td align="left">2</td>
+</tr>
+</table></div>
+
+</article></slide><slide class=''><hgroup><h2>Model specification</h2></hgroup><article  id="model-specification">
+
+<ul>
+<li>Otherwise, in both cases we specify the model in the same way:</li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>random = ~ gg + factor(mum)  # note that mum is numeric</pre>
+
+<ul>
+<li>Furthermore, this approach can handle unbalanced and mixed designs</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Interactions</h2></hgroup><article  id="interactions">
+
+<ul>
+<li>Standard <code>R</code> notation:</li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>random = ~ gg * factor(mum)</pre>
+
+<ul>
+<li><p>Not available yet (feature request?)</p></li>
+<li><p>Workaround: build the interaction variable manually</p></li>
+<li><p>Example: <code>gg</code> and <code>block</code> are crossed factors</p></li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>dat &lt;- transform(globulus,
+                 interaction = factor(gg:bl))
+random = ~ gg + bl + interaction</pre>
+
+</article></slide><slide class=''><hgroup><h2>Exercise </h2><h3> Hierarchical and Factorial models</h3></hgroup><article  id="exercise-hierarchical-and-factorial-models">
+
+<ol>
+<li>Use <code>remlf90()</code> and the globulus dataset to fit
+
+<ul>
+<li>a hierarchical model using <code>mum</code> <strong>within</strong> <code>gg</code></li>
+<li>a factorial model using <code>gg</code> and <code>bl</code></li>
+</ul></li>
+<li>Explore the results with <code>summary()</code>
+
+<ul>
+<li>is the family (<code>mum</code>) effect <strong>relevant</strong>?</li>
+<li>is there any evidence of interaction between <code>gg</code> and <code>bl</code>?</li>
+</ul></li>
+</ol>
+
+</article></slide><slide class=''><hgroup><h2>Hierarchical and Factorial models #1 </h2><h3> Fitting models</h3></hgroup><article  id="hierarchical-and-factorial-models-1-fitting-models">
+
+<pre class = 'prettyprint lang-r'>res.h &lt;- remlf90(fixed = phe_X ~ 1,
+                 random = ~ factor(mum) + gg,
+                 data = globulus)</pre>
+
+<pre class = 'prettyprint lang-r'># Interaction variable
+globulus.f &lt;- transform(globulus,
+                        gg_bl = factor(gg:bl))
+
+res.f &lt;- remlf90(fixed = phe_X ~ 1,
+                 random = ~ gg + bl + gg_bl,
+                 data = globulus.f)</pre>
+
+</article></slide><slide class=''><hgroup><h2>Hierarchical and Factorial models #2 </h2><h3> Hierarchical model</h3></hgroup><article  id="hierarchical-and-factorial-models-2-hierarchical-model">
+
+<ul>
+<li>The family effect is not very <strong>important</strong>, in terms of explained variance</li>
+<li>However, the model is a bit better with it (AIC, logLik)</li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>summary(res)
+summary(res.h)</pre>
+
+</article></slide><slide class=''><hgroup><h2>Hierarchical and Factorial models #3 </h2><h3> Factorial model</h3></hgroup><article  id="hierarchical-and-factorial-models-3-factorial-model">
+
+<ul>
+<li>Looks like the interaction between <strong>block</strong> and <strong>provenance</strong> is negligible</li>
+<li>(apart from the fact that it makes no sense at all, and shuld not have been even considered in the first place)</li>
+<li>compare with the model without interaction</li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>summary(res.f)</pre>
+
+<pre class = 'prettyprint lang-r'>## result without interaction
+res.f0 &lt;- remlf90(fixed  = phe_X ~ 1,
+                  random = ~ gg + bl,
+                  data = globulus)
+paste(&#39;AIC:&#39;, round(extractAIC(res.f0)),
+      &#39;logLik:&#39;, round(logLik(res.f0)))</pre>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Additive Genetic Effect</h2></hgroup><article  id="additive-genetic-effect">
+
+<img src='img/pedigree-background.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>What is an additive genetic effect</h2></hgroup><article  id="what-is-an-additive-genetic-effect">
+
+<ul class = 'build'>
+<li>Random effect at <strong>individual level</strong></li>
+</ul>
+
+<ul class = 'build'>
+<li>Based on a <strong>pedigree</strong></li>
+</ul>
+
+<ul class = 'build'>
+<li>BLUP of <strong>Breeding Values</strong> from own and relatives&#39; phenotypes</li>
+</ul>
+
+<ul class = 'build'>
+<li>Represents the <strong>additive component</strong> of the genetic value</li>
+</ul>
+
+<ul class = 'build'>
+<li>More general:
+
+<ul>
+<li>family effect is a particular case</li>
+<li>accounts for more than one generation</li>
+<li>mixed relationships</li>
+</ul></li>
+</ul>
+
+<ul class = 'build'>
+<li>More flexible: allows to select individuals within families</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Specifying a <em>pedigree</em></h2></hgroup><article  id="specifying-a-pedigree" class="smaller columns-2">
+
+<ul>
+<li><p>A 3-column <code>data.frame</code> or <code>matrix</code> with the codes for each individual and its parents</p></li>
+<li>A <strong>family</strong> effect is easily translated into a pedigree:
+
+<ul>
+<li>use the <strong>family code</strong> as the identification of a fictitious <strong>mother</strong></li>
+<li>use <code>0</code> or <code>NA</code> as codes for the <strong>unknown fathers</strong></li>
+</ul></li>
+</ul>
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="right">self</th>
+<th align="right">dad</th>
+<th align="right">mum</th>
+</tr>
+<tr class="odd">
+<td align="right">69</td>
+<td align="right">0</td>
+<td align="right">64</td>
+</tr>
+<tr class="even">
+<td align="right">70</td>
+<td align="right">0</td>
+<td align="right">41</td>
+</tr>
+<tr class="odd">
+<td align="right">71</td>
+<td align="right">0</td>
+<td align="right">56</td>
+</tr>
+<tr class="even">
+<td align="right">72</td>
+<td align="right">0</td>
+<td align="right">55</td>
+</tr>
+<tr class="odd">
+<td align="right">73</td>
+<td align="right">0</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="right">74</td>
+<td align="right">0</td>
+<td align="right">50</td>
+</tr>
+</table>
+
+</article></slide><slide class=''><hgroup><h2>Fitting an <em>animal model</em></h2></hgroup><article  id="fitting-an-animal-model">
+
+<pre class = 'prettyprint lang-r'>res.animal &lt;- remlf90(fixed  = phe_X ~ 1,
+                      random = ~ gg,
+                      genetic = list(model = &#39;add_animal&#39;, 
+                                     pedigree = globulus[, 1:3],
+                                     id = &#39;self&#39;), 
+                      data = globulus)</pre>
+
+</article></slide><slide class=''><hgroup><h2>Animal model: results</h2></hgroup><article  id="animal-model-results" class="smaller">
+
+<pre class = 'prettyprint lang-r'>summary(res.animal)</pre>
+
+<pre >## Linear Mixed Model with pedigree and spatial effects fit by AI-REMLF90 ver. 1.110 
+##    Data: globulus 
+##   AIC  BIC logLik
+##  5857 5872  -2926
+## 
+## Parameters of special components:
+## 
+## 
+## Variance components:
+##          Estimated variances  S.E.
+## gg                     2.356 1.249
+## genetic                3.632 1.649
+## Residual              14.271 1.561
+## 
+## Fixed effects:
+##            value s.e.
+## Intercept 14.797 0.47</pre>
+
+<ul>
+<li><code>gg</code> explains almost the same amount of phenotypic variability</li>
+<li>The (additive) <code>genetic</code> effect explains <strong>part</strong> of the formerly residual variance</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Extracting Predicted Breeding Values</h2></hgroup><article  id="extracting-predicted-breeding-values" class="smaller columns-2">
+
+<pre class = 'prettyprint lang-r'>## Predicted Breeding Values
+# for the full pedigree first, and
+# for the observed individuals by
+# matrix multiplication with the 
+# incidence matrix
+PBV.full &lt;- ranef(res.animal)$genetic
+PBV &lt;- 
+  model.matrix(res.animal)$genetic %*%
+  PBV.full
+
+# Predicted genetic values vs.
+# phenotype.
+# Note: fitted = mu + PBV
+qplot(fitted(res.animal), phe_X,
+      data = globulus) +
+  geom_abline(int = 0,
+              slope = 1,
+              col = &#39;gray&#39;)</pre>
+
+<img src='Overview_files/figure-html/PBV-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Handling pedigrees</h2></hgroup><article  id="handling-pedigrees">
+
+<ul>
+<li><p>The pedigree needs to meet certain conditions</p></li>
+<li><p>If it does not, <strong>breedR</strong> automatically completes, recodes and sorts</p></li>
+<li><p>If recoding is necessary, <strong>breedR</strong> issues a warning because you need to be careful when retrieving results</p></li>
+<li><p>See this <a href='https://github.com/famuvie/breedR/wiki/Handling-pedigrees' title=''>guide</a> for more details</p></li>
+</ul>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Spatial autocorrelation</h2></hgroup><article  id="spatial-autocorrelation">
+
+<img src='img/spatial-background.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>What is spatial autocorrelation</h2></hgroup><article  id="what-is-spatial-autocorrelation">
+
+<ul>
+<li><p>The <strong>residuals</strong> of any LMM must be <strong>noise</strong></p></li>
+<li><p>However, most times there are <strong>environmental factors</strong> that affect the response</p></li>
+<li><p>This causes that observations that are close to each other <strong>tend</strong> to be more similar that observations that are far away</p></li>
+<li><p>This is called <strong>spatial autocorrelation</strong></p></li>
+<li><p>It may affect both the estimations and their accuracy</p></li>
+<li><p>This is why experiments are randomized into spatial <strong>blocks</strong></p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Diagnosing spatial autocorrelation </h2><h3> residuals spatial plot</h3></hgroup><article  id="diagnosing-spatial-autocorrelation-residuals-spatial-plot" class="smaller columns-2">
+
+<ul>
+<li><p>You can <code>plot()</code> the spatial arrangement of various model components (e.g. residuals)</p></li>
+<li><p>Look like <strong>independent</strong> gaussian observations (i.e. noise)?</p></li>
+<li><p>Do you see any <strong>signal</strong> in the background?</p></li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>## Since coordinates have not
+## been passed before they 
+## must be provided explicitly.
+coordinates(res.animal) &lt;-
+  globulus[, c(&#39;x&#39;, &#39;y&#39;)]
+plot(res.animal, &#39;resid&#39;)</pre>
+
+<img src='Overview_files/figure-html/animal-residuals-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Diagnosing spatial autocorrelation </h2><h3> variograms of residuals</h3></hgroup><article  id="diagnosing-spatial-autocorrelation-variograms-of-residuals" class="smaller">
+
+<ul>
+<li>Plot the <strong>variogram of residuals</strong> with <code>variogram()</code></li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>variogram(res.animal)</pre>
+
+<img src='Overview_files/figure-html/genetic_variogram-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Interpreting the variograms</h2></hgroup><article  id="interpreting-the-variograms" class="smaller">
+
+<ul>
+<li>Isotropic variogram: \[
+\gamma(h) = \frac12 V[Z(\mathbf{u}) - Z(\mathbf{v})], \quad \text{dist}(\mathbf{u}, \mathbf{v}) = h
+\]</li>
+</ul>
+
+<p>The <strong>empirical</strong> isotropic variogram is built by aggregating <strong>all the pairs</strong> of points separated by \(h\), <strong>no matter the direction</strong>.</p>
+
+<div class="columns-2">
+<img src='Overview_files/figure-html/variogram-isotropic-1.png' title=''/>
+
+<img src='Overview_files/figure-html/variogram-circle-1.png' title=''/></div>
+
+</article></slide><slide class=''><hgroup><h2>Interpreting the variograms</h2></hgroup><article  id="interpreting-the-variograms-1" class="smaller">
+
+<ul>
+<li>Row/Column variogram: \[
+\gamma(x, y) = \frac12 V[Z(\mathbf{u}) - Z(\mathbf{v})], \quad \text{dist}(\mathbf{u}, \mathbf{v}) = (x, y)
+\]</li>
+</ul>
+
+<p>The <strong>empirical</strong> row/col variogram is built by aggregating <strong>all the pairs</strong> of points separated by exactly \(x\) rows and \(y\) columns.</p>
+
+<div class="columns-2">
+<img src='Overview_files/figure-html/variogram-heat-1.png' title=''/>
+
+<img src='Overview_files/figure-html/variogram-rect-1.png' title=''/></div>
+
+</article></slide><slide class=''><hgroup><h2>Interpreting the variograms</h2></hgroup><article  id="interpreting-the-variograms-2" class="smaller">
+
+<ul>
+<li>Anisotropic variogram: \[
+\gamma(\mathbf{x}) = \frac12 V[Z(\mathbf{u}) - Z(\mathbf{v})], \quad \mathbf{u} = \mathbf{v} \pm \mathbf{x}
+\]</li>
+</ul>
+
+<p>The <strong>empirical</strong> anisotropic variogram is built by aggregating <strong>all the pairs</strong> of points <strong>in the same direction</strong> separated by \(|\mathbf{x}|\).</p>
+
+<div class="columns-2">
+<img src='Overview_files/figure-html/variogram-anisotropic-1.png' title=''/>
+
+<img src='Overview_files/figure-html/variogram-direction-1.png' title=''/></div>
+
+</article></slide><slide class=''><hgroup><h2>Accounting for spatial autocorrelation</h2></hgroup><article  id="accounting-for-spatial-autocorrelation">
+
+<ul>
+<li><p>Include an explicit <strong>spatial effect</strong> in the model</p></li>
+<li><p>I.e., a <strong>random effect</strong> with a specific covariance structure that reflects the spatial relationship between individuals</p></li>
+<li>The <strong>block</strong> effect, is a very particular case:
+
+<ul>
+<li>It is designed from the begining, possibly using prior knowledge</li>
+<li>Introduces <strong>independent</strong> effects between blocks</li>
+<li>Most neighbours are within the same block (i.e. share the same effect)</li>
+</ul></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>The <code>blocks</code> model</h2></hgroup><article  id="the-blocks-model" class="smaller">
+
+<pre class = 'prettyprint lang-r'># The genetic component (DRY)
+gen.globulus &lt;- list(model    = &#39;add_animal&#39;, 
+                     pedigree = globulus[, 1:3],
+                     id       = &#39;self&#39;)
+
+res.blk &lt;- remlf90(fixed   = phe_X ~ 1,
+                   random  = ~ gg,
+                   genetic = gen.globulus, 
+                   spatial = list(model = &#39;blocks&#39;, 
+                                  coord = globulus[, c(&#39;x&#39;, &#39;y&#39;)],
+                                  id = &#39;bl&#39;),
+                   data    = globulus)</pre>
+
+<ul>
+<li>The <code>blocks</code> spatial model is <strong>equivalent</strong> to <code>random = ~ bl</code>, but:
+
+<ul>
+<li>specifying <code>coord</code> is convenient for plotting (remember?)</li>
+<li><code>blocks</code> behaves as expected, even if <code>bl</code> is not a <strong>factor</strong></li>
+</ul></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Animal-spatial model: results</h2></hgroup><article  id="animal-spatial-model-results" class="smaller">
+
+<pre class = 'prettyprint lang-r'>summary(res.blk)</pre>
+
+<pre >## Linear Mixed Model with pedigree and spatial effects fit by AI-REMLF90 ver. 1.110 
+##    Data: globulus 
+##   AIC  BIC logLik
+##  5734 5753  -2863
+## 
+## Parameters of special components:
+## spatial: n.blocks: 15
+## 
+## Variance components:
+##          Estimated variances  S.E.
+## gg                     2.385 1.274
+## genetic                5.275 1.836
+## spatial                2.650 1.081
+## Residual              10.279 1.601
+## 
+## Fixed effects:
+##            value   s.e.
+## Intercept 14.762 0.6342</pre>
+
+<ul>
+<li>Now the additive-genetic variance increased! (\(3.6\) before)</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Variogram of residuals</h2></hgroup><article  id="variogram-of-residuals">
+
+<img src='Overview_files/figure-html/genetic-spatial_variogram-1.png' title=''/>
+
+<ul>
+<li>There seems to remain some intra-block spatial autocorrelation</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>B-Splines model</h2></hgroup><article  id="b-splines-model" class="smaller">
+
+<ul>
+<li>A continuous and smooth spatial surface built from a linear combination of <strong>basis</strong> functions</li>
+<li>The coefficients are modelled as a random effect</li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>## Use the `em` method! `ai` does not like splines
+res.spl  &lt;- remlf90(fixed   = phe_X ~ 1,
+                    random  = ~ gg,
+                    genetic = gen.globulus, 
+                    spatial = list(model   = &#39;splines&#39;, 
+                                   coord   = globulus[, c(&#39;x&#39;,&#39;y&#39;)]), 
+                    data    = globulus, method  = &#39;em&#39;)</pre>
+
+</article></slide><slide class=''><hgroup><h2>Autoregressive model</h2></hgroup><article  id="autoregressive-model" class="smaller">
+
+<ul>
+<li>A separable kronecker product of First order Autoregressive processes on the rows and the colums</li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>res.ar1  &lt;- remlf90(fixed   = phe_X ~ 1,
+                    random  = ~ gg,
+                    genetic = gen.globulus, 
+                    spatial = list(model = &#39;AR&#39;, 
+                                   coord = globulus[, c(&#39;x&#39;,&#39;y&#39;)]), 
+                    data    = globulus)</pre>
+
+</article></slide><slide class=''><hgroup><h2>Change in model residuals</h2></hgroup><article  id="change-in-model-residuals" class="smaller">
+
+<ul>
+<li>We preserve the scale by using <code>compare.plots()</code></li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>compare.plots(
+  list(`Animal model only` = plot(res.animal, &#39;residuals&#39;),
+       `Animal/blocks model` = plot(res.blk, &#39;residuals&#39;),
+       `Animal/splines model` = plot(res.spl, &#39;residuals&#39;),
+       `Animal/AR1 model` = plot(res.ar1, &#39;residuals&#39;)))</pre>
+
+<img src='Overview_files/figure-html/change-residuals-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Comparison of spatial components</h2></hgroup><article  id="comparison-of-spatial-components" class="smaller">
+
+<pre class = 'prettyprint lang-r'>compare.plots(list(Blocks  = plot(res.blk, type = &#39;spatial&#39;),
+                   Splines = plot(res.spl, type = &#39;spatial&#39;),
+                   AR1xAR1 = plot(res.ar1, type = &#39;spatial&#39;)))</pre>
+
+<img src='Overview_files/figure-html/spatial-components-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Prediction of the spatial effect in unobserved locations</h2></hgroup><article  id="prediction-of-the-spatial-effect-in-unobserved-locations" class="smaller">
+
+<ul>
+<li><p>The type <code>fullspatial</code> fills the holes (when possible)</p></li>
+<li><p>See <code>?plot.remlf90</code></p></li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>compare.plots(list(Blocks  = plot(res.blk, type = &#39;fullspatial&#39;),
+                   Splines = plot(res.spl, type = &#39;fullspatial&#39;),
+                   AR1xAR1 = plot(res.ar1, type = &#39;fullspatial&#39;)))</pre>
+
+<img src='Overview_files/figure-html/spatial-fullcomponents-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Spatial parameters </h2><h3> Number of knots of a <code>splines</code> model</h3></hgroup><article  id="spatial-parameters-number-of-knots-of-a-splines-model" class="smaller">
+
+<ul>
+<li><p>The smoothness of the spatial surface can be controlled modifying the number of base functions</p></li>
+<li><p>This is, directly determined by the <strong>number of knots</strong> (nok) in each dimension</p></li>
+<li><p><code>n.knots</code> can be <strong>used as an additional argument</strong> in the <code>spatial</code> effect as a numeric vector of size 2.</p></li>
+<li><p>Otherwise, is determined by the function given in <code>breedR.getOption(&#39;splines.nok&#39;)</code></p></li>
+</ul>
+
+<div class="centered">
+<img src='Overview_files/figure-html/determine-nknots-1.png' title=''/></div>
+
+</article></slide><slide class=''><hgroup><h2>Spatial parameters </h2><h3> Autoregressive parameters of a <code>AR</code> model</h3></hgroup><article  id="spatial-parameters-autoregressive-parameters-of-a-ar-model" class="smaller">
+
+<ul>
+<li><p>Analogously, the <em>patchiness</em> of the <code>AR</code> effects can be controlled by the autoregressive parameter for each dimension</p></li>
+<li><p><code>rho</code> can be <strong>given as an additional argument</strong> in the <code>spatial</code> effect as a numeric vector of size 2</p></li>
+<li><p>By default, <strong>breedR</strong> runs all the combinations in the grid produced by the values from <code>breedR.getOption(&#39;ar.eval&#39;)</code> and returns the one with largest likelihood</p></li>
+<li><p>It returns also the full table of combinations and likelihoods in <code>res$rho</code></p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Exercise </h2><h3> Tuning spatial parameters</h3></hgroup><article  id="exercise-tuning-spatial-parameters" class="smaller">
+
+<ul>
+<li>Tuning parameters:
+
+<ul>
+<li>model <code>splines</code>: <code>n.knots</code></li>
+<li>model <code>AR</code>: <code>rho</code></li>
+</ul></li>
+</ul>
+
+<ol>
+<li><p>Increase the number of knots in the <code>splines</code> model and see if it improves the fit</p></li>
+<li><p>Visualize the log-likelihood of the fitted <code>AR</code> models</p></li>
+<li><p>Refine the grid around the most likely values, and refit using <code>rho = rho.grid</code>, where</p></li>
+</ol>
+
+<pre class = 'prettyprint lang-r'>rho.grid &lt;- expand.grid(rho_r = seq(.7, .95, length = 4),
+                        rho_c = seq(.7, .95, length = 4))</pre>
+
+<pre >- What are now the most likely parameters?</pre>
+
+</article></slide><slide class=''><hgroup><h2>Spatial #1 </h2><h3> B-splines model with increased <code>nok</code></h3></hgroup><article  id="spatial-1-b-splines-model-with-increased-nok">
+
+<ul>
+<li><code>nok</code> were (6, 6) by default (see <code>summary()</code>)</li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>res.spl99  &lt;- remlf90(fixed  = phe_X ~ 1, random = ~ gg,
+                      genetic = gen.globulus,
+                      spatial = list(model   = &#39;splines&#39;, 
+                                     coord   = globulus[, c(&#39;x&#39;,&#39;y&#39;)],
+                                     n.knots = c(9, 9)), 
+                      data = globulus, method = &#39;em&#39;)</pre>
+
+</article></slide><slide class=''><hgroup><h2>Spatial #2 </h2><h3> Visualize log-likelihoods</h3></hgroup><article  id="spatial-2-visualize-log-likelihoods">
+
+<pre class = 'prettyprint lang-r'>qplot(rho_r, rho_c,
+      fill = loglik,
+      geom = &#39;tile&#39;,
+      data = res.ar1$rho)</pre>
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="right">rho_r</th>
+<th align="right">rho_c</th>
+<th align="right">loglik</th>
+</tr>
+<tr class="odd">
+<td align="right">-0.8</td>
+<td align="right">-0.8</td>
+<td align="right">-2925.664</td>
+</tr>
+<tr class="even">
+<td align="right">-0.2</td>
+<td align="right">-0.8</td>
+<td align="right">-2925.665</td>
+</tr>
+<tr class="odd">
+<td align="right">0.2</td>
+<td align="right">-0.8</td>
+<td align="right">-2925.656</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">-0.8</td>
+<td align="right">-2925.636</td>
+</tr>
+<tr class="odd">
+<td align="right">-0.8</td>
+<td align="right">-0.2</td>
+<td align="right">-2925.661</td>
+</tr>
+<tr class="even">
+<td align="right">-0.2</td>
+<td align="right">-0.2</td>
+<td align="right">-2925.655</td>
+</tr>
+<tr class="odd">
+<td align="right">0.2</td>
+<td align="right">-0.2</td>
+<td align="right">-2925.023</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">-0.2</td>
+<td align="right">-2876.893</td>
+</tr>
+<tr class="odd">
+<td align="right">-0.8</td>
+<td align="right">0.2</td>
+<td align="right">-2925.656</td>
+</tr>
+<tr class="even">
+<td align="right">-0.2</td>
+<td align="right">0.2</td>
+<td align="right">-2925.647</td>
+</tr>
+<tr class="odd">
+<td align="right">0.2</td>
+<td align="right">0.2</td>
+<td align="right">-2871.693</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">0.2</td>
+<td align="right">-2849.814</td>
+</tr>
+<tr class="odd">
+<td align="right">-0.8</td>
+<td align="right">0.8</td>
+<td align="right">-2925.646</td>
+</tr>
+<tr class="even">
+<td align="right">-0.2</td>
+<td align="right">0.8</td>
+<td align="right">-2890.606</td>
+</tr>
+<tr class="odd">
+<td align="right">0.2</td>
+<td align="right">0.8</td>
+<td align="right">-2860.981</td>
+</tr>
+<tr class="even">
+<td align="right">0.8</td>
+<td align="right">0.8</td>
+<td align="right">-2828.017</td>
+</tr>
+</table>
+
+</article></slide><slide class=''><hgroup><h2>Spatial #3 </h2><h3> Refine grid</h3></hgroup><article  id="spatial-3-refine-grid">
+
+<pre class = 'prettyprint lang-r'>res.ar.grid  &lt;- remlf90(fixed  = phe_X ~ gg,
+                        genetic = list(model = &#39;add_animal&#39;, 
+                                       pedigree = globulus[,1:3],
+                                       id = &#39;self&#39;), 
+                        spatial = list(model = &#39;AR&#39;, 
+                                       coord = globulus[, c(&#39;x&#39;,&#39;y&#39;)],
+                                       rho = rho.grid), 
+                        data = globulus)
+summary(res.ar.grid)</pre>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Competition</h2></hgroup><article  id="competition">
+
+</article></slide><slide class=''><hgroup><h2>Theoretical model</h2></hgroup><article  id="theoretical-model" class="smaller columns-2">
+
+<img src='img/competition_model.png' title=''/>
+
+<ul class = 'build'>
+<li>Each individual have <strong>two</strong> (unknown) Breeding Values (BV)</li>
+</ul>
+
+<ul class = 'build'>
+<li>The <code>direct</code> BV affects its <strong>own</strong> phenotype, while the <code>competition</code> BV affects its <strong>neghbours&#39;</strong> (as the King moves)</li>
+</ul>
+
+<ul class = 'build'>
+<li>The effect of the neighbouring <code>competition</code> BVs is given by their sum <strong>weighted by</strong> \(1/d^\alpha\), where \(\alpha\) is a tuning parameter called <code>decay</code></li>
+</ul>
+
+<ul class = 'build'>
+<li>Each set of BVs is modelled as a zero-mean <strong>random effect</strong> with structure matrix given by the <strong>pedigree</strong> and independent <strong>variances</strong> \(\sigma^2_a\) and \(\sigma^2_c\)</li>
+</ul>
+
+<ul class = 'build'>
+<li>Both random effects are modelled jointly with <strong>correlation</strong> \(\rho\)</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Permanent Environmental Effect (pec)</h2></hgroup><article  id="permanent-environmental-effect-pec">
+
+<ul>
+<li><p><strong>Optional</strong> effect with <strong>environmental</strong> (rather than genetic) basis</p></li>
+<li><p>Modelled as an individual <strong>independent</strong> random effect that affects <strong>neighbouring</strong> trees in the same (weighted) way</p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Simulation of data</h2></hgroup><article  id="simulation-of-data" class="smaller">
+
+<p><strong>breedR</strong> implements a convenient dataset <strong>simulator</strong> which keeps a similar syntax.</p>
+
+<ul>
+<li>See <code>?simulation</code> for details on the syntax</li>
+</ul>
+
+<div class="columns-2">
+<pre class = 'prettyprint lang-r'># Simulation parameters
+grid.size &lt;- c(x=20, y=25) # cols/rows
+coord &lt;- expand.grid(sapply(grid.size,
+                            seq))
+Nobs &lt;- prod(grid.size)
+Nparents &lt;- c(mum = 20, dad = 20)
+sigma2_a &lt;- 2   # direct add-gen var
+sigma2_c &lt;- 1   # compet add-gen var
+rho      &lt;- -.7 # gen corr dire-comp
+sigma2_s &lt;- 1   # spatial variance
+sigma2_p &lt;- .5  # pec variance
+sigma2   &lt;- .5  # residual variance
+
+S &lt;- matrix(c(sigma2_a,
+              rho*sqrt(sigma2_a*sigma2_c),
+              rho*sqrt(sigma2_a*sigma2_c),
+              sigma2_c),
+            2, 2)
+
+set.seed(12345)
+simdat &lt;- 
+  breedR.sample.phenotype(
+    fixed   = c(beta = 10),
+    genetic = list(model = &#39;competition&#39;,
+                   Nparents = Nparents,
+                   sigma2_a = S,
+                   check.factorial=FALSE,
+                   pec = sigma2_p),
+    spatial = list(model = &#39;AR&#39;,
+                   grid.size = grid.size,
+                   rho   = c(.3, .8),
+                   sigma2_s = sigma2_s),
+    residual.variance = sigma2
+    )
+
+## Remove founders
+dat &lt;- subset(simdat,
+              !(is.na(simdat$sire)
+                &amp; is.na(simdat$dam)))</pre></div>
+
+</article></slide><slide class=''><hgroup><h2>Fitting a competition model</h2></hgroup><article  id="fitting-a-competition-model">
+
+<pre class = 'prettyprint lang-r'>system.time(
+  res.comp &lt;- remlf90(fixed   = phenotype ~ 1,
+                      genetic = list(model = &#39;competition&#39;,
+                                     pedigree = dat[, 1:3],
+                                     id = &#39;self&#39;,
+                                     coord = dat[, c(&#39;x&#39;, &#39;y&#39;)],
+                                     competition_decay = 1,
+                                     pec = list(present = TRUE)),
+                      spatial = list(model = &#39;AR&#39;, 
+                                     coord = dat[, c(&#39;x&#39;, &#39;y&#39;)],
+                                     rho   = c(.3, .8)),
+                      data = dat,
+                      method = &#39;em&#39;)  # AI diverges
+  )</pre>
+
+<pre >##    user  system elapsed 
+##  94.458   0.180  94.652</pre>
+
+</article></slide><slide class=''><hgroup><h2>True vs. estimated parameters</h2></hgroup><article  id="true-vs.-estimated-parameters" class="columns-2">
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="left"></th>
+<th align="right">True</th>
+<th align="right">Estimated</th>
+</tr>
+<tr class="odd">
+<td align="left">direct</td>
+<td align="right">2.0</td>
+<td align="right">2.50</td>
+</tr>
+<tr class="even">
+<td align="left">compet.</td>
+<td align="right">1.0</td>
+<td align="right">1.03</td>
+</tr>
+<tr class="odd">
+<td align="left">correl.</td>
+<td align="right">-0.7</td>
+<td align="right">-0.76</td>
+</tr>
+<tr class="even">
+<td align="left">spatial</td>
+<td align="right">1.0</td>
+<td align="right">1.24</td>
+</tr>
+<tr class="odd">
+<td align="left">pec</td>
+<td align="right">0.5</td>
+<td align="right">0.20</td>
+</tr>
+<tr class="even">
+<td align="left">residual</td>
+<td align="right">0.5</td>
+<td align="right">0.17</td>
+</tr>
+</table>
+
+<img src='Overview_files/figure-html/competition-results-plot-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Exercise </h2><h3> Competition models</h3></hgroup><article  id="exercise-competition-models">
+
+<ol>
+<li>Plot the true vs predicted:
+
+<ul>
+<li>direct and competition Breeding Values</li>
+<li>spatial effects</li>
+<li>pec effects</li>
+</ul></li>
+<li>Plot the residuals and their variogram
+
+<ul>
+<li>Do you think the residuals are independent?</li>
+<li>How would you improve the analysis?</li>
+</ul></li>
+</ol>
+
+</article></slide><slide class=''><hgroup><h2>Competition #1 </h2><h3> True vs. predicted components</h3></hgroup><article  id="competition-1-true-vs.-predicted-components">
+
+<pre class = 'prettyprint lang-r'>## compute the predicted effects for the observations
+## by matrix multiplication of the incidence matrix and the BLUPs
+pred &lt;- list()
+Zd &lt;- model.matrix(res.comp)$&#39;genetic_direct&#39;
+pred$direct &lt;- Zd %*% ranef(res.comp)$&#39;genetic_direct&#39;
+
+## Watch out! for the competition effects you need to use the incidence
+## matrix of the direct genetic effect, to get their own value.
+## Otherwise, you get the predicted effect of the neighbours on each individual.
+pred$comp &lt;- Zd %*% ranef(res.comp)$&#39;genetic_competition&#39;
+pred$pec  &lt;- as.vector(model.matrix(res.comp)$pec %*% ranef(res.comp)$pec)
+
+comp.pred &lt;-
+  rbind(data.frame(Component = &#39;direct BV&#39;, True = dat$BV1, Predicted = pred$direct),
+        data.frame(Component = &#39;competition BV&#39;, True = dat$BV2, Predicted = pred$comp),
+        data.frame(Component = &#39;pec&#39;, True = dat$pec, Predicted = pred$pec))
+
+ggplot(comp.pred,
+       aes(True, Predicted)) +
+  geom_point() + 
+  geom_abline(int = 0, sl = 1,
+              col = &#39;darkgray&#39;) +
+  facet_grid(~ Component)</pre>
+
+<img src='Overview_files/figure-html/competition-exercise-1-1.png' title=''/>
+
+<p>The predition of the Permanent Environmental Competition effect is not precisely great&#8230;</p>
+
+</article></slide><slide class=''><hgroup><h2>Competition #2 </h2><h3> Map of residuals and their variogram</h3></hgroup><article  id="competition-2-map-of-residuals-and-their-variogram">
+
+<pre class = 'prettyprint lang-r'>plot(res.comp, type = &#39;resid&#39;)
+variogram(res.comp)</pre>
+
+<p><img src='Overview_files/figure-html/competition-exercise-2-1.png' title=''/> <img src='Overview_files/figure-html/competition-exercise-2-2.png' title=''/></p>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Generic component</h2></hgroup><article  id="generic-component">
+
+</article></slide><slide class=''><hgroup><h2>Generic model</h2></hgroup><article  id="generic-model">
+
+<p>This additional component allows to introduce a random effect \(\psi\) with <strong>arbitrary</strong> incidence and covariance matrices \(Z\) and \(\Sigma\):</p>
+
+<p>\[
+\begin{aligned}
+y  =    &amp; \mu + X \beta + Z \psi + \varepsilon \\
+\psi  \sim &amp; N(0, \sigma_\psi^2 \Sigma_\psi) \\
+\varepsilon \sim &amp; N(0, \sigma_\varepsilon^2)
+\end{aligned}
+\]</p>
+
+</article></slide><slide class=''><hgroup><h2>Implementation of the generic component</h2></hgroup><article  id="implementation-of-the-generic-component">
+
+<pre class = 'prettyprint lang-r'>## Fit a blocks effect using generic
+inc.mat &lt;- model.matrix(~ 0 + bl, globulus)
+cov.mat &lt;- diag(nlevels(globulus$bl))
+res.blg &lt;- remlf90(fixed  = phe_X ~ gg,
+                   generic = list(block = list(inc.mat,
+                                               cov.mat)),
+                   data   = globulus)</pre>
+
+</article></slide><slide class=''><hgroup><h2>Example of result</h2></hgroup><article  id="example-of-result">
+
+<pre >## Linear Mixed Model with pedigree and spatial effects fit by AI-REMLF90 ver. 1.110 
+##    Data: globulus 
+##   AIC  BIC logLik
+##  5691 5701  -2844
+## 
+## Parameters of special components:
+## 
+## 
+## Variance components:
+##          Estimated variances   S.E.
+## block                  2.592 1.0640
+## Residual              15.208 0.6824
+## 
+## Fixed effects:
+##        value   s.e.
+## gg.1  13.534 0.6222
+## gg.2  14.030 0.8464
+## gg.3  16.106 0.5513
+## gg.4  11.854 0.6824
+## gg.5  15.883 0.5862
+## gg.6  10.220 1.3040
+## gg.7  13.995 1.0893
+## gg.8  15.728 0.5409
+## gg.9  16.478 0.5969
+## gg.10 12.843 1.1225
+## gg.11 16.744 0.6151
+## gg.12 17.002 0.8464
+## gg.13 16.297 1.0893
+## gg.14 14.429 0.4730</pre>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Prediction</h2></hgroup><article  id="prediction">
+
+</article></slide><slide class=''><hgroup><h2>Predicting values for unobserved trees</h2></hgroup><article  id="predicting-values-for-unobserved-trees">
+
+<ul>
+<li><p>You can predict the Breeding Value of an <strong>unmeasured tree</strong></p></li>
+<li><p>Or the expected phenotype of a death tree (or an hypothetical scenario)</p></li>
+<li><p>Information is gathered from the covariates, the spatial structure and the pedigree</p></li>
+<li><p>Simply <strong>include the individual</strong> in the dataset with the response set as <code>NA</code></p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Leave-one-out cross-validation</h2></hgroup><article  id="leave-one-out-cross-validation" class="smaller">
+
+<ul>
+<li><p>Re-fit the simulated competition data with one measurement removed</p></li>
+<li><p>Afterwards, compare the predicted values for the <strong>unmeasured</strong> individuals with their true simulated values</p></li>
+</ul>
+
+<div class="columns-2">
+<pre class = 'prettyprint lang-r'>rm.idx &lt;- 8
+rm.exp &lt;- with(dat[rm.idx, ],
+               phenotype - resid)
+dat.loo &lt;- dat
+dat.loo[rm.idx, &#39;phenotype&#39;] &lt;- NA</pre>
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="left"></th>
+<th align="right">True</th>
+<th align="right">Pred.loo</th>
+</tr>
+<tr class="odd">
+<td align="left">direct BV</td>
+<td align="right">-1.48</td>
+<td align="right">0.11</td>
+</tr>
+<tr class="even">
+<td align="left">competition BV</td>
+<td align="right">0.46</td>
+<td align="right">0.36</td>
+</tr>
+<tr class="odd">
+<td align="left">exp. phenotype</td>
+<td align="right">6.80</td>
+<td align="right">9.90</td>
+</tr>
+</table></div>
+
+</article></slide><slide class=''><hgroup><h2>Exercise </h2><h3> Cross validation</h3></hgroup><article  id="exercise-cross-validation">
+
+<ol>
+<li><p>Extend the last table to include the predicted value when the phenotype is measured</p></li>
+<li>Remove 1/10th of the phenotypes randomly, and predict their expected phenotype
+
+<ul>
+<li>Have the parameter estimations changed too much?</li>
+</ul></li>
+<li><p>Compute the Root Mean Square Error (RMSE) of Prediction with respect to the true values</p></li>
+</ol>
+
+</article></slide><slide class=''><hgroup><h2>Cross-validation #1 </h2><h3> Include prediction with full data</h3></hgroup><article  id="cross-validation-1-include-prediction-with-full-data">
+
+<pre class = 'prettyprint lang-r'>pred.BV.mat &lt;- with(ranef(res.comp), cbind(`genetic_direct`,
+                                           `genetic_competition`))
+
+pred.genetic.loo &lt;-
+  Zd[rm.idx, ] %*% with(ranef(res.comp),
+                        cbind(`genetic_direct`,
+                              `genetic_competition`))
+valid.pred$Pred.full &lt;- c(Zd[rm.idx, ] %*% pred.BV.mat,
+                          fitted(res.comp)[rm.idx])
+
+knitr::kable(round(valid.pred[,c(1,3,2)],
+                   2))</pre>
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="left"></th>
+<th align="right">True</th>
+<th align="right">Pred.full</th>
+<th align="right">Pred.loo</th>
+</tr>
+<tr class="odd">
+<td align="left">direct BV</td>
+<td align="right">-1.48</td>
+<td align="right">-1.30</td>
+<td align="right">0.11</td>
+</tr>
+<tr class="even">
+<td align="left">competition BV</td>
+<td align="right">0.46</td>
+<td align="right">0.99</td>
+<td align="right">0.36</td>
+</tr>
+<tr class="odd">
+<td align="left">exp. phenotype</td>
+<td align="right">6.80</td>
+<td align="right">7.29</td>
+<td align="right">9.90</td>
+</tr>
+</table>
+
+</article></slide><slide class=''><hgroup><h2>Cross-validation #2 </h2><h3> Perform cross-validation on 1/10th of the observations</h3></hgroup><article  id="cross-validation-2-perform-cross-validation-on-110th-of-the-observations">
+
+<pre class = 'prettyprint lang-r'>rm.idx &lt;- sample(nrow(dat),
+                 nrow(dat)/10)
+dat.cv &lt;- dat
+dat.cv[rm.idx, &#39;phenotype&#39;] &lt;- NA
+## Re-fit the model and build table</pre>
+
+<table class = 'rmdtable'>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Fully.estimated</th>
+<th align="right">CV.estimated</th>
+</tr>
+<tr class="odd">
+<td align="left">direct</td>
+<td align="right">2.50</td>
+<td align="right">2.69</td>
+</tr>
+<tr class="even">
+<td align="left">compet.</td>
+<td align="right">1.03</td>
+<td align="right">0.86</td>
+</tr>
+<tr class="odd">
+<td align="left">correl.</td>
+<td align="right">-0.76</td>
+<td align="right">-0.80</td>
+</tr>
+<tr class="even">
+<td align="left">spatial</td>
+<td align="right">1.24</td>
+<td align="right">1.03</td>
+</tr>
+<tr class="odd">
+<td align="left">pec</td>
+<td align="right">0.20</td>
+<td align="right">0.51</td>
+</tr>
+<tr class="even">
+<td align="left">residual</td>
+<td align="right">0.17</td>
+<td align="right">0.14</td>
+</tr>
+</table>
+
+</article></slide><slide class=''><hgroup><h2>Cross-validation #3 </h2><h3> MSE of Prediction</h3></hgroup><article  id="cross-validation-3-mse-of-prediction">
+
+<pre class = 'prettyprint lang-r'>true.exp.cv &lt;- with(dat[rm.idx, ], phenotype - resid)
+round(sqrt(mean((fitted(res.comp.cv)[rm.idx] - true.exp.cv)^2)), 2)</pre>
+
+<pre >## [1] 1.5</pre>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Some more features</h2></hgroup><article  id="some-more-features">
+
+</article></slide><slide class=''><hgroup><h2>Metagene interface</h2></hgroup><article  id="metagene-interface">
+
+<ul>
+<li><p>We have used simulated data from the <a href='http://www.igv.fi.cnr.it/noveltree/' title=''><code>metagene</code></a> software</p></li>
+<li><p>If you simulate data, import the results with <code>read.metagene()</code></p></li>
+<li>Use several common methods with a <code>metagene</code> object:
+
+<ul>
+<li><code>summary()</code>, <code>plot()</code>, <code>as.data.frame()</code></li>
+</ul></li>
+<li>Plus some more specific <code>metagene</code> functions:
+
+<ul>
+<li><code>b.values()</code>, <code>get.ntraits()</code>, <code>ngenerations()</code>, <code>nindividuals()</code>, <code>get.pedigree()</code></li>
+</ul></li>
+<li>And specific functions about spatial arrangement:
+
+<ul>
+<li><code>coordinates()</code> extract coordinates</li>
+<li><code>sim.spatial()</code> simulates some spatial autocorrelation</li>
+</ul></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Simulation framework</h2></hgroup><article  id="simulation-framework">
+
+<ul>
+<li><p>The function <code>breedR.sample.phenotype()</code> simulates datasets from all the model structures available in <strong>breedR</strong></p></li>
+<li><p>Limitation: only one generation, with random matings of founders</p></li>
+<li><p>See <code>?simulation</code> for details</p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Remote computation</h2></hgroup><article  id="remote-computation">
+
+<p><strong>If</strong> you have access to a <strong>Linux</strong> server through <strong>SSH</strong>, you can perform computations remotely</p>
+
+<ul>
+<li><p>Take advantage of more <strong>memory</strong> or <strong>faster</strong> processors</p></li>
+<li><p><strong>Parallelize</strong> jobs</p></li>
+<li><p>Free <strong>local resources</strong> while fitting models</p></li>
+<li><p>See <code>?remote</code> for details</p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Package options</h2></hgroup><article  id="package-options" class="smaller columns-2">
+
+<ul>
+<li><p><strong>breedR</strong> features a list of configurable options</p></li>
+<li><p>Use <code>breedR.setOption(...)</code> for changing an option during the current sesion</p></li>
+<li><p>Set options permanently in the file <code>$HOME/.breedRrc</code></p></li>
+<li><p>see <code>?breedR.option</code> for details</p></li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>breedR.getOption()</pre>
+
+<pre >## $ar.eval
+## [1] -0.8 -0.2  0.2  0.8
+## 
+## $breedR.bin
+## [1] &quot;/home/facu/lib/R/library/breedR/bin/linux&quot;
+## 
+## $splines.nok
+## determine.n.knots
+## 
+## $default.initial.variance
+## [1] 1
+## 
+## $col.seq
+## [1] &quot;#034E7B&quot; &quot;#FDAE6B&quot;
+## 
+## $col.div
+## [1] &quot;#3A3A98FF&quot; &quot;#832424FF&quot;
+## 
+## $cygwin
+## [1] &quot;C:/cygwin&quot;
+## 
+## $cygwin.home
+## [1] &quot;/home/facu&quot;
+## 
+## $ssh.auth.sock
+## [1] &quot;/tmp/ssh-auth-sock-facu&quot;
+## 
+## $remote.host
+## [1] &quot;eldorado&quot;
+## 
+## $remote.user
+## [1] &quot;fmunoz&quot;
+## 
+## $remote.port
+## [1] 22
+## 
+## $remote.bin
+## [1] &quot;/home/fmunoz/R/x86_64-unknown-linux-gnu-library/3.0/breedR/bin/linux&quot;
+## 
+## $ssh.options
+## [1] &quot;-x -o BatchMode=yes -o TCPKeepAlive=yes -e none&quot;</pre>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Thanks!</h2></hgroup><article  id="thanks"></article></slide>
+
+
+  <slide class="backdrop"></slide>
+
+</slides>
+
+<script src="Overview_files/ioslides-13.5.1/js/modernizr.custom.45394.js"></script>
+<script src="Overview_files/ioslides-13.5.1/js/prettify/prettify.js"></script>
+<script src="Overview_files/ioslides-13.5.1/js/prettify/lang-r.js"></script>
+<script src="Overview_files/ioslides-13.5.1/js/prettify/lang-yaml.js"></script>
+<script src="Overview_files/ioslides-13.5.1/js/hammer.js"></script>
+<script src="Overview_files/ioslides-13.5.1/js/slide-controller.js"></script>
+<script src="Overview_files/ioslides-13.5.1/js/slide-deck.js"></script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "Overview_files/mathjax-local/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+<!-- map slide visiblity events into shiny -->
+<script>
+  (function() {
+    if (window.jQuery) {
+       window.jQuery(document).on('slideleave', function(e) {
+         window.jQuery(e.target).trigger('hidden');
+      });
+       window.jQuery(document).on('slideenter', function(e) {
+         window.jQuery(e.target).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>
