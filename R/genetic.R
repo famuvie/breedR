@@ -89,7 +89,8 @@ additive_genetic_animal <- function(pedigree, idx) {
   
   ## Checks
   stopifnot(is.numeric(idx))
-  stopifnot(length(idx) < nrow(as.data.frame(pedigree)))
+  # Not necessarily: might be multiple observations
+  # stopifnot(length(idx) < nrow(as.data.frame(pedigree)))
   
   ## Incidence matrix
   ## It is possible that the pedigree has been recoded/reordered

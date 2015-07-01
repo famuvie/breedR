@@ -14,7 +14,7 @@
 #'   \item{\code{x, y}}{   coordinates (in rows/cols)}
 #'   \item{\code{rep}}{    factor replicate with 8 levels}
 #'   \item{\code{bl}}{     factor block with 40 levels nested within rep}
-#'   \item{\code{yr}}{     factor year with 16 ordered levels}
+#'   \item{\code{yr}}{     factor (growth) year with 16 ordered levels}
 #'   \item{\code{map}}{    mean annual precipitation}
 #'   \item{\code{mat}}{    mean annual temperature}
 #'   \item{\code{mi}}{     martone index}
