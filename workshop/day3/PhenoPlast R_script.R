@@ -5,6 +5,7 @@
 
 
 library(breedR)
+library(ggplot2)
 
 # 1 Data
 
