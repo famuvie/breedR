@@ -8,6 +8,7 @@ get_pedigree.metagene <- function(x, ...) {
 
 #' @describeIn get_pedigree Get the pedigree from a remlf90 object
 #' @export
+#' @family extraction functions
 get_pedigree.remlf90 <- function(x, ...) {
   
   return(get_pedigree.breedr_modelframe(x$effects))

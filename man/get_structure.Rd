@@ -35,4 +35,22 @@ in the group.
 \item \code{breedr_effect}: Return the structure matrix with an attribute
 indicating its \code{type}.
 }}
+\seealso{
+Other extraction functions: \code{\link{fixed.effects}},
+  \code{\link{fixef}}, \code{\link{fixef.breedR}},
+  \code{\link{fixef.remlf90}}; \code{\link{get_param}},
+  \code{\link{get_param.breedr_modelframe}},
+  \code{\link{get_param.effect_group}},
+  \code{\link{get_param.remlf90}},
+  \code{\link{get_param.spatial}};
+  \code{\link{get_pedigree}},
+  \code{\link{get_pedigree.breedr_modelframe}},
+  \code{\link{get_pedigree.effect_group}},
+  \code{\link{get_pedigree.genetic}},
+  \code{\link{get_pedigree.metagene}},
+  \code{\link{get_pedigree.remlf90}};
+  \code{\link{plot.remlf90}}; \code{\link{ranef}},
+  \code{\link{ranef.breedR}}, \code{\link{ranef.remlf90}};
+  \code{\link{vcov.remlf90}}
+}
 

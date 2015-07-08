@@ -528,6 +528,7 @@ remlf90 <- function(fixed,
 #%%%%%%%%%%%%%%%%%%%%%%%%%#
 
 #' @export
+#' @family extraction functions 
 coef.remlf90 <- function(object, ...) { 
   unlist(c(lapply(fixef(object),
                   function(x) x$value),
@@ -535,12 +536,14 @@ coef.remlf90 <- function(object, ...) {
 }
 
 #' @export
+#' @family extraction functions
 extractAIC.remlf90 <- function(fit, scale, k, ...) {
   return(fit$fit$AIC)
 }
   
 #' @method fitted remlf90
 #' @export
+#' @family extraction functions
 fitted.remlf90 <- function (object, ...) {
 
   ef.types <- lapply(object$effects, effect_type)
@@ -611,6 +614,7 @@ fitted.remlf90 <- function (object, ...) {
 #' @importFrom nlme fixef
 #' @export fixef
 #' @export
+#' @family extraction functions
 fixef.remlf90 <- function (object, ...) {
       object$fixed
 }
@@ -618,6 +622,7 @@ fixef.remlf90 <- function (object, ...) {
 
 #' @method logLik remlf90
 #' @export
+#' @family extraction functions
 logLik.remlf90 <- function (object, REML = TRUE, ...) {
   # TODO: Revise this, N parameters, df, N obs.
   # I set up things such that the AIC gives what REMLF90 says
@@ -653,6 +658,7 @@ logLik.remlf90 <- function (object, REML = TRUE, ...) {
 
 #' @method model.frame remlf90
 #' @export
+#' @family extraction functions
 model.frame.remlf90 <- function (formula, ...) {
   formula$mf
 }
@@ -662,6 +668,7 @@ model.frame.remlf90 <- function (formula, ...) {
 #' @importFrom stats nobs
 #' @method nobs remlf90
 #' @export
+#' @family extraction functions
 nobs.remlf90 <- function (object, ...) {
   if(!is.null(w <- object$weights))
     sum(w != 0)
@@ -683,6 +690,7 @@ nobs.remlf90 <- function (object, ...) {
 #'   
 #' @method plot remlf90
 #' @export
+#' @family extraction functions
 plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspatial', 'residuals'), z = NULL, ...) {
   
   type = match.arg(type)
@@ -852,6 +860,7 @@ print.ranef.breedR <- function(x, ...) {
 #' @importFrom nlme ranef
 #' @export ranef
 #' @export
+#' @family extraction functions
 ranef.remlf90 <- function (object, ...) {
   
   ## List of random effects
@@ -909,6 +918,7 @@ ranef.remlf90 <- function (object, ...) {
 #' 
 #' @method vcov remlf90
 #' @export
+#' @family extraction functions
 vcov.remlf90 <- function (object,
                           effect = c('spatial',
                                      'genetic',
@@ -963,6 +973,7 @@ vcov.remlf90 <- function (object,
 
 #' @method residuals remlf90
 #' @export
+#' @family extraction functions
 residuals.remlf90 <- function (object, ...) {
   # TODO: to be used when na.action is included in remlf90
   #   naresid(object$na.action, res)
@@ -973,6 +984,7 @@ residuals.remlf90 <- function (object, ...) {
 
 #' @method summary remlf90
 #' @export
+#' @family extraction functions
 summary.remlf90 <- function(object, ...) {
   
   # If this is a submitted job, return the corresponding qstat object
@@ -1027,6 +1039,7 @@ summary.remlf90 <- function(object, ...) {
 ## This is modeled a bit after  print.summary.lm :
 #' @method print remlf90
 #' @export
+#' @family extraction functions
 print.remlf90 <- function(x, digits = max(3, getOption("digits") - 3), ...) {
   
   # If this is a submitted job, return the corresponding qstat object

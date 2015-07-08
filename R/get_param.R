@@ -1,4 +1,5 @@
 #' @describeIn get_param Get the param from a remlf90 object
+#' @family extraction functions
 get_param.remlf90 <- function(x) {
   
   return(get_param.breedr_modelframe(x$effects))

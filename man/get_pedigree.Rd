@@ -48,6 +48,21 @@ Internal function.
   \code{pedigreemm}
 }
 \seealso{
+Other extraction functions: \code{\link{fixed.effects}},
+  \code{\link{fixef}}, \code{\link{fixef.breedR}},
+  \code{\link{fixef.remlf90}}; \code{\link{get_param}},
+  \code{\link{get_param.breedr_modelframe}},
+  \code{\link{get_param.effect_group}},
+  \code{\link{get_param.remlf90}},
+  \code{\link{get_param.spatial}};
+  \code{\link{get_structure}},
+  \code{\link{get_structure.breedR}},
+  \code{\link{get_structure.breedr_effect}},
+  \code{\link{get_structure.effect_group}};
+  \code{\link{plot.remlf90}}; \code{\link{ranef}},
+  \code{\link{ranef.breedR}}, \code{\link{ranef.remlf90}};
+  \code{\link{vcov.remlf90}}
+
 Other metagene: \code{\link{$.metagene}},
   \code{\link{$<-.metagene}},
   \code{\link{Extract.metagene}}, \code{\link{[.metagene}};

@@ -49,3 +49,34 @@
 #'   qplot(phe_X, fitted(res.f90), color=gen, data = as.data.frame(m4)) + geom_abline(int=0, slope=1)
 #' 
 NULL
+
+#' Extraction functions
+#' 
+#' These functions aim to extract particular data or results from a
+#' \code{remlf90} object.
+#' 
+#' \itemize{
+#'   \item \code{\link{all.equal}} Tests if two objects are (nearly) equal.
+#'   \item \code{\link{coef}} Extracts model coefficients.
+#'   \item \code{\link{extractAIC}} Extracts AIC from a fitted model.
+#'   \item \code{\link{fitted}} Extracts model fitted values.
+#'   \item \code{\link{fixef}} Extracts fixed-effects estimates.
+#'   \item \code{\link{get_param}} Returns the parameters of a \code{remlf90} object.
+#'   \item \code{\link{get_pedigree}} Gets the pedigree from a \code{remlf90} object.
+#'   \item \code{\link{get_structure}} Returns the structure matrices of all structured random effects.
+#'   \item \code{\link{logLik}} Extracts Log-Likelihood.
+#'   \item \code{\link{model.frame}} Returns a data.frame with the variables needed to use \code{formula} and
+#'   any ... arguments.
+#'   \item \code{\link{model.matrix}} Creates a design (or model) matrix.
+#'   \item \code{\link{nobs}} Extracts the number of observations from a model fit.
+#'   \item \code{\link{plot}} Spatial plot of a model's fit components.
+#'   \item \code{\link{print}} Prints values.
+#'   \item \code{\link{ranef}} Extracts the modes of the random effects from a fitted model object.
+#'   \item \code{\link{residuals}} Extracts model residuals.
+#'   \item \code{\link{summary}} Produces a summary of the \code{remlf90} object.
+#'   \item \code{\link{vcov}} Returns the variance-covariance matrix of the specified random effect.
+#' }
+#' 
+#' @name extraction
+#' @aliases extractor
+NULL

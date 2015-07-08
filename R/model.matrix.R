@@ -100,6 +100,7 @@ model.matrix.breedr_effect <- function(object, ...) {
 
 
 #' @export
+#' @family extraction functions
 model.matrix.remlf90 <- function (object, ...) {
   
   mml <- lapply(object$effects, model.matrix)

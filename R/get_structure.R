@@ -1,5 +1,6 @@
 #' @describeIn get_structure Return the structure matrices of all structured random effects
 #' @export
+#' @family extraction functions
 get_structure.breedR <- function (x) {
   
   ## Only works for refactored effects
