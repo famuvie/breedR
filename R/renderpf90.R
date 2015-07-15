@@ -85,20 +85,36 @@ renderpf90.diagonal <- function(x) {
 #' @export
 renderpf90.matrix <- function(x) {
   
-  which_n_where <- function(x, n) {
-    w <- which(x > 0)
-    x <- x[w]
-    if (sup <- n - length(w)) {
-      w <- c(w, rep(0, sup))
-      x <- c(x, rep(0, sup))
-    }
-    
-    c(x, w)
+  ## Effective number of columns
+  ## issue #37: excesive memory consumption
+  ## using apply(x, 1, fun) where x is sparseMatrix implies
+  ## a call to as.matrix(), potentially giving memory problems
+  ncol_eff <- max(Matrix::rowSums(x > 0))
+  idx <- Matrix::which(x > 0, useNames = FALSE)  # non-zero locations
+
+  ## non-zero matrix of positions and values sorted by position
+  nzmat <- cbind(arrayInd(idx, .dim = dim(x)), x[idx])
+  nzmat <- nzmat[ order(nzmat[, 1], nzmat[, 2]),]
+  
+  fill_zero <- function(x, n) {
+    if ((m <- length(x)) < n)
+      x <- c(x, rep(0, n-m))
+    return(x)
   }
   
-  ## Effective number of columns
-  ncol_eff <- max(apply(x > 0, 1, sum))
-  ans <- t(apply(x, 1, which_n_where, ncol_eff))
+  if (ncol_eff == 1) {
+    # check: first column of row positions is 1:n
+    stopifnot(isTRUE(all.equal(nzmat[, 1], seq_len(nrow(x)))))
+    ## return column of values and column of positions
+    ans <- cbind(nzmat[, 3:2])
+  } else {
+    ## cbind non-zero values and their positions
+    ## filling-in with zeros up to ncol_eff
+    ans <- cbind(do.call('rbind',
+                         tapply(nzmat[, 3], nzmat[, 1], fill_zero, ncol_eff)),
+                 do.call('rbind',
+                         tapply(nzmat[, 2], nzmat[, 1], fill_zero, ncol_eff)))
+  }
   
   ## Exception: case of indicator matrix
   ## ncol_eff = 1, all values are 1 (or 0 if missing)
@@ -406,7 +422,7 @@ renderpf90.ar <- function(x) {
 #' 
 #' @param x matrix.
 as.triplet <- function(x) {
-  xsp <- Matrix::tril(as(as.matrix(x), 'dgTMatrix'))
+  xsp <- Matrix::tril(as(x, 'TsparseMatrix'))
   # Note: The Matrix package counts rows and columns starting from zero
   # Thus, I add 1 to the corresponding columns
   cbind(xsp@i + 1, xsp@j + 1, xsp@x)
