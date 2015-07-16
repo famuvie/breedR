@@ -82,6 +82,7 @@ renderpf90.diagonal <- function(x) {
 #'   it returns a one-column matrix of the corresponding column indices.
 #' @inheritParams renderpf90
 #' @family renderpf90
+#' @import Matrix
 #' @export
 renderpf90.matrix <- function(x) {
   
@@ -89,7 +90,7 @@ renderpf90.matrix <- function(x) {
   ## issue #37: excesive memory consumption
   ## using apply(x, 1, fun) where x is sparseMatrix implies
   ## a call to as.matrix(), potentially giving memory problems
-  ncol_eff <- max(Matrix::rowSums(x > 0))
+  ncol_eff <- max(rowSums(x > 0))
   idx <- Matrix::which(x > 0, useNames = FALSE)  # non-zero locations
 
   ## non-zero matrix of positions and values sorted by position
