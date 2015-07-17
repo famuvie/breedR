@@ -54,6 +54,6 @@ res <- transform(empvar$isotropic,
 #      lines(distance, truev, col ='red')})
 
 test_that("The empirical variograms are well computed", {
-  expect_equal(as.numeric(res$variogram), res$truev, tolerance = .1)
+  expect_equal(as.numeric(res$variogram), res$truev, tolerance = .2)
 })
 
