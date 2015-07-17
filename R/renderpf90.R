@@ -97,24 +97,30 @@ renderpf90.matrix <- function(x) {
   nzmat <- cbind(arrayInd(idx, .dim = dim(x)), x[idx])
   nzmat <- nzmat[ order(nzmat[, 1], nzmat[, 2]),]
   
+  ## Fill-in zeros for spare columns
   fill_zero <- function(x, n) {
     if ((m <- length(x)) < n)
       x <- c(x, rep(0, n-m))
     return(x)
   }
   
+  ## there might be some empty rows that
+  ## we need to fill-in with zeros
+  ans <- matrix(0, nrow = nrow(x), ncol = ncol_eff * 2)
+  
   if (ncol_eff == 1) {
-    # check: first column of row positions is 1:n
-    stopifnot(isTRUE(all.equal(nzmat[, 1], seq_len(nrow(x)))))
-    ## return column of values and column of positions
-    ans <- cbind(nzmat[, 3:2])
+    ## Only one non-zero value per row
+    stopifnot(all(!duplicated(nzmat[,1])))
+    ans[nzmat[, 1], ] <- nzmat[, 3:2]
+    
   } else {
     ## cbind non-zero values and their positions
     ## filling-in with zeros up to ncol_eff
-    ans <- cbind(do.call('rbind',
-                         tapply(nzmat[, 3], nzmat[, 1], fill_zero, ncol_eff)),
-                 do.call('rbind',
-                         tapply(nzmat[, 2], nzmat[, 1], fill_zero, ncol_eff)))
+    ans[unique(nzmat[, 1]), ] <- 
+      cbind(do.call('rbind',
+                    tapply(nzmat[, 3], nzmat[, 1], fill_zero, ncol_eff)),
+            do.call('rbind',
+                    tapply(nzmat[, 2], nzmat[, 1], fill_zero, ncol_eff)))
   }
   
   ## Exception: case of indicator matrix

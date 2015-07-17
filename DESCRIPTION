@@ -1,7 +1,7 @@
 Package: breedR
 Type: Package
 Title: Statistical Methods for Forest Genetic Resources Analysts
-Version: 0.10-10
+Version: 0.10-11
 Date: 2015-06-22
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
