@@ -174,7 +174,7 @@ check_genetic <- function(model = c('add_animal', 'competition'),
     }
     
     ## Default initial variance
-    if (pec == TRUE){
+    if (pec$present == TRUE){
       if (!'var.ini' %in% names(pec)) {
         if (!attr(mc, 'var.ini.default')) {
           stop(paste0('var.ini must be specified for pec as well, ',
@@ -186,7 +186,7 @@ check_genetic <- function(model = c('add_animal', 'competition'),
     }
     
     ## Validate initial variance in pec
-    if (pec == TRUE){
+    if (pec$present == TRUE){
       validate_variance(pec$var.ini)
     }
     
