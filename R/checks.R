@@ -174,17 +174,21 @@ check_genetic <- function(model = c('add_animal', 'competition'),
     }
     
     ## Default initial variance
-    if (!'var.ini' %in% names(pec)) {
-      if (!attr(mc, 'var.ini.default')) {
-        stop(paste0('var.ini must be specified for pec as well, ',
-                    'in the competition specification.\n',
-                    'e.g. pec = list(present = TRUE, var.ini = 1)'))
-      }
+    if (pec == TRUE){
+      if (!'var.ini' %in% names(pec)) {
+        if (!attr(mc, 'var.ini.default')) {
+          stop(paste0('var.ini must be specified for pec as well, ',
+                      'in the competition specification.\n',
+                      'e.g. pec = list(present = TRUE, var.ini = 1)'))
+        }
       pec$var.ini <- breedR.getOption('default.initial.variance')
+      }
     }
     
     ## Validate initial variance in pec
-    validate_variance(pec$var.ini)
+    if (pec == TRUE){
+      validate_variance(pec$var.ini)
+    }
     
     ## At this point, names should match exactly those
     if (!all(idx <- names(pec) %in% c('present', 'var.ini'))) {
