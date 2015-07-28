@@ -345,7 +345,7 @@ remlf90 <- function(fixed,
   ## Spatial specification
   if (!is.null(spatial)) {
     
-    spatial <- do.call('check_spatial',  c(spatial, list(data = data)))
+    spatial <- do.call('check_spatial', c(spatial, list(data = data)))
     
     # If AR model without rho specified
     # we need to fit it with several fixed rho's
@@ -356,16 +356,13 @@ remlf90 <- function(fixed,
       if (!is.null(nrow(spatial$rho))) {
         ## grid case
         ## Results conditional on rho
-        eval.rho <- function(rho, mc) {
+        eval.rho <- function(rho, mc, envir) {
           mc$spatial$rho <- rho
-          ## Bloody function environments and scoping rules!
-          mc$spatial$coord <- spatial$coord
-          mc$data <- quote(data)
-          suppressWarnings(eval(mc))   # Avoid multiple redundant warnings
+          suppressWarnings(eval(mc, envir = envir))   # Avoid multiple redundant warnings
           # about initial variances.
         }
         #         test <- eval.rho(mc, c(.5, .5))
-        ans.rho <- apply(spatial$rho, 1, eval.rho, mc)
+        ans.rho <- apply(spatial$rho, 1, eval.rho, mc, envir = parent.frame())
         # Interpolate results
         loglik.rho <- transform(spatial$rho,
                                 loglik = suppressWarnings(sapply(ans.rho, logLik)))

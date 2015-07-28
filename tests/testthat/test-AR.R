@@ -151,7 +151,7 @@ context("Selection of autoregressive parameters")
 
 res.unset <- try(remlf90(fixed = y ~ z, 
                          spatial = list(model = 'AR',
-                                        coord = datlist[[1]][, 1:2]),
+                                        coordinat = datlist[[1]][, 1:2]),
                          data = datlist[[1]]),
                  silent = TRUE)
 
