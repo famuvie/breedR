@@ -358,7 +358,7 @@ remlf90 <- function(fixed,
         ## Results conditional on rho
         eval.rho <- function(rho, mc, envir) {
           mc$spatial$rho <- rho
-          suppressWarnings(eval(mc, envir = envir))   # Avoid multiple redundant warnings
+          suppressMessages(eval(mc, envir = envir))   # Avoid multiple redundant messages
           # about initial variances.
         }
         #         test <- eval.rho(mc, c(.5, .5))
