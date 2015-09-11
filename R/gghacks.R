@@ -91,7 +91,8 @@ spatial.plot <- function(dat, scale = c('divergent', 'sequential')) {
   
   p <- switch(scale,
               divergent = p + scale_fill_gradient2(low  = breedR.getOption('col.div')[1],
-                                                   high = breedR.getOption('col.div')[2]),
+                                                   high = breedR.getOption('col.div')[2],
+                                                   space = 'Lab'),
               sequential = p + scale_fill_gradient(low  = breedR.getOption('col.seq')[1],
                                                    high = breedR.getOption('col.seq')[2])
   #                 sequential = p + scale_fill_gradient(low = "#FFF7FB", high = "#034E7B")
