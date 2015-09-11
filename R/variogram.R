@@ -75,7 +75,6 @@
 #' variogram(res.sp, z = PBV)
 #' 
 #'   
-#' @importFrom fields vgram.matrix
 #' @seealso \code{\link[fields]{vgram.matrix}}
 #' @export
 variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspective', 'heat', 'none'), R, coord, z) {
@@ -125,7 +124,7 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   if( missing(R) ) R <- max(dist(coord))/sqrt(3)
   
   # Variogram computation
-  out <- fields::vgram.matrix(mat, R = R, dx = grd$step[1], dy = grd$step[2])
+  out <- vgram.matrix(mat, R = R, dx = grd$step[1], dy = grd$step[2])
 
   # Anisotropic variogram
   #   plot(out)  # from package fields

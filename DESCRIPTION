@@ -24,7 +24,6 @@ Depends:
     R (>= 2.15),
     sp
 Imports:
-    fields,
     ggplot2,
     Matrix (>= 1.2.0),
     methods,
