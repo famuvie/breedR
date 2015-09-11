@@ -75,7 +75,6 @@
 #' variogram(res.sp, z = PBV)
 #' 
 #'   
-#' @importFrom fields vgram.matrix
 #' @seealso \code{\link[fields]{vgram.matrix}}
 #' @export
 variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspective', 'heat', 'none'), R, coord, z) {
@@ -116,30 +115,17 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   if( any(duplicated(coord)) )
     stop('More than one observation detected in at least one spatial unit.\n')
   
-  # A regular grid containing all the location units
-  loc.grid <- loc_grid(coord, autofill = TRUE)
+  grd <- build_grid(coord)
   
-  # Spacing between rows/columns (in distance units)
-  step <- sapply(loc.grid, function(x) summary(diff(x)))['Median',]
-  
-  # Coordinates in row/col numbers
-  coord1 <- as.data.frame(mapply(factor,
-                                 x = as.data.frame(coord),
-                                 levels = loc.grid,
-                                 SIMPLIFY = FALSE))
-  
-  # Matrix of residuals by rows and cols
-  dat <- Matrix::sparseMatrix(i = as.integer(coord1[[1]]),
-                              j = as.integer(coord1[[2]]),
-                              x = z
-                              , dimnames = lapply(coord1, levels)
-  )
+  mat <- matrix(NA, grd$length[1], grd$length[2])
+  mat[grd$idx] <- z
   
   # Maximum radius for the variogram (in distance units)
-  if( missing(R) ) R <- max(coord)/sqrt(3)
+  if( missing(R) ) R <- max(dist(coord))/sqrt(3)
   
   # Variogram computation
-  out <- fields::vgram.matrix(as.matrix(dat), R = R, dx = step[1], dy = step[2])
+  out <- vgram.matrix(mat, R = R, dx = grd$step[1], dy = grd$step[2])
+
   # Anisotropic variogram
   #   plot(out)  # from package fields
   # TODO: change gradient colours.
@@ -197,7 +183,7 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   facetcol <- cut(meanmat.f(dat.mhalf), nbcol)
   
   # I can't store the plot itself in an object
-  # but I can stor the arguments for persp() in a list
+  # but I can store the arguments for persp() in a list
   dat.halfpersp <- list(x = as.numeric(levels(ind$x)),
                         y = as.numeric(levels(ind$y)),
                         z = dat.mhalf,

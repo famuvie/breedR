@@ -53,7 +53,38 @@ res <- transform(empvar$isotropic,
 #      plot(distance, variogram, type = 'l', ylim = c(0, 7));
 #      lines(distance, truev, col ='red')})
 
-test_that("The empirical variograms are well computed", {
+test_that("The isotropic empirical variograms are well computed", {
   expect_equal(as.numeric(res$variogram), res$truev, tolerance = .2)
 })
+
+
+
+test_that("The anisotropic empirical variograms are well computed", {
+  
+  ## Toy test data:
+  ## Non-rectangular; not equally-spaced; non-integer coords
+  #
+  #       522.0| ·  ·  ·  7
+  #       518.5| ·  ·  5  6
+  #       515.0| 1  2  3  4
+  #             ___________
+  #             18 20 22 24
+        
+  coord <- data.frame(x = c(18 + 2*(0:3), c(22, 24, 24)),
+                     y = c(rep(515, 4), rep(518.5, 2), 522))
+  z <- 1:7
+  R <- ceiling(max(dist(coord)))  # compute all combinations
+  # ggplot(tdat, aes(x, y, label = z)) + geom_text()
+  tvar <- variogram(coord = coord, z = z, R = R)
+  
+  ## Manually computed results
+  ord <- with(tvar$anisotropic, order(x, y))
+  true.var <- data.frame(
+    N = c(0, 0, 0, 0, 1, 0, 3, 1, 4, 3, 1, 2, 2, 1, 1, 1, 1), 
+    v = c(NaN, NaN, NaN, NaN, 1, NaN, 3, 9, 1, 22/3, 16, 4, 16, 25, 9, 25, 36)/2)
+  
+  expect_equal(tvar$anisotropic[ord, 'n'], true.var$N)
+  expect_equal(tvar$anisotropic[ord, 'z'], true.var$v)
+})
+
 
