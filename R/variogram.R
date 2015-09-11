@@ -122,7 +122,7 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   mat[grd$idx] <- z
   
   # Maximum radius for the variogram (in distance units)
-  if( missing(R) ) R <- max(coord)/sqrt(3)
+  if( missing(R) ) R <- max(dist(coord))/sqrt(3)
   
   # Variogram computation
   out <- fields::vgram.matrix(mat, R = R, dx = grd$step[1], dy = grd$step[2])
@@ -184,7 +184,7 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   facetcol <- cut(meanmat.f(dat.mhalf), nbcol)
   
   # I can't store the plot itself in an object
-  # but I can stor the arguments for persp() in a list
+  # but I can store the arguments for persp() in a list
   dat.halfpersp <- list(x = as.numeric(levels(ind$x)),
                         y = as.numeric(levels(ind$y)),
                         z = dat.mhalf,
