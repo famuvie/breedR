@@ -1,7 +1,3 @@
-# TODO
-# - number of observations per variogram cell 
-# - restrict R to cells where N > 30
-
 #' Empirical variograms of residuals
 #' 
 #' Computes isotropic and anisotropic empirical variograms from the residuals of
@@ -77,7 +73,16 @@
 #'   
 #' @seealso \code{\link[fields]{vgram.matrix}}
 #' @export
-variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspective', 'heat', 'none'), R, coord, z) {
+variogram <- function(x,
+                      plot = c('all', 
+                               'isotropic',
+                               'anisotropic', 
+                               'perspective',
+                               'heat', 
+                               'none'), 
+                      R,
+                      coord, 
+                      z) {
   
   if( missing(x) ) {
     if( (missing(coord) | missing(z)) ) {
@@ -121,45 +126,51 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   mat[grd$idx] <- z
   
   # Maximum radius for the variogram (in distance units)
-  if( missing(R) ) R <- max(dist(coord))/sqrt(3)
+  if( missing(R) ) R <- max(dist(coord))/3
   
   # Variogram computation
   out <- vgram.matrix(mat, R = R, dx = grd$step[1], dy = grd$step[2])
-
+  
   # Anisotropic variogram
   #   plot(out)  # from package fields
   # TODO: change gradient colours.
   dat.aniso <- with(out, data.frame(x = ind[, 1] * dx,
                                     y = ind[, 2] * dy,
                                     z = vgram.full,
-                                    n = N))
-
+                                    N = N))
+  
   # Isotropic variogram
-  dat.iso <- data.frame(distance = out$d,
-                        variogram = out$vgram)
-
+  dat.iso <- data.frame(
+    distance = out$d,
+    variogram = out$vgram,
+    N         = out$n
+  )
+  
   
   # Semi-isotropic variogram
   # Average the variogram for cells with different directions, but same
   # row/col separation. Since out$ind has only positive column separations,
   # we need to average rows with the same absolute value of rows and the same
   # value of columns
-  dat.halfheat <- aggregate(dat.aniso$z,
-                            by = abs(dat.aniso[, c('x', 'y')]), mean)
-  names(dat.halfheat)[3] <- 'z'
-
+  dat.halfheat <- aggregate(dat.aniso[, c('z', 'N')],
+                            by = abs(dat.aniso[, c('x', 'y')]), 
+                            mean, 
+                            na.rm = TRUE)
+  
   #   var.half.matrix <- tapply(out$vgram.full, as.data.frame(abs(out$ind)), mean)
   #   data.frame(expand.grid(lapply(dimnames(var.half.matrix),
   #                                 as.numeric)),
   #              z = as.vector(var.half.matrix))
   #   image(var.half.matrix)
-
+  
   
   # The perspective plot can only be done with base graphics
   # I do the computations here, and pass arguments for the print method
   ind <- lapply(dat.halfheat[, c('x', 'y')], as.factor)
   dat.mhalf <- matrix(NA, nrow = nlevels(ind$x), ncol = nlevels(ind$y))
+  dat.nhalf <- matrix(NA, nrow = nlevels(ind$x), ncol = nlevels(ind$y))
   dat.mhalf[sapply(ind, as.numeric)] <- dat.halfheat$z
+  dat.nhalf[sapply(ind, as.numeric)] <- dat.halfheat$N
   
   #   jet.colors <- colorRampPalette( c("blue", "green") )
   col.f <- colorRampPalette( c(breedR.getOption('col.seq')[1],
@@ -195,7 +206,10 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
                         xlab = 'row disp.',
                         ylab = 'col disp.',
                         zlab = '')
-
+  # I need to store N as an attribute.
+  # Otherwise it will not be recognised as a valid argument for 'persp'.
+  attr(dat.halfpersp, 'N') <- dat.nhalf
+  
   #   # DEBUG
   #   # How colour assignement works
   #   nx <- ny <- 4
@@ -221,7 +235,7 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   #     geom_raster() + 
   #     coord_fixed() +
   #     scale_fill_gradient(low='green', high='red')
-
+  
   
   ans <- list(isotropic = dat.iso,
               perspective = dat.halfpersp,
@@ -233,30 +247,63 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
 }
 
 #' @method print breedR.variogram
+#' @param minN numeric. Variogram values computed with less than \code{minN} 
+#'   pairs of observations are considered \emph{unstable} and therefore are not 
+#'   plotted. Default: 30.
+#' @param ... not used.
 #' @import ggplot2
+#' @describeIn variogram Print a breedR variogram
 #' @export
-print.breedR.variogram <- function(x, ...) {
+print.breedR.variogram <- function(x, minN = 30, ...) {
   
   # Compute the relevant plots only
   # Except for 'perspective' that connot be precomputed
   if(x$plot == 'isotropic' | x$plot == 'all') {
+    
+    ## Filter unstable values
+    if( any(idx <- which(x$isotropic$N < minN)) ) {
+      x$isotropic <- x$isotropic[-idx, ]
+    }
+    
     p.iso <-   ggplot(x$isotropic,
                       aes(distance, variogram)) +
       geom_point() +
       geom_line() +
       stat_smooth(se = FALSE, method = 'auto')
   }
+  
+  if(x$plot == 'perspective' | x$plot == 'all') {
+    
+    ## Filter unstable values
+    if( any(idx <- which(attr(x$perspective, 'N') < minN)) ) {
+      x$perspective$z[idx] <- NA
+      x$perspective$zlim = c(0, max(x$perspective$z, na.rm = TRUE))
+    }
+    
+  }
 
   if(x$plot == 'heat' | x$plot == 'all') {
+    
+    ## Filter unstable values
+    if( any(idx <- which(x$heat$N < minN)) ) {
+      x$heat$z[idx] <- NA
+    }
+    
     p.heat <-   spatial.plot(x$heat, scale = 'seq')
   }
   
   if(x$plot == 'anisotropic' | x$plot == 'all') {
+    
+    ## Filter unstable values
+    if( any(idx <- which(x$anisotropic$N < minN)) ) {
+      x$anisotropic$z[idx] <- NA
+    }
+    
     p.aniso <-   spatial.plot(x$anisotropic, scale = 'seq')
   }
   
   if(x$plot == 'all') {
-
+    
     # require(grid)
     if (!requireNamespace("grid", quietly = TRUE)) {
       stop("Package grid needed for plotting all variograms at once. Please install it, or plot them one by one.",
@@ -287,7 +334,7 @@ print.breedR.variogram <- function(x, ...) {
     print(p.heat, vp=vp.TopRight)
     do.call('persp', args = x$perspective)
     print(p.aniso, vp=vp.BottomRight)
-
+    
     # Return graphical device to default state
     par(op)
   }

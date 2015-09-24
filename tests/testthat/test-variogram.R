@@ -83,7 +83,7 @@ test_that("The anisotropic empirical variograms are well computed", {
     N = c(0, 0, 0, 0, 1, 0, 3, 1, 4, 3, 1, 2, 2, 1, 1, 1, 1), 
     v = c(NaN, NaN, NaN, NaN, 1, NaN, 3, 9, 1, 22/3, 16, 4, 16, 25, 9, 25, 36)/2)
   
-  expect_equal(tvar$anisotropic[ord, 'n'], true.var$N)
+  expect_equal(tvar$anisotropic[ord, 'N'], true.var$N)
   expect_equal(tvar$anisotropic[ord, 'z'], true.var$v)
 })
 

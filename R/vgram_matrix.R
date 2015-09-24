@@ -65,15 +65,23 @@ vgram.matrix <- function(dat, R = 5, dx = 1, dy = 1) {
   holdRVG <- 0.5 * (holdRVG^4)/(0.457 + 0.494 * holdN)
   # collapsed variogram to common distances this what one would look
   # at under the stationary case.
-  top <- tapply(holdVG * holdN, d, FUN = "sum")
+  top <- tapply(holdVG * holdN, d, FUN = "sum", na.rm = TRUE)
   bottom <- tapply(holdN, d, FUN = "sum")
   dcollapsed <- as.numeric(names(bottom))
   vgram <- top/bottom
   #  wipe out pesky row names
   dimnames(vgram) <- NULL
-  out <- list(vgram = vgram, d = dcollapsed, ind = ind, d.full = d, 
-              vgram.full = holdVG, robust.vgram = holdRVG, N = holdN, 
-              dx = dx, dy = dy)
+  out <- list(
+    vgram = vgram,
+    d = dcollapsed,
+    n = bottom,
+    ind = ind,
+    d.full = d,
+    vgram.full = holdVG,
+    robust.vgram = holdRVG,
+    N = holdN,
+    dx = dx,
+    dy = dy)
   class(out) <- "vgram.matrix"
   return(out)
 }
