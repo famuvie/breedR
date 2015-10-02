@@ -1,21 +1,30 @@
 #' Compare two or more ggplots of the same kind
 #' 
-#' This function presents several ggplots of the same type side to side
+#' This function presents several ggplots of the same type side by side
 #' under the same scale, while keeping annotations.
 #' 
 #' @param plots List of ggplots with meaningful names
 #' 
 #' The names of the objects in the list will be used for facet labels.
+#' @import ggplot2
 #' @export
 compare.plots <- function(plots) {
-  require(plyr)
+  # require(plyr)
+  if (!requireNamespace("plyr", quietly = TRUE)) {
+    stop("Package plyr needed for comparing plots. Please install..",
+         call. = FALSE)
+  }
+  
   # Use the same parameters as one of the plots, and add a facet
   # Thus plots need to have "compatible" names
   p <- plots[[1]]
   
   # Aggregate datasets and substitute data
   # http://docs.ggplot2.org/current/gg-add.html
-  tmpdat <- ldply(plots, function(x) x$data)
+  if( is.null(names(plots)) ) {
+    names(plots) <- paste('p', seq_along(plots), sep = '')
+  }
+  tmpdat <- plyr::ldply(plots, function(x) x$data)
   # Keep the order of the plots
   tmpdat <- transform(tmpdat,
                       .id = factor(.id, levels = unique(tmpdat$.id)))
@@ -23,17 +32,17 @@ compare.plots <- function(plots) {
   # Annotations
   extract.text.data <- function(plot) {
     # identify the geom_text layer
-    lab.idx <- which(laply(plot$layers,
+    lab.idx <- which(plyr::laply(plot$layers,
                            function(x) x$geom$objname == 'text'))
     if(length(lab.idx) == 0) return(NULL)
     data.frame(layer = lab.idx,
                plot$layers[[lab.idx]]$data,
                parse = plot$layers[[lab.idx]]$geom_params$parse)
   }
-  text.data <- ldply(plots, extract.text.data)
-  
+  text.data <- plyr::ldply(plots, extract.text.data)
+
   # If there are annotations ...
-  if(nrow(text.data) > 0) {
+  if( nrow(text.data) > 0 ) {
     # Remove the original geom_text layer
     p$layers[[text.data[1, 'layer']]] <- NULL
     p <- p + geom_text(aes(x, y, label = lab),
@@ -56,15 +65,25 @@ compare.plots <- function(plots) {
 #' 
 #' @param dat A 3-column data.frame with names 'x', 'y' and 'z' where the first 
 #'   two are the spatial coordinates, and 'z' is the value to be represented
-#' @param scale Character. 'divergent' represents positive and negative values
+#' @param scale Character. 'divergent' represents positive and negative values 
 #'   with different colours. 'sequential' uses a gradient scale of two colours.
+#' @import ggplot2
 spatial.plot <- function(dat, scale = c('divergent', 'sequential')) {
   
   scale <- match.arg(scale)
   
-  p <- ggplot2::ggplot(dat, aes(x, y)) +
-    coord_fixed() +
-    geom_raster(aes(fill = z))
+  dat <- as.data.frame(dat)
+  cn <- names(dat)
+  
+  if( !all(c('x', 'y', 'z') %in% cn) ) {
+    ggcl <- paste('ggplot2::ggplot(dat, aes(',cn[1], ',', cn[2], ')) + geom_raster(aes(fill = ', cn[3], '))')
+    p <- eval(parse(text = ggcl))
+  } else {
+    p <- ggplot2::ggplot(dat, aes(x , y)) + geom_raster(aes(fill =  z))
+  }
+  
+    
+  p <- p + coord_fixed()
   
   # Tool to extract hex-codes of colours
   #   scale_colour_brewer(type = 'seq', palette = 'Oranges')$palette(8)
@@ -72,7 +91,8 @@ spatial.plot <- function(dat, scale = c('divergent', 'sequential')) {
   
   p <- switch(scale,
               divergent = p + scale_fill_gradient2(low  = breedR.getOption('col.div')[1],
-                                                   high = breedR.getOption('col.div')[2]),
+                                                   high = breedR.getOption('col.div')[2],
+                                                   space = 'Lab'),
               sequential = p + scale_fill_gradient(low  = breedR.getOption('col.seq')[1],
                                                    high = breedR.getOption('col.seq')[2])
   #                 sequential = p + scale_fill_gradient(low = "#FFF7FB", high = "#034E7B")

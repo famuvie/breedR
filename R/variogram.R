@@ -1,7 +1,3 @@
-# TODO
-# - number of observations per variogram cell 
-# - restrict R to cells where N > 30
-
 #' Empirical variograms of residuals
 #' 
 #' Computes isotropic and anisotropic empirical variograms from the residuals of
@@ -17,8 +13,10 @@
 #' representations of a variogram which assumes that the process depends only on
 #' the absolute distance between rows and columns.
 #' 
-#' Unless \code{coord} or \code{z} are specified by the user, \code{variogram}
-#' plots
+#' Unless \code{coord} or \code{z} are specified by the user, \code{variogram} 
+#' builds the variogram with the residuals of the model fit in \code{x}. If 
+#' \code{coord} or \code{z} are specified, then the spatial coordinates or the 
+#' residuals are respectively overrided.
 #' 
 #' This function assumes that there is at most one observation per spatial 
 #' location. Otherwise, are observations measured at different times? should a 
@@ -29,18 +27,77 @@
 #'   is 'all'. Other options are 'isotropic', 'heat', 'perspective' and 
 #'   'anisotropic'. See Details.
 #' @param R numeric. Radius of the variogram
-#' @param coord a two-column matrix with coordinates of observations
-#' @param z a numeric vector of values to be represented spatially
+#' @param coord (optional) a two-column matrix with coordinates of observations
+#' @param z (optional) a numeric vector of values to be represented spatially
 #'   
+#' @examples 
+#' data(globulus)
+#' 
+#' # No spatial effect
+#' res <- remlf90(fixed  = phe_X ~ 1,
+#'                random = ~ gg,
+#'                genetic = list(model = 'add_animal',
+#'                               pedigree = globulus[, 1:3],
+#'                               id = 'self'),
+#'                data   = globulus)
+#' 
+#' Zd <- model.matrix(res)$genetic
+#' PBV <- Zd %*% ranef(res)$genetic
+#' 
+#' # variogram() needs coordinates to compute distances
+#' # either you use the \code{coord} argument, or you do:
+#' coordinates(res) <- globulus[, c('x', 'y')]
+#'
+#' # there is residual autocorrelation
+#' # there is also spatial structure in the Breeding Values
+#' variogram(res)  
+#' variogram(res, z = PBV)  
+#' 
+#' # Autoregressive spatial effect
+#' # eliminates the residual autocorrelation
+#' res.sp<- remlf90(fixed  = phe_X ~ 1,
+#'                  spatial = list(model = 'AR', 
+#'                                 coord = globulus[, c('x', 'y')],
+#'                                 rho = c(.9, .9)),
+#'                  genetic = list(model = 'add_animal',
+#'                                 pedigree = globulus[, 1:3],
+#'                                 id = 'self'),
+#'                  data   = globulus)
+#' 
+#' Zd <- model.matrix(res.sp)$genetic
+#' PBV <- Zd %*% ranef(res.sp)$genetic
+#' 
+#' variogram(res.sp)
+#' variogram(res.sp, z = PBV)
+#' 
 #'   
-#' @importFrom fields vgram.matrix
+#' @seealso \code{\link[fields]{vgram.matrix}}
 #' @export
-variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspective', 'heat', 'none'), R, coord, z) {
+variogram <- function(x,
+                      plot = c('all', 
+                               'isotropic',
+                               'anisotropic', 
+                               'perspective',
+                               'heat', 
+                               'none'), 
+                      R,
+                      coord, 
+                      z) {
   
-  if( !inherits(x, 'breedR') & (missing(coord) | missing(z)) ) 
-    stop(paste('This function works on models fitted with breedR,',
-               'or with both arguments coord and z.\n',
-               sep='\n'))
+  if( missing(x) ) {
+    if( (missing(coord) | missing(z)) ) {
+      stop(paste('This function works on models fitted with breedR,',
+                 'or with both arguments coord and z.\n',
+                 sep='\n'))
+    } else {
+      coord <- as.matrix(coord)
+      stopifnot(is.numeric(coord))
+      stopifnot(ncol(coord) == 2)
+      stopifnot(nrow(coord) > 1)
+    }
+  } else {
+    stopifnot(inherits(x, 'breedR'))
+  }
   
   plot <- match.arg(plot)
   # We need to place the residuals in matrix form
@@ -63,64 +120,57 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   if( any(duplicated(coord)) )
     stop('More than one observation detected in at least one spatial unit.\n')
   
-  # A regular grid containind all the location units
-  loc.grid <- loc_grid(coord, autofill = TRUE)
+  grd <- build_grid(coord)
   
-  # Spacing between rows/columns (in distance units)
-  step <- sapply(loc.grid, function(x) summary(diff(x)))['Median',]
-  
-  # Coordinates in row/col numbers
-  coord1 <- as.data.frame(mapply(factor,
-                                 x = as.data.frame(coord),
-                                 levels = loc.grid,
-                                 SIMPLIFY = FALSE))
-  
-  # Matrix of residuals by rows and cols
-  dat <- sparseMatrix(i = as.integer(coord1[[1]]),
-                      j = as.integer(coord1[[2]]),
-                      x = z
-                      , dimnames = lapply(coord1, levels)
-                      )
+  mat <- matrix(NA, grd$length[1], grd$length[2])
+  mat[grd$idx] <- z
   
   # Maximum radius for the variogram (in distance units)
-  if( missing(R) ) R <- max(coord/sqrt(2))
+  if( missing(R) ) R <- max(dist(coord))/3
   
   # Variogram computation
-  out <- vgram.matrix(as.matrix(dat), R = R, dx = step[1], dy = step[2])
-
+  out <- vgram.matrix(mat, R = R, dx = grd$step[1], dy = grd$step[2])
+  
   # Anisotropic variogram
   #   plot(out)  # from package fields
   # TODO: change gradient colours.
   dat.aniso <- with(out, data.frame(x = ind[, 1] * dx,
                                     y = ind[, 2] * dy,
-                                    z = vgram.full))
-
+                                    z = vgram.full,
+                                    N = N))
+  
   # Isotropic variogram
-  dat.iso <- data.frame(distance = out$d,
-                        variogram = out$vgram)
-
+  dat.iso <- data.frame(
+    distance = out$d,
+    variogram = out$vgram,
+    N         = out$n
+  )
+  
   
   # Semi-isotropic variogram
   # Average the variogram for cells with different directions, but same
   # row/col separation. Since out$ind has only positive column separations,
   # we need to average rows with the same absolute value of rows and the same
   # value of columns
-  dat.halfheat <- aggregate(dat.aniso$z,
-                            by = abs(dat.aniso[, c('x', 'y')]), mean)
-  names(dat.halfheat)[3] <- 'z'
-
+  dat.halfheat <- aggregate(dat.aniso[, c('z', 'N')],
+                            by = abs(dat.aniso[, c('x', 'y')]), 
+                            mean, 
+                            na.rm = TRUE)
+  
   #   var.half.matrix <- tapply(out$vgram.full, as.data.frame(abs(out$ind)), mean)
   #   data.frame(expand.grid(lapply(dimnames(var.half.matrix),
   #                                 as.numeric)),
   #              z = as.vector(var.half.matrix))
   #   image(var.half.matrix)
-
+  
   
   # The perspective plot can only be done with base graphics
   # I do the computations here, and pass arguments for the print method
   ind <- lapply(dat.halfheat[, c('x', 'y')], as.factor)
   dat.mhalf <- matrix(NA, nrow = nlevels(ind$x), ncol = nlevels(ind$y))
+  dat.nhalf <- matrix(NA, nrow = nlevels(ind$x), ncol = nlevels(ind$y))
   dat.mhalf[sapply(ind, as.numeric)] <- dat.halfheat$z
+  dat.nhalf[sapply(ind, as.numeric)] <- dat.halfheat$N
   
   #   jet.colors <- colorRampPalette( c("blue", "green") )
   col.f <- colorRampPalette( c(breedR.getOption('col.seq')[1],
@@ -144,7 +194,7 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   facetcol <- cut(meanmat.f(dat.mhalf), nbcol)
   
   # I can't store the plot itself in an object
-  # but I can stor the arguments for persp() in a list
+  # but I can store the arguments for persp() in a list
   dat.halfpersp <- list(x = as.numeric(levels(ind$x)),
                         y = as.numeric(levels(ind$y)),
                         z = dat.mhalf,
@@ -156,7 +206,10 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
                         xlab = 'row disp.',
                         ylab = 'col disp.',
                         zlab = '')
-
+  # I need to store N as an attribute.
+  # Otherwise it will not be recognised as a valid argument for 'persp'.
+  attr(dat.halfpersp, 'N') <- dat.nhalf
+  
   #   # DEBUG
   #   # How colour assignement works
   #   nx <- ny <- 4
@@ -182,7 +235,7 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   #     geom_raster() + 
   #     coord_fixed() +
   #     scale_fill_gradient(low='green', high='red')
-
+  
   
   ans <- list(isotropic = dat.iso,
               perspective = dat.halfpersp,
@@ -193,30 +246,69 @@ variogram <- function(x, plot = c('all', 'isotropic', 'anisotropic', 'perspectiv
   return(ans)
 }
 
-#' @S3method print breedR.variogram
+#' @method print breedR.variogram
+#' @param minN numeric. Variogram values computed with less than \code{minN} 
+#'   pairs of observations are considered \emph{unstable} and therefore are not 
+#'   plotted. Default: 30.
+#' @param ... not used.
+#' @import ggplot2
+#' @describeIn variogram Print a breedR variogram
 #' @export
-print.breedR.variogram <- function(x) {
+print.breedR.variogram <- function(x, minN = 30, ...) {
   
   # Compute the relevant plots only
   # Except for 'perspective' that connot be precomputed
   if(x$plot == 'isotropic' | x$plot == 'all') {
+    
+    ## Filter unstable values
+    if( any(idx <- which(x$isotropic$N < minN)) ) {
+      x$isotropic <- x$isotropic[-idx, ]
+    }
+    
     p.iso <-   ggplot(x$isotropic,
                       aes(distance, variogram)) +
       geom_point() +
       geom_line() +
       stat_smooth(se = FALSE, method = 'auto')
   }
+  
+  if(x$plot == 'perspective' | x$plot == 'all') {
+    
+    ## Filter unstable values
+    if( any(idx <- which(attr(x$perspective, 'N') < minN)) ) {
+      x$perspective$z[idx] <- NA
+      x$perspective$zlim = c(0, max(x$perspective$z, na.rm = TRUE))
+    }
+    
+  }
 
   if(x$plot == 'heat' | x$plot == 'all') {
+    
+    ## Filter unstable values
+    if( any(idx <- which(x$heat$N < minN)) ) {
+      x$heat$z[idx] <- NA
+    }
+    
     p.heat <-   spatial.plot(x$heat, scale = 'seq')
   }
   
   if(x$plot == 'anisotropic' | x$plot == 'all') {
+    
+    ## Filter unstable values
+    if( any(idx <- which(x$anisotropic$N < minN)) ) {
+      x$anisotropic$z[idx] <- NA
+    }
+    
     p.aniso <-   spatial.plot(x$anisotropic, scale = 'seq')
   }
   
   if(x$plot == 'all') {
-    require(grid)
+    
+    # require(grid)
+    if (!requireNamespace("grid", quietly = TRUE)) {
+      stop("Package grid needed for plotting all variograms at once. Please install it, or plot them one by one.",
+           call. = FALSE)
+    }
     
     plot.new()
     # split the graphic window in four and reduce margins
@@ -224,22 +316,25 @@ print.breedR.variogram <- function(x) {
     par(mfg = c(2, 1))
     
     # define vewports
-    vp.BottomRight <- viewport(height=unit(.5, "npc"), width=unit(0.5, "npc"), 
-                               just=c("left","top"), 
-                               y=0.5, x=0.5)
-    vp.TopLeft <- viewport(height=unit(.5, "npc"), width=unit(0.5, "npc"), 
-                           just=c("right","bottom"), 
-                           y=0.5, x=0.5)
-    vp.TopRight <- viewport(height=unit(.5, "npc"), width=unit(0.5, "npc"), 
-                            just=c("left","bottom"), 
-                            y=0.5, x=0.5)
+    vp.BottomRight <- grid::viewport(height = grid::unit(.5, "npc"),
+                                     width = grid::unit(0.5, "npc"), 
+                                     just = c("left","top"), 
+                                     y = 0.5, x = 0.5)
+    vp.TopLeft <- grid::viewport(height = grid::unit(.5, "npc"),
+                                 width = grid::unit(0.5, "npc"), 
+                                 just = c("right","bottom"), 
+                                 y = 0.5, x = 0.5)
+    vp.TopRight <- grid::viewport(height = grid::unit(.5, "npc"),
+                                  width = grid::unit(0.5, "npc"), 
+                                  just=c("left","bottom"), 
+                                  y = 0.5, x = 0.5)
     
     # print the four plots
     suppressMessages(print(p.iso, vp=vp.TopLeft))
     print(p.heat, vp=vp.TopRight)
     do.call('persp', args = x$perspective)
     print(p.aniso, vp=vp.BottomRight)
-
+    
     # Return graphical device to default state
     par(op)
   }

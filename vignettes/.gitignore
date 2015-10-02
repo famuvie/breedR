@@ -1,0 +1,4 @@
+.build.timestamp
+*_cache/*
+*_files/*
+img

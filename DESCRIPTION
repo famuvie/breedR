@@ -1,8 +1,8 @@
 Package: breedR
 Type: Package
-Title: Statistical methods for forest genetic resources analysts
-Version: 0.6-3
-Date: 2013-11-12
+Title: Statistical Methods for Forest Genetic Resources Analysts
+Version: 0.10-14
+Date: 2015-09-11
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
     role=c("aut", "cre"),
@@ -12,7 +12,7 @@ Authors@R: c(person("Facundo", "Muñoz",
     person("Pablo", "Cappa", role="ctb"))
 Author: Facundo Muñoz with libraries by Ignacy Misztal
 Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
-Description: This package provides statistical tools to build predictive models
+Description: Statistical tools to build predictive models
     for the breeders community. It aims to assess the genetic value of
     individuals under a number of situations, including spatial
     autocorrelation, genetic/environment interaction and competition. It is
@@ -22,19 +22,30 @@ Description: This package provides statistical tools to build predictive models
 License: GPL-3 | file LICENSE
 Depends:
     R (>= 2.15),
-    ggplot2,
-    Matrix,
-    pedigree,
-    pedigreemm,
-    methods,
-    splines,
     sp
 Imports:
-    fields,
-    grid
+    ggplot2,
+    Matrix (>= 1.2.0),
+    methods,
+    nlme,
+    pedigree,
+    pedigreemm,
+    splines
 Suggests:
-    testthat
+    doParallel,
+    GGally,
+    grid,
+    INLA,
+    MASS,
+    plyr,
+    spam,
+    testthat,
+    knitr,
+    rmarkdown,
+    tidyr
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
-BugReports: https://github.com/famuvie/breedR
+BugReports: https://github.com/famuvie/breedR/issues
+Additional_repositories: http://www.math.ntnu.no/inla/R/testing
+VignetteBuilder: knitr

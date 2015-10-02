@@ -1,3 +1,50 @@
+breedR 0.10
+==========
+
+* Full internal refactoring (with few 'visible' changes in the interface)
+
+* `model.matrix()` no longer separates `fixed` and `random` effects.
+  It returns the same structure as `ranef()` which is more intuitive.
+
+* `vcov()` works now with any of the non-diagonal random effects.
+
+* Much more exhaustive testing ensures greater stability.
+
+* New datasets Douglas (multi-site) and Larix (repeated measurements)
+
+
+breedR 0.9
+==========
+
+* New 'generic' model component allows passing a list of arbitrary incidence and covariance/precision matrices
+
+* Optimized splines model. It runs about 5x faster.
+
+
+breedR 0.8
+==========
+
+* New interface ranef() to access BLUP of random effects
+
+* New interface model.matrix() to get incidence matrices
+
+* Integrated vignettes into the package
+
+
+breedR 0.7
+==========
+
+* Remote computing through ssh
+
+* Convenient scaling of spatial variance components
+
+* Additive genetic competition model
+
+* Permanent environmental competition effect
+
+* Simulation infrastructure
+
+
 breedR 0.6
 ==========
 
@@ -32,8 +79,6 @@ breedR 0.2
 ==========
 
 * Unstructured Random effects
-
-* Pedigree checking, completing, sorting and recoding
 
 * Simple simulation of spatially structured effects
 

@@ -3,7 +3,6 @@
 #%% Facundo Muñoz  %%#
 #%%%%%%%%%%%%%%%%%%%%#
 
-# require(INLA)         # For simulating a spatial effect
 
 #' Metagene Data Input
 #' 
@@ -73,12 +72,8 @@ read.metagene <- function(fname) {
 }
 
 
-#' Summary method for metagene objects
-#' 
-#' Prints a summary of a metagene objects.
 #' @method summary metagene
-#' @param x A metagene object
-#' @return Prints summary
+#' @family metagene
 #' @export
 summary.metagene <- function(object, ...) {
 #   attach(x)
@@ -142,6 +137,8 @@ summary.metagene <- function(object, ...) {
   return(summeta)
 }
 
+#' @method print summary.metagene
+#' @family metagene
 #' @export
 print.summary.metagene <- function(x, ...) {
   cat('Metagene simulated dataset\n===========================\n')
@@ -152,18 +149,18 @@ print.summary.metagene <- function(x, ...) {
   cat('Selection strategy: (Warning: fixed info)\t
       diagonal; 10+10 descendants per mating; select best 80+80\n')
   cat('\nBreeding values: ##########################\n')
-  for(i in 1:length(x$breeding.values)){
+  for(i in seq_along(x$breeding.values)){
     cat(names(x$breeding.values)[i], ':\n')
     print(x$breeding.values[[i]])
   }
   cat('\nPhenotypic values: ########################\n')
-  for(i in 1:length(x$phenotype)){
+  for(i in seq_along(x$phenotype)){
     cat(names(x$phenotype)[i], ':\n')
     print(x$phenotype[[i]])
   }
   cat('\nHeritability: #############################\n')
 #   browser()
-  for(i in 1:length(x$phenotype)){
+  for(i in seq_along(x$phenotype)){
     cat(names(x$phenotype)[i], ':\n')
     if(is.null(dim(x$phenotype[[i]])))
       print(x$breeding.values[[i]][,'Var']/x$phenotype[[i]][,'Var'])
@@ -176,54 +173,56 @@ print.summary.metagene <- function(x, ...) {
 #' 
 #' Plots either genetic and phenotypic values, or the spatial component of the
 #' phenotype
+#' @param x a metagene object.
+#' @param type character. If 'default', the empirical density of the breeding and phenotypical values will be represented by generation. If 'spatial', the map of the spatial component will be plotted.
+#' @param ... Further layers passed to \code{\link[ggplot2]{ggplot}}.
 #' @method plot metagene
+#' @import ggplot2
+#' @family metagene
 #' @export
 plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 #   dat <- data(x)
   type <- match.arg(type)
-  n = nindividuals(x)
   
   if(type == 'spatial') {
     stopifnot('spatial' %in% names(x))
-    ggplot(transform(as.data.frame(x),
-                     value = sp_X),
-           aes(irow, icol)) + 
-      geom_tile(aes(fill = value)) + 
-      scale_fill_gradient(low = 'green', high = 'red')
+    spdat <- with(as.data.frame(x),
+                  data.frame(irow, icol, z = sp_X,
+                             model = 'spatial'))
+    p <- spatial.plot(spdat, scale = 'div') + 
+      facet_wrap(~ model)
   }
   else {
-    dat <- data.frame(label=rep(c('genotype', 'phenotype'), each=n),
+    dat <- data.frame(label=rep(c('genotype', 'phenotype'),
+                                each = nindividuals(x)),
                       generation = rep(factor(x$gen), 2),
                       sex = rep(x$sex, 2),
                       value = c(x$BV_X, x$phe_X))
-    ggplot(dat, aes(x = value, fill = label)) +
+    p <- ggplot(dat, aes(x = value, fill = label)) +
       geom_density(alpha=.3) +
       facet_grid(generation~.) +
       labs(x = "Value by generation") 
   }
+  
+  if( !missing(...) ) {
+    p <- p + ...
+  }
+  
+  p
 }
 
 #### Interface functions ####
 
-#' Extract the number of traits
 #' @export
-get_ntraits <- function(x) UseMethod('get_ntraits')
-#' @export
-get_ntraits.metagene <- function(x) {
+get_ntraits.metagene <- function(x, ...) {
   return(x$n.traits)
 }
 
-#' Number of generations
 #' @export
-ngenerations <- function(x) UseMethod('ngenerations')
-#' @export
-ngenerations.metagene <- function(x) {
+ngenerations.metagene <- function(x, ...) {
   return(x$n.generations)
 }
 
-#' Number of individuals
-#' @export
-nindividuals <- function(x, ...) UseMethod('nindividuals')
 #' @export
 nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   N <- x$n.individuals
@@ -231,15 +230,6 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   return(N)
 }
 
-#' Get the Pedigree from an object
-#' 
-#' Returns an object from the formal class 'pedigree'
-#' @export
-#' @S3method get_pedigree metagene
-get_pedigree <- function(x, ...) UseMethod('get_pedigree')
-get_pedigree.metagene <- function(x, ...) {
-  return(with(x$Data, pedigreemm::pedigree(sire=dad, dam=mum, label=self)))
-}
 
 #' Coerce to a data.frame
 #' 
@@ -253,6 +243,7 @@ get_pedigree.metagene <- function(x, ...) {
 #' @return returns a data frame with one row per individual, the first column
 #'   being the identification code, and the other two columns are dad and mum
 #'   codes respectively.
+#' @family metagene
 #' @export
 as.data.frame.pedigree <- function(x, ...) {
   y <- as(x, 'data.frame')
@@ -276,6 +267,7 @@ as.data.frame.pedigree <- function(x, ...) {
 #'   coordinates if applicable, the pedigree information, the generation, the
 #'   true breeding value, the phenotype, the sex, the spatially structured
 #'   component of the phenotype and other internal metagene variables.
+#' @family metagene
 #' @export
 as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   # Exclude founders if appropriate
@@ -293,8 +285,17 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 }
 
 
-#' Extract columns directly from the dataframe
+#' Extract or replace data in a metagene object
 #' 
+#' @name Extract.metagene
+#' @param x a metagene object.
+#' @param name character. A varaible name.
+#' @param value a vector.
+#' @param ... a vector of integer indices or names of columns in the dataset.
+#' @family metagene
+NULL
+
+#' Extract columns directly from the dataframe
 #' @rdname Extract.metagene
 #' @export
 "$.metagene" <- function(x, name) {
@@ -305,7 +306,6 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 }
 
 #' Write columns of the dataframe
-#' 
 #' @rdname Extract.metagene
 #' @export
 "$<-.metagene" <- function(x, name, value) {
@@ -317,7 +317,6 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 }
 
 #' Subset data
-#' 
 #' @rdname Extract.metagene
 #' @export
 "[.metagene" <- function(x, ...) {
@@ -340,16 +339,17 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   # (coordinates exclude founders)
   coord <- Data.subset[!apply(is.na(Data.subset[, 1:2]), 1, all), 1:2]
   if(nrow(coord) > 0)
-    y$spatial$spatial.points <- SpatialPoints(coord)
+    y$spatial$spatial.points <- sp::SpatialPoints(coord)
   else y$spatial$spatial.points <- list(NULL)
   return(y)
 }
 
 #' Breeding values
+#' @param x a metagene object.
 #' @export
-b.values <- function(x, ...) {
+b.values <- function(x) {
   stopifnot(inherits(x, 'metagene'))
-  dat <- data(x)[,c('self', 'gen', 'sex', 'BV_X')]
+  dat <- x$Data[,c('self', 'gen', 'sex', 'BV_X')]
   return(dat)
 }
 
@@ -368,34 +368,14 @@ b.values <- function(x, ...) {
 
 #### Simulate spatial structure ####
 
-#' Simulate a spatial structure
-#' 
-#' Takes a metagene simulated dataset and distributes its individuals randomly 
-#' into a more or less square spatial region. Furthermore, it takes part of the 
-#' phenotypic noise and puts some spatial structure into it.
-#' 
-#' Founders are not put into place, as they don't have phenotypic values. 
-#' Therefore, they are returned without coordinates nor spatial values.
-#' 
-#' The variance of the spatial field is given as a proportion of the variance of
-#' the random noise that was added to the Breeding Values to produce the 
-#' phenotypes. The phenotypes are afterwards recalculated to preserve the 
-#' heritability.
-#' 
-#' The spatial unit is the distance between consecutive trees.
-#' @method sim.spatial metagene
-#' @param meta A metagene object
-#' @param variance A number between 0 and 1. The variance of the spatial field 
-#'   as a proportion of the non-inheritable pehnotype variance. See Details.
-#' @param range A number between 0 and 1. The range of the spatial field, as a 
-#'   proportion of the region size.
-#' @return Another metagene object with spatial structure given through an 
-#'   additional column \code{sp_X} with the spatially structured component of 
-#'   the phenotype, and a 'spatial' list element with coordinates and simulation
-#'   information
 #' @export
-sim.spatial <- function(meta, variance, range, ...) UseMethod('sim.spatial')
 sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
+  
+  if (!requireNamespace("INLA", quietly = TRUE)) {
+    stop("Pakage INLA needed for this simulating the spatial structure. Please install.",
+         call. = FALSE)
+  }
+  
   #### Distribute the individuals (except founders) randomly in space
 #   meta <- meta[meta$gen!=0,]
   founders.idx <- which(meta$gen==0)
@@ -405,15 +385,15 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   
   # Randomize individuals
   spatial.order <- sample(meta$self[-founders.idx], N)
-  spatial.coord <- head(as.data.frame(inla.node2lattice.mapping(nr, nc)), N)
-  SP <- SpatialPoints(spatial.coord[order(spatial.order), ])
+  spatial.coord <- head(as.data.frame(INLA::inla.node2lattice.mapping(nr, nc)), N)
+  SP <- sp::SpatialPoints(spatial.coord[order(spatial.order), ])
   
   #### Simulate spatial field
   
   # The spatial unit will be the distance between consecutive trees
   
   # Generate INLA mesh
-  mesh <- inla.mesh.2d(loc = coordinates(SP),
+  mesh <- INLA::inla.mesh.2d(loc = coordinates(SP),
                        cutoff = floor(.04*nr),
                        offset = floor(c(.05, .2)*nr),
                        max.edge = floor(c(.05, .1)*nr))
@@ -436,21 +416,21 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   tau0 = 1/(sqrt(4*pi)*kappa0*sigma0)
   
   # SPDE object
-  spde=inla.spde2.matern(mesh,
+  spde=INLA::inla.spde2.matern(mesh,
                          B.tau=cbind(log(tau0),1,0),
                          B.kappa=cbind(log(kappa0),0,1),
                          theta.prior.mean=c(0,0),
                          theta.prior.prec=1)
   
   # Precision matrix (using the prior means of the parameters)
-  Q=suppressMessages(inla.spde2.precision(spde,theta=c(0,0)))
+  Q=suppressMessages(INLA::inla.spde2.precision(spde,theta=c(0,0)))
   
   # Sample
-  x=suppressWarnings(as.vector(inla.qsample(n=1,Q)))
+  x=suppressWarnings(as.vector(INLA::inla.qsample(n=1,Q)))
   # str(x)
   # The mesh vertices don't coincide with the observation locations
   # The A matrix provides a mapping such that y = Ax
-#   A = inla.spde.make.A(mesh, loc = coordinates(SP))
+#   A = INLA::inla.spde.make.A(mesh, loc = coordinates(SP))
   
 #   # Visualize
 #   plot(mesh, rgl=TRUE, col=x,
@@ -458,14 +438,14 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
 #        draw.edges=FALSE, draw.segments=TRUE, draw.vertices=FALSE)
 #   
 #   # Project into a 100x100 matrix (only inner area)
-#   proj.mat = inla.mesh.projector(mesh, xlim=c(1, nr), ylim=c(1,nc))    
+#   proj.mat = INLA::inla.mesh.projector(mesh, xlim=c(1, nr), ylim=c(1,nc))    
     # This contains the A matrix in proj$proj$A
-#   ss.matrix <- inla.mesh.project(proj.mat, field = x)
+#   ss.matrix <- INLA::inla.mesh.project(proj.mat, field = x)
 #   image(ss.matrix)
   
   # Project into the observations locations
-  proj.vec = inla.mesh.projector(mesh, loc=coordinates(SP))    
-  ss.vec <- inla.mesh.project(proj.vec, field = x)
+  proj.vec = INLA::inla.mesh.projector(mesh, loc=coordinates(SP))    
+  ss.vec <- INLA::inla.mesh.project(proj.vec, field = x)
 #   str(ss.vec)       # Value of the simulated spatial field in the obs locs
 #   summary(ss.vec)
 #   var(ss.vec)      # This should be similar  to BV.var
@@ -494,6 +474,11 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
 # sp::coordinates() is an S4 function
 # Register the S3 class 'metagene' as an S4 class
 setOldClass('metagene')
+# @importFrom sp coordinates
+# @importClassesFrom sp Spatial
+# @importMethodsFrom sp coordinates coordinates<-
+# @export
+#' @import sp
 setMethod('coordinates', signature = 'metagene', 
           function(obj, ...) {
             if(!('spatial' %in% names(obj)))
@@ -503,3 +488,10 @@ setMethod('coordinates', signature = 'metagene',
           }
 )
 
+# Dummy method (Provide a proper def)
+# @export
+setMethod('coordinates<-', signature = 'metagene', 
+          function(object, value) {
+            NULL
+          }
+)

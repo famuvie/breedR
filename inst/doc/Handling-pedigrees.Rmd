@@ -1,0 +1,115 @@
+---
+title: "Handling pedigrees"
+author: "Facundo Muñoz"
+date: "`r paste(Sys.Date(), 'breedR version:', packageVersion('breedR'))`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 1
+  md_document:
+    variant: markdown_github
+    toc: true
+    toc_depth: 1
+vignette: >
+  %\VignetteIndexEntry{Handling pedigrees}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, echo = FALSE, include=FALSE}
+library(breedR)
+```
+
+
+## What is a _pedigree_ 
+
+- A 3-column `data.frame` or `matrix` with the codes for each individual and its parents
+
+- A **family** effect is easily translated into a pedigree:
+    - use the **family code** as the identification of a fictitious **mother**
+    - use `0` or `NA` as codes for the **unknown fathers**
+    
+- A pedigree sintetizes **any kind of (genetic) relationship** between individuals from one or more generations
+
+```{r pedigree, purl=FALSE, results='asis', echo=FALSE}
+knitr::kable(head(globulus[, 1:3]))
+```
+
+
+## Checking pedigrees 
+
+- For computational reasons, the pedigree needs to meet certain conditions:
+    - Completness: all the individuals (also parents) must have an entry
+        - with possibly unknown parents (code `0` or `NA`)
+    - The offspring must follow the parents 
+    - The codes must be sorted increasingly
+    - The codes must be consecutive
+
+- So, not every 3-column `data.frame` or `matrix` with codes is a proper pedigree:
+
+```{r check-pedigree}
+set.seed(123); n.ped <- 5
+ped.nightmare <- matrix(sample(30, n.ped*3), n.ped, 3,
+                        dimnames = list(NULL, c('self', 'sire', 'dam')))
+check_pedigree(ped.nightmare)
+```
+
+
+## Building pedigrees
+
+- **breedR** implements a _pedigree constructor_ that completes, sorts and recodes as necessary
+
+- The resulting object, of class `pedigree` is guranteed to meet the conditions
+
+```{r build-pedigree}
+ped.fix <- build_pedigree(1:3, data = ped.nightmare)
+check_pedigree(ped.fix)
+attr(ped.fix, 'map')  # map from old to new codes
+```
+
+```{r compare-pedigrees, results = 'asis', echo=FALSE}
+knitr::kable(ped.nightmare)
+knitr::kable(as.data.frame(ped.fix))
+```
+
+
+## Using a pedigree in an additive genetic effect
+
+- just include your original pedigree information and let **breedR** fix it for you
+
+```{r exercise-pedigree-dat}
+test.dat <- data.frame(ped.nightmare, y = rnorm(n.ped))
+res.raw <- remlf90(fixed   = y ~ 1,
+                   genetic = list(model = 'add_animal',
+                                  pedigree = ped.nightmare,
+                                # pedigree = test.dat[, 1:3],  # same thing
+                                  var.ini = 1,
+                                  id = 'self'),
+                   var.ini = list(resid = 1),
+                   data    = test.dat)
+
+## pedigree has been recoded!
+length(ranef(res.raw)$genetic)
+
+## The pedigree used in the model matches the one manually built
+identical(ped.fix, get_pedigree(res.raw))
+```
+
+
+## Recovering Breeding Values in the original coding
+```{r PBV, results = 'asis'}
+## Predicted Breeding Valuess of the observed individuals
+## Left-multiplying the vector of BLUP by the incidence matrix
+## gives the BLUP of the observations in the right order.
+Za <- model.matrix(res.raw)$genetic  # incidence matrix
+gen.blup <- with(ranef(res.raw),
+                 cbind(value=genetic,
+                       's.e.'=attr(genetic, 'se')))
+PBVs <- Za %*% gen.blup
+rownames(PBVs) <- test.dat$self
+```
+
+```{r PBV-table, results = 'asis', echo=FALSE}
+knitr::kable(PBVs, digits = 2)
+```
+

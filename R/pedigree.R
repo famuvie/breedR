@@ -76,6 +76,10 @@ build_pedigree <- function(x, self = x[[1]], sire = x[[2]], dam = x[[3]], data) 
 
   # Order by identity
   pedx <- pedx[order(pedx$self), ]
+  
+  # Remove replicated observations
+  pedx <- pedx[!duplicated(pedx),]
+  
   ### Check pedigree rules
   checks <- check_pedigree(pedx)
   
@@ -96,7 +100,7 @@ build_pedigree <- function(x, self = x[[1]], sire = x[[2]], dam = x[[3]], data) 
   # pedx should pass all checks
   stopifnot(all(check_pedigree(pedx)))
 
-  out <- pedigree(sire = pedx$sire, dam = pedx$dam, label = pedx$self)
+  out <- pedigreemm::pedigree(sire = pedx$sire, dam = pedx$dam, label = pedx$self)
   if( !all(checks)) attr(out, 'map') <- map
   return(out)
 }

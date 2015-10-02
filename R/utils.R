@@ -1,10 +1,10 @@
 ## Internal utility functions
 ## Not exported
 
-#' lme4-style formulas
-#' 
-#' Transform the separated fixed and random formulas
-#' into the single formula with lme4 syntaxis
+# lme4-style formulas
+# 
+# Transform the separated fixed and random formulas
+# into the single formula with lme4 syntaxis
 lme4_fml <- function(fix, rnd, rm_int = TRUE) {
   rnd.terms <- attr(terms(rnd), 'term.labels')
   rnd.terms.lme4 <- paste('(1|', rnd.terms, ')', sep ='')
@@ -39,8 +39,8 @@ breedR.get.element <-  function(name, alist) {
 }
 
 
-#' Fit some model
-breedR.result <- function() {
+# Fit some model
+breedR.result <- function(...) {
   res  <- suppressWarnings(remlf90(fixed  = phe_X ~ gg,
                                    genetic = list(model = 'add_animal', 
                                                   pedigree = globulus[,1:3],
@@ -48,26 +48,100 @@ breedR.result <- function() {
                                    spatial = list(model = 'AR', 
                                                   coord = globulus[, c('x','y')],
                                                   rho = c(.85, .8)), 
-                                   data = globulus))
+                                   data = globulus,
+                                   ...))
   return(res)
 }
 
-
-#' Return platform string
-#' 
-#' Return whether the OS is either \code{windows}, \code{linux} or \code{mac}
-#' Inspired in INLA's os.R functions
-breedR.os.type <- function() {
+# Geometric mean
+gmean <- function(x) {
+  logx <- log(x)
+  finite.logx <- is.finite(logx)
+  if( !all(finite.logx) ) {
+    warning('Removing zeroes for geometric mean')
+    logx <- logx[finite.logx]
+  }
   
-  type <- .Platform$OS.type
-
-  if (type == "windows") {
-    os <- type
-  } else if (type == "unix") {
-    mac.dirs <- file.info("/Library")$isdir && file.info("/Applications")$isdir
-    os <- ifelse(is.na(mac.dirs), 'linux', 'mac')
-  } else os <- 'else'
-    
-  return(os)
+  return(exp(mean(logx)))
 }
 
+
+# BreedR binaries
+# 
+# Return the path to breedR binaries.
+# Path is different in each platform, but not architecture.
+`breedR.bin.builtin` = function()
+{
+  #   if (breedR.os("mac")) {
+  #     fnm = system.file(paste("bin/mac/", breedR.os.32or64bit(), "bit/breedR", sep=""), package="breedR")
+  #   } else if (breedR.os("linux")) {
+  #     fnm = system.file(paste("bin/linux/breedR", breedR.os.32or64bit(), sep=""), package="breedR")
+  #   } else if (breedR.os("windows")) {
+  #     fnm = system.file(paste("bin/windows/breedR", breedR.os.32or64bit(), ".exe", sep=""), package="breedR")
+  #   } else {
+  #     stop("Unknown OS")
+  #   }
+  
+  if( breedR.os.type() != 'else') {
+    fnm <- system.file('bin', breedR.os.type(), package='breedR')
+  } else {
+    stop("Unknown platform")
+  }
+  
+  if (file.exists(fnm)) {
+    return (fnm)
+  } else {
+    stop(paste("breedR installation error; no such file", fnm))
+  }
+}
+
+
+#' Determine the user's home directory
+#' 
+#' Relies on \code{Sys.getenv('HOME')}, or under windows, on
+#' \code{Sys.getenv("USERPROFILE"))} changing backslashes to slashes.
+`breedR.get.HOME` = function()
+{
+  return (as.character(ifelse(breedR.os("windows"),
+                              gsub("\\\\", "/", Sys.getenv("USERPROFILE")),
+                              Sys.getenv("HOME"))))
+}
+
+#' Determine the user name
+`breedR.get.USER` = function()
+{
+  u = ""
+  for (U in c("USER", "USERNAME", "LOGNAME")) {
+    u = Sys.getenv(U)
+    if (u != "")
+      break;
+  }
+  if (u == "")
+    u = "UnknownUserName"
+  
+  return (as.character(u))
+}
+
+# Convert a incidence matrix specified in 8+8 columns format
+# the first 8 are coefficients, and the last 8 are columns
+# into a sparse matrix format
+matrix.short16 <- function(M) {
+  coef = M[, 1:8]
+  neig = M[, 8+1:8]
+  
+  n <- nrow(coef)
+  p <- max(neig, na.rm = TRUE)
+  
+  i <- rep(1:n, 8)
+  j <- as.vector(neig)
+  x <- as.vector(coef)
+  
+  rm.idx <- which(x==0)
+  stopifnot( all(x[rm.idx] == 0) )
+  
+  Z <- Matrix::spMatrix(nrow = n, ncol = p,
+                        i = i[-rm.idx],
+                        j = j[-rm.idx],
+                        x = x[-rm.idx])
+  return(Z)
+}

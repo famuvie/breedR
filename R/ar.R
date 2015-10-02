@@ -1,82 +1,100 @@
 #' Build an autoregressive model
 #' 
-#' Given the coordinates of the observations, ...
-build.ar.model <- function (coord, rho, autofill) {
+#' Given the coordinates of the observations, the autocorrelation parameters
+#' and the autofill logical value, computes the incidence 
+#' matrix B and the covariance matrix U
+#' 
+#' @param coordinates matrix(-like) of observation coordinates
+#' @param rho numeric. Vector of length two with the autocorrelation parameter 
+#'   in each dimension, with values in the open interval (-1, 1).
+#' @param autofill logical. If \code{TRUE} (default) it will try to fill gaps in
+#'   the rows or columns. Otherwise, it will treat gaps the same way as adjacent
+#'   rows or columns.
+#' @param ... Not used.
+#'   
+#' @return a list with
+#' - the autocorrelation parameters
+#' - the coordinates original coordinates as a data frame
+#' - the incidence matrix (encoded as a vector)
+#' - the covariance matrix (of the full grid, in triplet form)
+breedr_ar <- function (coordinates,
+                       rho,
+                       autofill = TRUE,
+                       ...) {
   
   # Checks
   if( !all(abs(rho) < 1) )
     stop('The autoregressive parameters rho must be strictly in (-1, 1).\n')
+
+  # Consider matrix-like coordinates
+  coordinates <- as.data.frame(coordinates)
   
-  # Original coordinates
-  coord0 <- as.data.frame(sapply(coord, as.numeric))
-    
-  # lattice of spatial locations
-  # possibly with automatic filling of empty rows or columns
-  pos <- loc_grid(coord, autofill)
+  ## Encompassing grid
+  grid <- build_grid(coordinates, autofill)
   
-  # The coordinates as factors allows to find easily the number of 
-  # different x and y positions, and the ordering
-  coord <- as.data.frame(mapply(factor, as.data.frame(coord), pos, SIMPLIFY = FALSE))
-  
-  # Number of different locations in rows and cols
-  pos.length <- sapply(pos, length)
-  
-  # Check: is this a regular grid?
-  # if regular, n_x \times n_y ~ n_obs
-  # if irregular, n_x \times n_y ~ n_obs^2
-  # We assume it is regular if
-  # n_x \times n_y < n_obs + (n_obs^2 - n_obs)/4
-  if(prod(pos.length) > nrow(coord)*(nrow(coord) + 3)/4) 
+  # Check for regular grid
+  if (!grid$regular)
     stop('The AR model can only be fitted to regular grids.')
   
   # Check: the grid should be actually 2d
-  if( !all(pos.length > 2) )
+  if( !all(grid$length > 2) )
     stop('Are you kidding? This is a line!')
   
-  # Build precision matrix of AR1(rho) in the line
-  build.AR1d <- function(n, x) {
-    temp <- diag(c(1, rep(1 + x^2, n-2), 1))
-    subdiag <- rbind(0, cbind(diag(-x, n-1), 0))
-    return(as(Matrix(temp + subdiag + t(subdiag), sparse = TRUE), 'dgTMatrix'))
-  }
-  Q1d <- mapply(build.AR1d, pos.length, rho)
-
+  ## Incidence matrix
+  inc.mat <- as(
+    Matrix::sparseMatrix(i = seq_along(grid$idx),
+                         j = grid$idx,
+                         x = 1,
+                         dims = c(length(grid$idx),
+                                  prod(grid$length))),
+    'indMatrix')
+  
+  
   # Precision matrix for the AR1(rho_x) x AR1(rho_y) process
   # when locations are stacked following the standards of R:
   # by columns: first vary x and then y
   # (1, 1), (2, 1), ..., (n_x, 1), (1, 2), ..., (n_x, 2), ...
   # Only the lower triangle
-  Q <- tril(kronecker(Q1d[[2]], Q1d[[1]]))
-  # Map data coordinates with corresponding index of the Q matrix
-  matrix2vec <- function(x, nx = pos.length[1], ny = pos.length[2]) {
-    map <- matrix(1:(nx*ny), nx, ny)
-    return(apply(x, 1, function(y) map[y[1], y[2]]))
-  }
-  data.ordering <- matrix2vec(sapply(coord, as.integer))
+  Q1d <- mapply(build.AR1d, grid$length, rho)
+  Uinv <- kronecker(Q1d[[2]], Q1d[[1]])
+  dimUinv <- dim(Uinv)
+  stopifnot(identical(dimUinv[1], dimUinv[2]))
   
   
-  # Coordinates for the full grid
-  #   coord.1d <- function(nx, levels) {
-  #     as.numeric(factor(1:nx, labels = levels))
-  #     # Isn't this the same as 1:nx?
-  #   }
-  #   plot.grid <- expand.grid(mapply(coord.1d, pos.length, lapply(coord, levels),
-  #                                   SIMPLIFY = FALSE))
-  plot.grid <- expand.grid(pos)
-  plotting <- list(grid = plot.grid)
-  return(list(param = rho,
-              coord = coord0,
-              B = data.ordering,
-              U = cbind(Q@i + 1, Q@j + 1, Q@x),
-              plotting = plotting))
+  # Scaling so that the characteristic marginal variance equals 1/sigma^2
+  # Sorbye and Rue (2014)
+  # In principle I would need to invert the matrix here
+  # But we can derive the characteristic marginal variance
+  # from the precision matrix as follows:
+  # In the AR1xAR1 model, B is a permutation matrix, thus 
+  # diag(B·U·B') = diag(U)
+  # On the other hand, U = Q2inv %x% Q1inv, the kronecker product of the
+  # one-dimentional autoregressive *covariance* matrices, which have constant
+  # diagonal equal to 1/(1-rho^2).
+  # An element in the diagonal of the kronecker product is the scalar product
+  # of the corresponding elements in the diagonals (which are constant)
+  # So, diag(U) is constant, and the geometric mean turns out to be the 
+  # product of 1/(1-rho**2) for both rhos.
+  scaling <- prod(1/(1-rho**2))
+  Uinv <- Uinv * scaling
+  
+  ## Build the spatial effect, return the autoregressive parameters
+  ## and further specify the ar class
+  ans <- spatial(coordinates, incidence = inc.mat, precision = Uinv)
+  ans$param <- list(rho = rho)
+  attr(ans, 'grid') <- grid
+  class(ans) <- c('ar', class(ans))
+  
+  return(ans)
 }
 
-#' Build an evaluation grid for the autoregressive parameters of rows and columns
-#' 
-#' One or both autoregressive parameters may be unknown.
-#' In that case we need to fit the model with several values of rho_r and rho_c,
-#' in order to estimate the most likely values.
-#' This functions provides an evaluation grid of values.
+
+# Build an evaluation grid for the autoregressive parameters of rows and columns
+# 
+# One or both autoregressive parameters may be unknown.
+# In that case we need to fit the model with several values of rho_r and rho_c,
+# in order to estimate the most likely values.
+# This functions provides an evaluation grid of values.
 build.AR.rho.grid <- function(rho) {
   rho <- as.data.frame(rho)
   # If this function was called, at least one of the parameters is NA (unknown)
@@ -90,3 +108,9 @@ build.AR.rho.grid <- function(rho) {
   return(grid)
 }
 
+# Build precision matrix of AR1(rho) in the line
+build.AR1d <- function(n, x) {
+  temp <- diag(c(1, rep(1 + x^2, n-2), 1))
+  subdiag <- rbind(0, cbind(diag(-x, n-1), 0))
+  return(as(Matrix::Matrix(temp + subdiag + t(subdiag), sparse = TRUE), 'dgTMatrix'))
+}
