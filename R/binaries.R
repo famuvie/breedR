@@ -59,6 +59,20 @@ breedR.install.bin <- function(path = breedR.getOption('breedR.bin'),
                    to   = path,
                    recursive = FALSE)
   if( any(!out) ) warning('Failed to copy some of the binaries\n')
+
+## Download files creating dest dir if necessary
+## and set execution permissions
+retrieve_bin <- function(f, url, dest) {
+  destf <- file.path(dest, f)
+  if (!dir.exists(dest))
+    dir.create(dest, recursive = TRUE)
+  download.file(url = file.path(url, f),
+                destfile = destf,
+                mode = 'wb')
+  Sys.chmod(destf, mode = '0744')
+  return(destf)
+}
+
   
   return(invisible(out))
 } 

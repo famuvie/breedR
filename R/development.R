@@ -164,6 +164,7 @@ breedR.download_deps <- function(dir, type) {
 
 # Downlad latest published version of binaries
 # and check whether any of them have changed since last time
+# Note that **it does not install** them into the package
 breedR.download_bins <- function(
   baseurl  = 'http://nce.ads.uga.edu/html/projects/programs',
   basedest = '~/t4f/bin/PROGSF90',
@@ -189,21 +190,18 @@ breedR.download_bins <- function(
     )
   )
 
-  retrieve_file <- function(f) {
-    destf <- file.path(
-      basedest,
-      gsub('_osx/new', '', tolower(f)))
-    if( !dir.exists(destd <- dirname(destf)) )
-      dir.create(destd, recursive = TRUE)
-    download.file(url = file.path(baseurl, f),
-                  destfile = destf,
-                  mode = 'wb')
-    Sys.chmod(destf, mode = '0744')
-    return(path.expand(destf))
-  }
+  srcf <- file.path(baseurl, fnames)
   
+  destf <- file.path(
+    path.expand(basedest),
+    gsub('_osx/new', '', tolower(fnames)))
+
   # Side effect: retrieve files
-  local_files <- sapply(fnames, retrieve_file)
+  local_files <- mapply(
+    retrieve_bin,
+    basename(destf),
+    dirname(srcf),
+    dirname(destf))
   #   local_files <- path.expand(
   #     file.path(basedest,
   #               gsub('_osx/new', '', 
@@ -301,7 +299,9 @@ breedR.update_bins <- function(
   }
   
   ## New versions of binaries
-  eqls <- tools::md5sum(srcfn) == tools::md5sum(destfn)
+  ## isTRUE gives FALSE for NAs
+  eqls <- sapply(tools::md5sum(srcfn) == tools::md5sum(destfn),
+                 isTRUE)
 
   if (!quiet) {
     if (any(!eqls)) {
