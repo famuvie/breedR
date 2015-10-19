@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Some recent/current developments in breedR</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="generator" content="pandoc" />
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <link rel="stylesheet" media="all" href="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/fonts/fonts.css">
+
+  <link rel="stylesheet" media="all" href="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/theme/css/default.css">
+  <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/theme/css/phone.css">
+
+  <base target="_blank">
+
+  <script type="text/javascript">
+    var SLIDE_CONFIG = {
+      // Slide settings
+      settings: {
+                title: 'Some recent/current developments in breedR',
+                        useBuilds: true,
+        usePrettify: true,
+        enableSlideAreas: true,
+        enableTouch: true,
+                favIcon: 'developments_files/logo.png',
+              },
+
+      // Author information
+      presenters: [
+            {
+        name:  'Facundo Muñoz' ,
+        company: '',
+        gplus: '',
+        twitter: '',
+        www: '',
+        github: ''
+      },
+            ]
+    };
+  </script>
+
+  <style type="text/css">
+
+    b, strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    slides > slide {
+      -webkit-transition: all 0.4s ease-in-out;
+      -moz-transition: all 0.4s ease-in-out;
+      -o-transition: all 0.4s ease-in-out;
+      transition: all 0.4s ease-in-out;
+    }
+
+    .auto-fadein {
+      -webkit-transition: opacity 0.6s ease-in;
+      -webkit-transition-delay: 0.4s;
+      -moz-transition: opacity 0.6s ease-in 0.4s;
+      -o-transition: opacity 0.6s ease-in 0.4s;
+      transition: opacity 0.6s ease-in 0.4s;
+      opacity: 0;
+    }
+
+    slides > slide:not(.nobackground):before {
+      font-size: 12pt;
+      content: "";
+      position: absolute;
+      bottom: 20px;
+      left: 60px;
+      background: url(developments_files/logo.png) no-repeat 0 50%;
+      -webkit-background-size: 30px 30px;
+      -moz-background-size: 30px 30px;
+      -o-background-size: 30px 30px;
+      background-size: 30px 30px;
+      padding-left: 40px;
+      height: 30px;
+      line-height: 1.9;
+    }
+  </style>
+
+
+
+</head>
+
+<body style="opacity: 0">
+
+<slides>
+
+  <slide class="title-slide segue nobackground">
+        <aside class="gdbar"><img src="developments_files/logo.png"></aside>
+        <!-- The content of this hgroup is replaced programmatically through the slide_config.json. -->
+    <hgroup class="auto-fadein">
+      <h1 data-config-title><!-- populated from slide_config.json --></h1>
+      <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
+      <p data-config-presenter><!-- populated from slide_config.json --></p>
+            <p style="margin-top: 6px; margin-left: -2px;">October 19, 2015<br><a href="http://famuvie.github.io/breedR/doc/developments.html" class="uri">http://famuvie.github.io/breedR/doc/developments.html</a></p>
+          </hgroup>
+  </slide>
+
+<slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Bugfixes</h2></hgroup><article  id="bugfixes">
+
+</article></slide><slide class=''><hgroup><h2>Since Jaca&#8230;</h2></hgroup><article  id="since-jaca...">
+
+<ul>
+<li>June&#39;s training workshop: <code>breedR v0.10</code></li>
+<li>Today: <code>breedR v0.10-14</code></li>
+</ul>
+
+<p>Two important fixes were notified to <code>breedR</code>&#39;s <a href='https://groups.google.com/forum/#!forum/breedr' title=''>mailing list</a></p>
+
+<ol>
+<li><p>Memory issues (reported by Jan Kowalczyk in <a href='https://github.com/famuvie/breedR/issues/37' title=''>GitHub</a>)</p></li>
+<li><p>Bug in the <code>variogram()</code> plot</p></li>
+</ol>
+
+</article></slide><slide class=''><hgroup><h2>Memory issues</h2></hgroup><article  id="memory-issues">
+
+<ul>
+<li><p>Under certain scenarios, the AR model consumed lots of memory</p></li>
+<li><p>Even with data of moderate size</p></li>
+<li><p>Two problems:</p>
+
+<ol>
+<li><p>The AR model builds a regular grid containing all the individuals. The size of the grid can be much larger than N.</p></li>
+<li><p>(Most importantly) AR was building unnecessary copies of matrices in non-sparse format</p></li>
+</ol></li>
+<li><p>Fixed from <code>breedR v0.10-9</code></p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>The bug in the variogram plot</h2></hgroup><article  id="the-bug-in-the-variogram-plot">
+
+<ul>
+<li><p>Affects the calculation of the variograms under <strong>some</strong> circunstances.</p></li>
+<li><p>When there were many <em>holes</em> in the field, it was treating the empty spaces as <strong>observations with a value of 0</strong>.</p></li>
+<li><p>The problem <strong>did not affect</strong> in any way the results of the models fitted with <code>remlf90()</code>. So your <strong>results were correct</strong> and reliable.</p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Scenario 1</h2></hgroup><article  id="scenario-1">
+
+<p>Model residuals in a field trial with little or no holes</p>
+
+<img src='../img/residuals_full.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Difference in variograms</h2></hgroup><article  id="difference-in-variograms">
+
+<p>Before and after the fix</p>
+
+<p><img src='../img/variogram_full_before.png' title=''/> <img src='../img/variogram_full_after.png' title=''/></p>
+
+</article></slide><slide class=''><hgroup><h2>Scenario 1</h2></hgroup><article  id="scenario-1-1">
+
+<p>Model residuals in a field trial with lots of holes</p>
+
+<img src='../img/residuals_holes.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Difference in variograms</h2></hgroup><article  id="difference-in-variograms-1">
+
+<p>Before and after the fix</p>
+
+<p><img src='../img/variogram_holes_before.png' title=''/> <img src='../img/variogram_holes_after.png' title=''/></p>
+
+</article></slide><slide class=''><hgroup><h2>Solution</h2></hgroup><article  id="solution">
+
+<ul>
+<li><p>Adapt the function <code>fields::vgram.matrix()</code> for <code>breedR</code></p></li>
+<li><p>Side effects</p>
+
+<ul>
+<li><p>Remove dependency with package <code>fields</code></p></li>
+<li><p>Reported another bug in the function to <code>fields</code> maintainer</p></li>
+<li><p>Return number of pairs for each variogram bin</p></li>
+</ul></li>
+<li><p>Fixed from <code>breedR v0.10-13</code></p></li>
+</ul>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Computation of heritability and its SE</h2></hgroup><article  id="computation-of-heritability-and-its-se">
+
+</article></slide><slide class=''><hgroup><h2>Possible alternative calculations</h2></hgroup><article  id="possible-alternative-calculations">
+
+<p>\[
+h^2 = \frac{\sigma_a^2}{\sigma_{\mathrm{phenot}}^2}
+    = \frac{\sigma_a^2}{\sigma_a^2 + \cdots + \sigma_e^2}
+\]</p>
+
+<ul>
+<li><p>Some authors <strong>exclude</strong> the variance of the spatial effect from the denominator (e.g. for comparability among sites)</p></li>
+<li><p>Need <strong>flexibility</strong> to compute it in different ways</p></li>
+<li><p>Sensible <strong>default</strong>: include all variance components in the denominator</p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Approach:</h2></hgroup><article  id="approach">
+
+<ol>
+<li><p>General interface to <code>OPTIONS</code> in <code>PROGSF90</code></p></li>
+<li><p>Exploit option <code>se_covar_function</code> in <code>AI-REML</code> which allows estimating a function of the variance components, and its SE</p></li>
+<li><p>Generate default formula for heritability including all variance components, unless otherwise indicated by the user</p></li>
+<li><p>Parse results and display in the summary()</p></li>
+</ol>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Updates of <code>PROGSF90</code> binaries</h2></hgroup><article  id="updates-of-progsf90-binaries">
+
+</article></slide><slide class=''><hgroup><h2>Goals</h2></hgroup><article  id="goals">
+
+<ul>
+<li><p>Avoid distributing binaries for all 3 main platforms with <code>breedR</code></p></li>
+<li><p>Stop distributing 32bit programs only: take advantage of 64bit architectures (memory)</p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Approach</h2></hgroup><article  id="approach-1">
+
+<ul>
+<li><p>Separate the <code>R</code> package (frontend) from the Mixed Model engine (backend)</p></li>
+<li><p>Download (automatically) the appropriate backend at installation time</p></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Implications</h2></hgroup><article  id="implications">
+
+<ul>
+<li><p>More complex installation \(=\) more oportunities for issues</p></li>
+<li><p>Can not simply download latest binaries from <a href='http://nce.ads.uga.edu/wiki/doku.php' title=''>PROGSF90</a>: uncontrolled changes could break <code>breedR</code></p></li>
+<li><p>Need to maintain a repository with the latest <em>tested</em> binaries</p></li>
+<li>The 64bit binaries for Windows require yet additional libraries from Intel. Alternatives:
+
+<ul>
+<li>distribute dll (easy, but Intel does not like)</li>
+<li>give installation instructions to the user (yet another installation step)</li>
+</ul></li>
+</ul>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Default colour map</h2></hgroup><article  id="default-colour-map">
+
+</article></slide><slide class=''><hgroup><h2>Colour palettes</h2></hgroup><article  id="colour-palettes">
+
+<img src='developments_files/figure-html/colour-palettes-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Concern 1 </h2><h3> Perceptual uniformity</h3></hgroup><article  id="concern-1-perceptual-uniformity">
+
+<img src='../img/perceptual_uniformity.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Concern 2 </h2><h3> Colour blindness</h3></hgroup><article  id="concern-2-colour-blindness">
+
+<!-- Moderate deuteranomaly (green-blindness ~ 5% of white men) -->
+
+<img src='developments_files/figure-html/colour-palettes-deuteranopia-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Concern 3 </h2><h3> Black &amp; White (printed) readability</h3></hgroup><article  id="concern-3-black-white-printed-readability">
+
+<img src='developments_files/figure-html/colour-palettes-desaturate-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Adopt <code>viridis</code> for sequential variables</h2></hgroup><article  id="adopt-viridis-for-sequential-variables">
+
+<img src='developments_files/figure-html/colour-maps-sequential-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Not so sure about divergent variables</h2></hgroup><article  id="not-so-sure-about-divergent-variables">
+
+<ul>
+<li>What do <strong>you</strong> think?</li>
+</ul>
+
+<img src='developments_files/figure-html/colour-maps-divergent-1.png' title=''/>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Comparison of spatial models</h2></hgroup><article  id="comparison-of-spatial-models">
+
+</article></slide><slide class=''><hgroup><h2>Goals</h2></hgroup><article  id="goals-1">
+
+<ul>
+<li>Study the relative performance of <code>blocks</code>, <code>splines</code> and <code>AR</code> in a diversity of scenarios</li>
+</ul>
+
+<img src='../img/spatial-fullcomponents-1.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>Approach</h2></hgroup><article  id="approach-2">
+
+<ul>
+<li>Cross-Validation study with several datasets of diverse characteristics</li>
+</ul>
+
+<img src='../img/spatial-CV.png' title=''/>
+
+</article></slide><slide class=''><hgroup><h2>(Advance of) results</h2></hgroup><article  id="advance-of-results">
+
+<ul>
+<li><p>The <code>splines</code> and <code>AR</code> models clearly outperform the <code>blocks</code> model</p></li>
+<li><p><code>AR</code> is usually slightly better than <code>splines</code> in most situations</p></li>
+<li><p>We detected some (suspected) sensitivity with <code>AR</code> under certain situations where <code>splines</code> may be more conservative (and safer). <strong>This is work in progress</strong></p></li>
+<li><p>General recommendation: <strong>run both</strong>, compare, evaluate and decide.</p></li>
+<li><p>If both models agree, then everything is ok.</p></li>
+</ul>
+
+</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Thanks!</h2></hgroup><article  id="thanks"></article></slide>
+
+
+  <slide class="backdrop"></slide>
+
+</slides>
+
+<script src="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/js/modernizr.custom.45394.js"></script>
+<script src="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/js/prettify/prettify.js"></script>
+<script src="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/js/prettify/lang-r.js"></script>
+<script src="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/js/prettify/lang-yaml.js"></script>
+<script src="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/js/hammer.js"></script>
+<script src="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/js/slide-controller.js"></script>
+<script src="/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/ioslides-13.5.1/js/slide-deck.js"></script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "/home/facu/Work/Meetings/2015.10.T4F.Barcelona/lib/mathjax-local/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+<!-- map slide visiblity events into shiny -->
+<script>
+  (function() {
+    if (window.jQuery) {
+       window.jQuery(document).on('slideleave', function(e) {
+         window.jQuery(e.target).trigger('hidden');
+      });
+       window.jQuery(document).on('slideenter', function(e) {
+         window.jQuery(e.target).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>
