@@ -1,64 +1,79 @@
-### Functions to handle binary dependencies  ###
+### Functions to download and install binary dependencies  ###
 
-#' Checks installation of binaries
+#' Checks installation of PROGSF90 binaries
 #' 
-#' Checks whether the binary dependencies are installed in the right directory.
+#' Checks whether the binary dependencies are installed in the right directory. 
 #' If not, allows calling the installer
 #' 
-#' @param path directory to check for the presence of binaries. Default is defined in the package options, and it depends on the platform.
-#' @param silent if TRUE, it won't ask whether to install missing binaries.
+#' This function does not check whether the binaries are for the right platform 
+#' or architecture. It only checks the presence of files with the expected 
+#' names.
+#' 
+#' @param path directory to check for the presence of binaries. Default is
+#'   defined in the package options, and it depends on the platform.
+#' @param quiet if TRUE, it won't ask whether to install missing binaries.
 #' @export
-breedR.check.bin <- function(path = breedR.getOption('breedR.bin'),
-                             silent = !interactive() ) {
-  bin.list <- c('airemlf90',
-                'remlf90')
+check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
+                           platform = breedR.os.type(),
+                           quiet = !interactive() ) {
+
+  bin.list <- progsf90_files(platform)
   
-  dir.exists <- file.exists(path)
   check <- FALSE
-  if(dir.exists) {
+  if (file.exists(path)) {
     current.files <- sapply(strsplit(list.files(path), split='\\.'),
                             function(x) x[1])
     check <- all(!is.na(match(bin.list, current.files)))
   }
   
-  if( !check && !silent ) {
-    ans <- readline('Binary dependencies missing.\nWould you like to install them?\t')
+  if (!check && !quiet) {
+    message('Binary dependencies missing.\nWould you like to install them?\t')
+    ans <- readline()
     yes <- tolower(substr(ans, 1, 1) == 'y')
     
     if( yes ) {
-      breedR.install.bin(path)
-      check <- breedR.check.bin(path)
+      install_progsf90(dest = path)
+      check <- check_progsf90(path, quiet)
     }
   }
   
-  return(check)
+  return(invisible(check))
 }
 
-#' Installs binary dependencies
+#' Install PROGSF90 binary dependencies
 #' 
 #' Copy the  binaries for the specified platform into a directory.
 #' 
-#' @param path destination directory for the binaries. Default is taken from
-#'   package option.
-#' @param os.type what version of the binaries are to be installed.Default is
+#' @param url where to download the files from
+#' @param dest destination directory for the binaries. Default is 'bin' under
+#'   the current installation dir.
+#' @param platform what version of the binaries are to be installed. Default is
 #'   current.
+#' @param arch 
+#' @param quiet logical. Whether not to display messages.
 #' @export
-breedR.install.bin <- function(path = breedR.getOption('breedR.bin'),
-                               os.type = breedR.os.type()) {
-  # The repository where we have fixed and tested versions of binaries
-  breedR.bin.repo <- file.path('~', 't4f', 'src', 'breedR', 'inst', 'bin')
+install_progsf90 <- function(
+  url = "http://famuvie.github.io/breedR/bin",
+  dest   = system.file('bin', package = 'breedR'),
+  platform = breedR.os.type(),
+  arch  = paste0(breedR.os.32or64bit(), 'bit'),
+  quiet = !interactive()
+) {
   
-  src.path <- file.path(breedR.bin.repo, os.type)
-  bin.files <- list.files(src.path, full.names = TRUE)
+  execs <- progsf90_files(platform)
   
-  # Create path if necessary
-  if( !file.exists(path) ) dir.create(path, recursive = TRUE)
+  f.url <- file.path(url, platform, arch)
+  if (platform == 'mac')  # remove arch for mac
+    f.url <- dirname(f.url)
   
-  # Copy binaries into path
-  out <- file.copy(from = bin.files,
-                   to   = path,
-                   recursive = FALSE)
-  if( any(!out) ) warning('Failed to copy some of the binaries\n')
+  res <- sapply(execs, 
+                retrieve_bin, 
+                url = f.url,
+                dest = dest)
+  
+  return(res)
+}
+
 
 ## Download files creating dest dir if necessary
 ## and set execution permissions
@@ -66,13 +81,38 @@ retrieve_bin <- function(f, url, dest) {
   destf <- file.path(dest, f)
   if (!dir.exists(dest))
     dir.create(dest, recursive = TRUE)
-  download.file(url = file.path(url, f),
-                destfile = destf,
-                mode = 'wb')
+  out <- tryCatch(
+    download.file(
+      url = file.path(url, f),
+      destfile = destf,
+      mode = 'wb',
+      cacheOK = FALSE,
+      quiet = TRUE
+    ),
+    error = identity
+  )
+  
+  ## Connection issues
+  if (inherits(out, 'error')) {
+    unlink(destf)  # remove residual 0-byte file
+    return(FALSE)
+  }
+  
   Sys.chmod(destf, mode = '0744')
   return(destf)
 }
 
+
+## Return the file names of the breedR dependencies on PROGSF90 binaries 
+## according to the platform
+progsf90_files <- function(os = breedR.os.type()) {
+
+  ans <- c("remlf90", "airemlf90")
+  if (os == 'windows') {
+    ## Ship also required dll
+    ans <- c(paste0(ans, ".exe"),
+             "libiomp5md.dll")
+  }
   
-  return(invisible(out))
-} 
+  ans
+}

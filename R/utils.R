@@ -68,22 +68,12 @@ gmean <- function(x) {
 
 # BreedR binaries
 # 
-# Return the path to breedR binaries.
-# Path is different in each platform, but not architecture.
+# Return the default path to breedR binaries checking its existence.
 `breedR.bin.builtin` = function()
 {
-  #   if (breedR.os("mac")) {
-  #     fnm = system.file(paste("bin/mac/", breedR.os.32or64bit(), "bit/breedR", sep=""), package="breedR")
-  #   } else if (breedR.os("linux")) {
-  #     fnm = system.file(paste("bin/linux/breedR", breedR.os.32or64bit(), sep=""), package="breedR")
-  #   } else if (breedR.os("windows")) {
-  #     fnm = system.file(paste("bin/windows/breedR", breedR.os.32or64bit(), ".exe", sep=""), package="breedR")
-  #   } else {
-  #     stop("Unknown OS")
-  #   }
-  
+
   if( breedR.os.type() != 'else') {
-    fnm <- system.file('bin', breedR.os.type(), package='breedR')
+    fnm <- system.file('bin', package='breedR')
   } else {
     stop("Unknown platform")
   }
@@ -91,7 +81,7 @@ gmean <- function(x) {
   if (file.exists(fnm)) {
     return (fnm)
   } else {
-    stop(paste("breedR installation error; no such file", fnm))
+    stop(paste("breedR installation error; no such directory", fnm))
   }
 }
 
@@ -145,3 +135,4 @@ matrix.short16 <- function(M) {
                         x = x[-rm.idx])
   return(Z)
 }
+
