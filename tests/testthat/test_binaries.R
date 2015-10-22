@@ -14,19 +14,27 @@ test_that(paste('breedR.os.type()', breedR.os.type(), 'identifies the platform',
 
 # Install binaries somewhere, and check their installation
 tdir <- tempdir()
-os.list <- c('windows', 'linux', 'mac')
-for(os in os.list) {
-  path <- file.path(tdir, os)
+os_arch.list <- expand.grid(os = c('windows', 'linux', 'mac'),
+                            arch = paste0(c(32, 64), 'bit'))
+os_arch.list <- 
+  os_arch.list[!with(os_arch.list, os == 'mac' & arch == '32bit'),]
+for(i in seq_len(nrow(os_arch.list))) {
+  os   <- os_arch.list[i, 'os']
+  arch <- os_arch.list[i, 'arch']
+  
+  path <- file.path(tdir, os, arch)
 
-  out <- breedR.install.bin(path = path,
-                            os.type = os)
+  out <- try(install_progsf90(dest = path,
+                              platform = os,
+                              arch = arch)
+  )
 
   test_that(paste('Installation of binaries succeeded'), {
-    expect_true(all(out))
+    expect_true(!inherits(out, 'try-error'))
   })
   
   test_that(paste('Checking installation succeeds'), {
-    expect_true(breedR.check.bin(path))
+    expect_true(check_progsf90(path, platform = os, quiet = TRUE))
   })
 }
 
@@ -34,19 +42,18 @@ for(os in os.list) {
 empty.dir <- tempfile()
 dir.create(empty.dir)
 test_that('breedR.check.bin() fails in the wrong directory', {
-  expect_false(breedR.check.bin(empty.dir, silent = TRUE))
+  expect_false(check_progsf90(empty.dir, quiet = TRUE))
 })
 
 
 # calling reml or aireml checks the installation
-
 breedR.setOption('breedR.bin', empty.dir)
-res <- try(suppressWarnings(remlf90(fixed = phe_X ~ 1,
+res <- try(suppressMessages(remlf90(fixed = phe_X ~ 1,
                                     data = globulus,
                                     debug = TRUE)),
            silent = TRUE)
 breedR.setOption('breedR.bin', NULL)
 
 test_that('(ai)remlf90 checks the installation of binaries', {
-  expect_true(inherits(res, 'try-error'))
+  expect_error(res, 'Binary dependencies missing')
 })
