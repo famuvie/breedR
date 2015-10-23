@@ -23,10 +23,14 @@ library(knitr)
 opts_chunk$set(echo       = TRUE,
                message    = TRUE,
                warning    = TRUE,
-#                comment    = NA,
+               # comment    = NA,
                fig.width  = 4,
                fig.height = 3,
-               cache      = TRUE)
+               cache      = TRUE,
+               autodep    = TRUE,
+               ## invalidate cache when either versions of R or breedR change
+               ## http://yihui.name/knitr/demo/cache/
+               cache.extra= list(R.version, packageVersion('breedR')))
 ```
 
 
