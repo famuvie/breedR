@@ -21,19 +21,15 @@ check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
   
   check <- FALSE
   if (file.exists(path)) {
-    current.files <- sapply(strsplit(list.files(path), split='\\.'),
-                            function(x) x[1])
-    check <- all(!is.na(match(bin.list, current.files)))
+    check <- all(!is.na(match(bin.list, list.files(path))))
   }
   
   if (!check && !quiet) {
-    message('Binary dependencies missing.\nWould you like to install them?\t')
-    ans <- readline()
-    yes <- tolower(substr(ans, 1, 1) == 'y')
-    
-    if( yes ) {
-      install_progsf90(dest = path)
-      check <- check_progsf90(path, quiet)
+    message('Binary dependencies missing.',
+            '\nWould you like to install them?\t')
+    if (menu(c("Yes", "No")) == 1) {
+      install_progsf90(dest = path, platform = platform)
+      check <- check_progsf90(path, platform, quiet)
     }
   }
   
@@ -79,7 +75,9 @@ install_progsf90 <- function(
 ## and set execution permissions
 retrieve_bin <- function(f, url, dest) {
   destf <- file.path(dest, f)
-  if (!dir.exists(dest))
+  # dir.exists() does not exist in windows
+  # file.exists checks for dirs as well
+  if (!file.exists(dest))
     dir.create(dest, recursive = TRUE)
   out <- tryCatch(
     download.file(

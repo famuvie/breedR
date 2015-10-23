@@ -5,7 +5,7 @@
 \title{Checks installation of PROGSF90 binaries}
 \usage{
 check_progsf90(path = breedR.getOption("breedR.bin"),
-  quiet = !interactive())
+  platform = breedR.os.type(), quiet = !interactive())
 }
 \arguments{
 \item{path}{directory to check for the presence of binaries. Default is
