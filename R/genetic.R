@@ -98,7 +98,19 @@ additive_genetic_animal <- function(pedigree, idx) {
   if (!is.null(attr(pedigree, 'map')))
     idx <- attr(pedigree, 'map')[idx]
   
-  inc.mat <- as(idx, 'indMatrix')
+  ## All the (recoded) codes in idx must be within pedigree@label
+  ## it is enough to check max(idx) since pedigree@label = 1, ..., n
+  stopifnot(max(idx) <= length(pedigree@label))
+  
+  ## The pedigree might potentially have further individuals
+  ## to evaluate (either founders, or descendants).
+  inc.mat <- as(
+    Matrix::sparseMatrix(i = seq_along(idx),
+                         j = idx,
+                         x = 1,
+                         dims = c(length(idx),
+                                  nrow(as.data.frame(pedigree)))),
+    'indMatrix')
   
   ans <- additive_genetic(pedigree, inc.mat)
   class(ans) <- c('additive_genetic_animal', class(ans))

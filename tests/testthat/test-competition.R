@@ -5,13 +5,23 @@ on.exit(options(old.op))
 #### Context: additive_genetic_competition() ####
 context("competition infrastructure")
 
+
+#' dat <- data.frame(id   = 1:5,
+#'                   sire = c(11, 11, 2, 3, 2),
+#'                   dam  = c(12, NA, 1, 12, 1),
+#'                   x    = c(rep(1:2, times = 2), 3),
+#'                   y    = c(rep(1:2, each = 2), 3))
+#' ped <- build_pedigree(1:3, data = dat)
+#' breedR:::additive_genetic_competition(ped, coord = dat[, c('x', 'y')], dat$id, 2)
+
+
 ## Minimal dataset
 dat <- data.frame(id   = 1:6,
                   sire = c(11, 11, 2, 3, 11, 3),
                   dam  = c(12, NA, 1, 12, 12, 1),
                   x    = c(1,2,-1,0,0,1),
                   y    = c(-1,0,0,1,-1,1))
-ped <- build_pedigree(1:3, data = dat)
+ped <- build_pedigree(1:3, data = rbind(dat, c(7, 1, 2)))
 var.ini <- 1.5
 var.ini.mat <- matrix(c(1, -.5, -.5, 1), 2, 2)
 
