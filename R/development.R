@@ -160,7 +160,70 @@ breedR.download_deps <- function(dir, type) {
     dir.create(dest)
     download.packages(pkgnms, destdir = dest, type = t)
   }
+  
+  message('Done. ',
+          'Don\'t forget to include also the ',
+          'source and compiled packages for breedR.')
 }
+
+
+# Build graph of dependencies
+# plot(breedR.deps_graph())
+# fname <- '../../doc/breedR-dev/dependencies.gml'
+# write_graph(breedR.deps_graph(),
+#             file = fname,
+#             format = 'gml')
+# # in the resulting file, change 'name' by 'label'
+# # in order to open it with yEd
+# system(paste("sed -i 's/name/label/g'", fname))
+breedR.deps_graph <- function(which = c('Depends', 'Imports')) {
+  if (!require(igraph))
+    stop('This requires installing igraph.')
+  
+  pkg <- as.package('.')
+  inst <- installed.packages()
+  base <- unname(inst[inst[, "Priority"] %in% c("base", "recommended"), 
+                      "Package"])
+
+  deps <- unlist(
+    lapply(
+      lapply(pkg[tolower(which)], parse_deps),
+      `[[`, "name"),
+    use.names = FALSE
+  )
+  
+  deps <- setdiff(deps, base)
+  
+  # available = available.packages()
+  available = inst
+  
+  dep_list <- list(breedR = deps)
+  new_deps <- deps
+  count = 0
+  while (length(new_deps)>0 && count < 10) {
+    all_deps <- tools::package_dependencies(new_deps, db = available)
+    deps_clean <- sapply(all_deps, setdiff, base)
+    deps_clean <- deps_clean[sapply(deps_clean, length) > 0]
+    dep_list <- c(dep_list, deps_clean)
+    new_deps <- unique(unname(unlist(deps_clean)))
+    count = count + 1
+  }
+
+  dep_full <- 
+    unname(
+      unlist(
+        sapply(names(dep_list),
+               function(x) as.vector(sapply(dep_list[[x]], 
+                                            function(y) c(x, y)))
+        )
+      )
+    )
+  
+  return(make_graph(dep_full))
+}
+
+
+
 
 # Downlad latest published version of binaries
 # and check whether any of them have changed since last time
