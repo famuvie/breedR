@@ -32,11 +32,12 @@ If you want to use the most stable version of breedR, please check the [dissemin
 #### Getting started
 Check the [breedR-wiki](https://github.com/famuvie/breedR/wiki)
   ```R
-  library(breedR)             # Load the package
-  news(package = 'breedR')    # Check the changelog
-  example('breedR')           # Check-out the basic example
-  demo(package='breedR')      # Available demos on features
-  demo('Metagene-spatial')    # Execute some demos
+  library(breedR)                      # Load the package
+  browseVignettes(package = 'breedR')  # Read tutorials
+  news(package = 'breedR')             # Check the changelog
+  example('breedR')                    # Check-out the basic example
+  demo(package='breedR')               # Available demos on features
+  demo('Metagene-spatial')             # Execute some demos
   demo('globulus')
   ```
 
