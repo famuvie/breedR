@@ -22,8 +22,6 @@ breedR.setOption(...)
  \code{ar.eval}: numeric vector of values in (-1, 1) where the autoregressive
  parameters should be evaluated if not otherwise specified
 
- \code{breedR.bin} path to the breedR binaries
-
  \code{splines.nok}: a function of the number of individuals in a row which
  gives the number of knots (nok) to be used for a splines model, if not
  otherwise specified
@@ -50,6 +48,8 @@ breedR.setOption(...)
 
  \code{remote.user}: user name with ssh-keys access to the server (see
  details)
+
+ \code{breedR.bin}: full path for breedR backend binaries
 
  \code{remote.port}: port for ssh connection
 

@@ -20,11 +20,8 @@
     if (type == "windows") {
         return (.Platform$OS.type == "windows")
     } else if (type == "mac") {
-        result = (file.info("/Library")$isdir && file.info("/Applications")$isdir)
-        if (is.na(result)) {
-            result = FALSE
-        }
-        return (result)
+      return (isTRUE(file.info("/Library")$isdir &&
+                       file.info("/Applications")$isdir))
     } else if (type == "linux") {
         return ((.Platform$OS.type == "unix") && !breedR.os("mac"))
     } else if (type == "else") {

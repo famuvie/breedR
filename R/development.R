@@ -144,7 +144,7 @@ breedR.clean_vignettes <- function(vigns) {
   invisible(FALSE)
 }
 
-# Download (recirsive) dependencies
+# Download (recursive) dependencies
 # specify where to store packages and type
 breedR.download_deps <- function(dir, type) {
   
@@ -160,4 +160,224 @@ breedR.download_deps <- function(dir, type) {
     dir.create(dest)
     download.packages(pkgnms, destdir = dest, type = t)
   }
+  
+  message('Done. ',
+          'Don\'t forget to include also the ',
+          'source and compiled packages for breedR.')
+}
+
+
+# Build graph of dependencies
+# plot(breedR.deps_graph())
+# fname <- '../../doc/breedR-dev/dependencies.gml'
+# write_graph(breedR.deps_graph(),
+#             file = fname,
+#             format = 'gml')
+# # in the resulting file, change 'name' by 'label'
+# # in order to open it with yEd
+# system(paste("sed -i 's/name/label/g'", fname))
+breedR.deps_graph <- function(which = c('Depends', 'Imports')) {
+  if (!require(igraph))
+    stop('This requires installing igraph.')
+  
+  pkg <- as.package('.')
+  inst <- installed.packages()
+  base <- unname(inst[inst[, "Priority"] %in% c("base", "recommended"), 
+                      "Package"])
+
+  deps <- unlist(
+    lapply(
+      lapply(pkg[tolower(which)], parse_deps),
+      `[[`, "name"),
+    use.names = FALSE
+  )
+  
+  deps <- setdiff(deps, base)
+  
+  # available = available.packages()
+  available = inst
+  
+  dep_list <- list(breedR = deps)
+  new_deps <- deps
+  count = 0
+  while (length(new_deps)>0 && count < 10) {
+    all_deps <- tools::package_dependencies(new_deps, db = available)
+    deps_clean <- sapply(all_deps, setdiff, base)
+    deps_clean <- deps_clean[sapply(deps_clean, length) > 0]
+    dep_list <- c(dep_list, deps_clean)
+    new_deps <- unique(unname(unlist(deps_clean)))
+    count = count + 1
+  }
+
+  dep_full <- 
+    unname(
+      unlist(
+        sapply(names(dep_list),
+               function(x) as.vector(sapply(dep_list[[x]], 
+                                            function(y) c(x, y)))
+        )
+      )
+    )
+  
+  return(make_graph(dep_full))
+}
+
+
+
+
+# Downlad latest published version of binaries
+# and check whether any of them have changed since last time
+# Note that **it does not install** them into the package
+breedR.download_bins <- function(
+  baseurl  = 'http://nce.ads.uga.edu/html/projects/programs',
+  basedest = '~/t4f/bin/PROGSF90',
+  quiet    = FALSE
+) {
+  
+  fnames <- unname(
+    apply(
+      as.matrix(
+        rbind(  
+          expand.grid(c('Linux'),
+                      c('32bit', '64bit'),
+                      c('airemlf90', 'remlf90')),
+          expand.grid(c('Windows'),
+                      c('32bit', '64bit'),
+                      c('airemlf90.exe', 'remlf90.exe')),
+          expand.grid(c('Mac_OSX'),
+                      c('new'),
+                      c('airemlf90', 'remlf90'))
+        )
+      ),
+      1, function(x) do.call('file.path', as.list(x))
+    )
+  )
+
+  srcf <- file.path(baseurl, fnames)
+  
+  destf <- file.path(
+    path.expand(basedest),
+    gsub('_osx/new', '', tolower(fnames)))
+
+  # Side effect: retrieve files
+  local_files <- mapply(
+    retrieve_bin,
+    basename(destf),
+    dirname(srcf),
+    dirname(destf))
+  #   local_files <- path.expand(
+  #     file.path(basedest,
+  #               gsub('_osx/new', '', 
+  #                    tolower(fnames))))
+  
+  ## Keep track of changes
+  chglogfn <- file.path(basedest, 'changelog.rds')
+  md5_new <- tools::md5sum(local_files)
+  if (file.exists(chglogfn)) {
+    chglog <- readRDS(chglogfn)
+  } else {
+    chglog <- data.frame(
+      file = local_files,
+      md5 = 0,
+      date = 0
+    )
+  }
+  
+  ## Update hash and date for changed binaries
+  if (!all(eqls <- md5_new == chglog$md5)) {
+    chglog$md5 <- md5_new
+    chglog$date[!eqls] <- date()
+  }
+  
+  ## Save changelog
+  ## even if nothing changed, to keep track of last check time
+  saveRDS(chglog, chglogfn)
+
+  if (!quiet) {
+    if (any(!eqls))
+      message(paste('Updated files:\n',
+                    paste(names(!eqls), collapse = ',\n ')))
+    else 
+      message(paste('All binaries are up to date.'))
+  }
+  invisible(names(!eqls))
+}
+
+# Update binaries in some location (package bins, by default)
+# Only updates changed files. If it is longer than max_days
+# since last download from site, then update local source.
+breedR.update_bins <- function(
+  source = path.expand('~/t4f/bin/PROGSF90'),
+  dest   = c('pkg', 'web'),
+  max_days = 30,
+  quiet = FALSE
+) {
+  
+  dest <- match.arg(dest)
+  
+  ## Time since last download
+  last_time <- file.mtime(file.path(source, 'changelog.rds'))
+  dtime <- difftime(Sys.time(), as.Date(last_time), units = 'days')
+  
+  ## Download from website if necessary
+  if (dtime > max_days) {
+    if (!quiet) message(
+      paste('It has been', floor(as.numeric(dtime, units = 'days')),
+            'days since last download of binaries.\n',
+            'Updating local versions...')
+    )
+    breedR.download_bins(basedest = source)
+  }
+  
+  ## Last local version of binaries
+  srcfn <- list.files(source, recursive = TRUE)
+  srcfn <- srcfn[-grep('changelog\\.rds', srcfn)]
+  
+  ## The package ships only 32bit versions
+  if (dest == 'pkg') {
+    idx <- !grepl('64bit', srcfn)
+    srcfn <- srcfn[idx]
+    destfn <- gsub('/32bit', '', srcfn)
+  } else {
+    destfn <- srcfn
+  }
+
+  ## Complete paths
+  srcfn <- file.path(source, srcfn)
+  destfn <- file.path(
+    switch(
+      dest,
+      pkg = system.file('bin', package = 'breedR'),
+      web = path.expand('~/t4f/src/breedR-web/bin')
+    ),
+    destfn
+  )
+  
+  if( any(dir <- !dir.exists(destd <- unique(dirname(destfn)))) ) {
+    res <- sapply(destd[dir], dir.create, recursive = TRUE)
+    if (!all(res))
+      stop(paste('Had a problem while creating\n',
+                 paste(destd[dir], collapse = ',\n ')))
+    
+  }
+  
+  ## New versions of binaries
+  ## isTRUE gives FALSE for NAs
+  eqls <- sapply(tools::md5sum(srcfn) == tools::md5sum(destfn),
+                 isTRUE)
+
+  if (!quiet) {
+    if (any(!eqls)) {
+      message(paste('Updated files:\n',
+                    paste(names(!eqls), collapse = ',\n ')))
+      res <- file.copy(srcfn[!eqls], destfn[!eqls], overwrite = TRUE)
+      if (!isTRUE(all(res))) {
+        stop(paste('Error copying files',
+                   paste(names(!eqls)[is.na(res)], collapse = ',\n ')))
+      }
+    } else 
+      message(paste('All binaries are up to date.'))
+  }
+  
+  invisible(names(!eqls))
 }

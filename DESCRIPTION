@@ -1,7 +1,7 @@
 Package: breedR
 Type: Package
 Title: Statistical Methods for Forest Genetic Resources Analysts
-Version: 0.10-15
+Version: 0.10-16
 Date: 2015-09-11
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
@@ -43,6 +43,7 @@ Suggests:
     knitr,
     rmarkdown,
     tidyr
+SystemRequirements: BLUPF90 programs will be downloaded from breedR website at install time.
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR

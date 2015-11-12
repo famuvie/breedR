@@ -332,6 +332,9 @@ remlf90 <- function(fixed,
     if( !check.random )
       stop("random should be a response-less formula\n")
   }
+  if (!check_progsf90(quiet = debug | !interactive())) {
+    stop('Binary dependencies missing. See ?install_progsf90')
+  }
   
   ### Parse arguments
   method <- tolower(method)
@@ -434,6 +437,9 @@ remlf90 <- function(fixed,
   
   # Write progsf90 files
   write.progsf90(pf90, dir = tmpdir)
+
+  # Where to find the binaries
+  binary.path <- breedR.getOption('breedR.bin')
 
   # Change to temporal directory to avoid specification of long paths
   # Avoids Issue #1
