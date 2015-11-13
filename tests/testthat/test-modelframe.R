@@ -1,6 +1,7 @@
 ### Test the building of model frames ###
 
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 # In particular, check that the intercept attribute is always set to zero,
@@ -42,7 +43,7 @@ run_expectations <- function(m) {
              random = m$rnd,
              data   = quote(as.data.frame(m1)))
   
-  mf <- try(build.mf(fc), silent = TRUE)
+  mf <- try(build.mf(fc))
 
   ## The model frame builds OK
   test_that(paste('The model', deparse(fc), 'runs OK'), {
@@ -142,7 +143,7 @@ fc <- call('remlf90',
            generic = grc_spec,
            data   = quote(as.data.frame(m1)))
 
-mf <- try(build.mf(fc), silent = TRUE)
+mf <- try(build.mf(fc))
 
 
 if(is.null(fc$random)) {

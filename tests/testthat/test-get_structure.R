@@ -1,6 +1,7 @@
 ### Test the functions for getting the structure matrices ###
 
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 context("Extracting structure matrices")

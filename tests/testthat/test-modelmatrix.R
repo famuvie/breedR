@@ -1,6 +1,7 @@
 ### Test the computation of model matrices ###
 
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 context("Model Matrix")

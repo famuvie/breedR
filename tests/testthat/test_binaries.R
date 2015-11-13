@@ -1,4 +1,7 @@
 ### Test the management of binary dependencies ###
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
+on.exit(options(old.op))
 
 context("Binary dependencies")
 
@@ -50,8 +53,7 @@ test_that('breedR.check.bin() fails in the wrong directory', {
 breedR.setOption('breedR.bin', empty.dir)
 res <- try(suppressMessages(remlf90(fixed = phe_X ~ 1,
                                     data = globulus,
-                                    debug = TRUE)),
-           silent = TRUE)
+                                    debug = TRUE)))
 breedR.setOption('breedR.bin', NULL)
 
 test_that('(ai)remlf90 checks the installation of binaries', {

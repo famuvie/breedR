@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 ### Test the generic model ###
@@ -70,11 +71,15 @@ nlevels.random <- nlevels(dat$bl)
 inc.mat <- model.matrix(~ 0 + bl, globulus)
 cov.mat <- diag(nlevels(globulus$bl))
 
-res <- try(remlf90(fixed   = fixed.fml,
-                   generic = list(bl = list(inc.mat,
-                                            cov.mat)),
-                   data    = dat),
-           silent = TRUE)
+res <- try(
+  suppressMessages(
+    remlf90(
+      fixed   = fixed.fml,
+      generic = list(bl = list(inc.mat,
+                               cov.mat)),
+      data    = dat)
+  )
+)
 
 
 

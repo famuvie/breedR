@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 ### Test the rendering to pf90 format ###
@@ -19,7 +20,7 @@ test_that('renderpf90.matrix() renders different matrix types', {
   )
   
   for (x in mat.list) {
-    res <- try(renderpf90.matrix(x$m), silent = TRUE)
+    res <- try(renderpf90.matrix(x$m))
     
     expect_true(!(failed <- inherits(res, 'try-error')))
     

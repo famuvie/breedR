@@ -1,12 +1,13 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 data(globulus)
 ped <- build_pedigree(1:3, data = globulus)
 # Test function
 fit.model <- function(vi, vigen, random, dat = globulus, ...) {
-  res <- 
-    try(
+  try(
+    suppressMessages(
       remlf90(fixed   = phe_X ~ gen,
               random  = random,
               var.ini = vi,
@@ -15,8 +16,8 @@ fit.model <- function(vi, vigen, random, dat = globulus, ...) {
                              pedigree = ped,
                              id = 'self'), 
               data    = dat)
-      , silent = TRUE)
-  res
+    )
+  )
 }
 
 # Test data

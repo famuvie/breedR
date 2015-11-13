@@ -1,5 +1,6 @@
 ### For testing prediction, we perform a cross-validation excercise ###
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 data(m1)
@@ -14,27 +15,34 @@ m1$Data$y[sel.idx] <- NA
 dat <- as.data.frame(m1)
 
 # Fit with no missings
-res.full <- remlf90(fixed   = phe_X ~ sex, 
-                    genetic = list(model = 'add_animal', 
-                                   pedigree = get_pedigree(m1),
-                                   id = 'self'), 
-                    spatial = list(model = 'AR', 
-                                   coord = coordinates(m1),
-                                   rho = c(.9, .9)), 
-                    data = dat,
-                    method = 'ai')
+res.full <- try(
+  suppressMessages(
+    remlf90(fixed   = phe_X ~ sex, 
+            genetic = list(model = 'add_animal', 
+                           pedigree = get_pedigree(m1),
+                           id = 'self'), 
+            spatial = list(model = 'AR', 
+                           coord = coordinates(m1),
+                           rho = c(.9, .9)), 
+            data = dat,
+            method = 'ai')
+  )
+)
 
 # Fit with missings
-res.pred <- remlf90(fixed   = y ~ sex, 
-                    genetic = list(model = 'add_animal', 
-                                   pedigree = get_pedigree(m1),
-                                   id = 'self'), 
-                    spatial = list(model = 'AR', 
-                                   coord = coordinates(m1),
-                                   rho = c(.9, .9)), 
-                    data = dat,
-                    method = 'ai')
-
+res.pred <- try(
+  suppressMessages(
+    remlf90(fixed   = y ~ sex, 
+            genetic = list(model = 'add_animal', 
+                           pedigree = get_pedigree(m1),
+                           id = 'self'), 
+            spatial = list(model = 'AR', 
+                           coord = coordinates(m1),
+                           rho = c(.9, .9)), 
+            data = dat,
+            method = 'ai')
+  )
+)
 
 #### Context: Prediction and cross-validation ####
 context("Prediction")
