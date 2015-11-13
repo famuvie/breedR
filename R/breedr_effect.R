@@ -42,7 +42,8 @@ effect_group <- function(x, cov.ini) {
   ## x is a list and cov.ini a SPD matrix
   stopifnot(is.list(x))
   cov.ini <- as.matrix(cov.ini)
-  stopifnot(isSymmetric.matrix(cov.ini))
+  stopifnot(is.numeric(cov.ini))
+  stopifnot(isSymmetric.matrix(cov.ini, check.attributes = FALSE))
   ev <- eigen(cov.ini, symmetric = TRUE, only.values = TRUE)$values
   stopifnot(all(ev > 0))
   

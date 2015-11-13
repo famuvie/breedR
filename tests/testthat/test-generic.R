@@ -48,7 +48,6 @@ test_that('generic() takes either covariance or precision matrices', {
 #   - renderpf90()
 #   - all.equal.remlf90()
 #   - breedr_effect()
-#   - effect_group()
 #   - model.matrix.effect_group()
 #   - model.matrix.breedr_effect()
 #   - random()
