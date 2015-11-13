@@ -65,7 +65,8 @@ check_genetic <- function(model = c('add_animal', 'competition'),
 
   ## Mandatory arguments
   for (arg in c('model', 'pedigree', 'id')) {
-    if (eval(call('missing', as.name(arg))))
+    if (eval(call('missing', as.name(arg))) || 
+        eval(call('is.null', as.name(arg))))
       stop(paste('Argument', arg, 'required in the genetic component.'))
   }
   
@@ -106,7 +107,10 @@ check_genetic <- function(model = c('add_animal', 'competition'),
 
   ## The codes in id must correspond to valid codes in the pedigree
   ## possibly recoded
-  if (!all(idx <- attr(mc$pedigree, "map")[mc$id] %in% mc$pedigree@label))
+  if (!is.null(attr(mc$pedigree, "map")))
+    recoded_id <- attr(mc$pedigree, "map")[mc$id]
+  else recoded_id <- mc$id
+  if (!all(idx <- recoded_id %in% mc$pedigree@label))
     stop(paste('The following individuals in id are',
                'not represented in the pedigree:\n',
                toString(mc$id[which(!idx)])))
@@ -175,7 +179,7 @@ check_genetic <- function(model = c('add_animal', 'competition'),
     
     ## Default initial variance
     if (!'var.ini' %in% names(pec)) {
-      if (!attr(mc, 'var.ini.default')) {
+      if (!attr(mc, 'var.ini.default') && pec$present) {
         stop(paste0('var.ini must be specified for pec as well, ',
                     'in the competition specification.\n',
                     'e.g. pec = list(present = TRUE, var.ini = 1)'))
