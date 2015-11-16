@@ -43,7 +43,8 @@ Suggests:
     knitr,
     rmarkdown,
     tidyr
-SystemRequirements: BLUPF90 programs will be downloaded from breedR website at install time.
+SystemRequirements: BLUPF90 programs will be downloaded from breedR website at
+    install time.
 LazyLoad: yes
 LazyData: yes
 URL: https://github.com/famuvie/breedR
