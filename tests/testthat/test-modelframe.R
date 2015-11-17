@@ -163,8 +163,66 @@ test_that('Build a full model frame with all componenents', {
 })
 
 
-test_that('Render a full model frame with all componenents', {
-  pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10)
-  expect_false(inherits(pf90, 'try-error'))
+## Compile progsf90 object
+context('Compile progsf90 object')
+
+test_that('Compile a full model frame with all componenents', {
+  expect_error(
+    progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10), 
+    NA
+  )
 })
+
+test_that('PROGSF90 codes for missing values', {
+  ## strictly positive or negative observations
+  expect_identical(pf90_code_missing(c(.1, 9, NA)), 0)
+  expect_identical(pf90_code_missing(c(-.1, -9, NA)), 0)
+  
+  ## range include 0 (even in the boundary)
+  ## code always an order of magnitude above observations
+  expect_identical(pf90_code_missing(c(0, 0.9, NA)), -9)
+  expect_identical(pf90_code_missing(c(-.1, 9, NA)), -99)
+  expect_identical(pf90_code_missing(c(-11, .1, NA)), -999)
+  expect_identical(pf90_code_missing(c(-110, 345, NA)), -9999)
+})
+
+
+test_that('If phenotype excludes 0, use default missing code', {
+  ## make sure we have posiive observations
+  mf$phe_X <- 1 - min(mf$phe_X) + mf$phe_X
+  mf$phe_X[1] <- NA
+  res.try <- expect_error(
+    pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10),
+    NA
+  )
+  
+  if (res.try$passed) {
+    ## no explicit 'missing' (using default of 0)
+    expect_false(any(grepl('missing', pf90$parameter$options)))
+	
+	## observation value set at 0
+    expect_equal(pf90$data[1, 'phenotype'], 0, check.attributes = FALSE)
+  }
+})
+
+test_that('If phenotype includes 0, use alternative missing code', {
+  mf$phe_X[1] <- NA
+  res.try <- 
+    expect_error(
+      pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10), 
+      NA
+    )
+  
+  if (res.try$passed) {
+    ## explicit 'missing' 
+    missing_code <- pf90_code_missing(mf$phe_X)
+    expect_true(paste('missing', missing_code) %in% pf90$parameter$options)
+    
+    ## observation value set at corresponding missing code
+    expect_equal(pf90$data[1, 'phenotype'], 
+                 missing_code,
+                 check.attributes = FALSE)
+  }
+})
+
 
