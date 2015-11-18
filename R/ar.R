@@ -41,13 +41,16 @@ breedr_ar <- function (coordinates,
     stop('Are you kidding? This is a line!')
   
   ## Incidence matrix
-  inc.mat <- as(
-    Matrix::sparseMatrix(i = seq_along(grid$idx),
-                         j = grid$idx,
+  ## Account for individuals with missing coordinates
+  ## for the corresponding individuals, grid$idx is NA
+  ## need to remove those to build the incidence matrix
+  ## but dimensions are based on the full length
+  miss.idx <- is.na(grid$idx)
+  inc.mat <- Matrix::sparseMatrix(i = which(!miss.idx),
+                         j = grid$idx[!miss.idx],
                          x = 1,
                          dims = c(length(grid$idx),
-                                  prod(grid$length))),
-    'indMatrix')
+                                  prod(grid$length)))
   
   
   # Precision matrix for the AR1(rho_x) x AR1(rho_y) process

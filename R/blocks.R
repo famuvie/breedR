@@ -34,7 +34,17 @@ breedr_blocks <- function (coordinates,
   n.blocks <- nlevels(id)
   cov.mat <- Matrix::Diagonal(n.blocks)
   
-  inc.mat <- as(as.numeric(id), 'indMatrix')
+  ## Incidence matrix
+  ## Account for individuals with missing block id
+  ## need to remove those to build the incidence matrix
+  ## but dimensions are based on the full length
+  miss.idx <- is.na(as.numeric(id))
+  inc.mat <- Matrix::sparseMatrix(i = which(!miss.idx),
+                                  j = as.numeric(id)[!miss.idx],
+                                  x = 1,
+                                  dims = c(length(id),
+                                           n.blocks))
+  
   colnames(inc.mat) <- levels(id)
   
   ## Build the spatial effect, return the autoregressive parameters

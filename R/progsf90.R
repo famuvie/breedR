@@ -262,6 +262,13 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
                  c(list(phenotype = Y),
                    dat.l))
   
+  # Forbid missing values in dependent variables
+  if (anyNA(dat[, -(1:ntraits)])) {
+    idx <- which(is.na(dat[, -(1:ntraits), drop = FALSE]), arr.ind = TRUE)[, 1]
+    stop('\nMissing values in covariates are not allowed\n',
+         paste('check individuals:', paste(idx, collapse = ', ')))
+  }
+
   # Additional Files
   build.file.single <- function(ef) {
     

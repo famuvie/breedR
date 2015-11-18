@@ -226,3 +226,106 @@ test_that('If phenotype includes 0, use alternative missing code', {
 })
 
 
+test_that('progsf90() forbids missing values in fixed effects', {
+  mf$sex[1] <- NA;
+  eff <- try(
+    build.effects(mf = mf,
+                  genetic = fc$genetic,
+                  spatial = fc$spatial,
+                  generic = fc$generic,
+                  var.ini = sapply(c(ranef, 'residuals'), function(x) 1))
+  )
+  
+  expect_error(
+    pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10),
+    'Missing values in covariates are not allowed'
+  )
+})
+
+
+test_that('progsf90() admits missing values in random effects', {
+  mf$mum[1] <- NA;
+  eff <- build.effects(mf = mf,
+                       genetic = fc$genetic,
+                       spatial = fc$spatial,
+                       generic = fc$generic,
+                       var.ini = sapply(c(ranef, 'residuals'), function(x) 1))
+  pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10)
+  
+  # the incidence matrix for the first individual is zero
+  expect_true(identical(sum(model.matrix(eff$mum$effects[[1]])[1,]), 0))
+  cols <- as.numeric(head(strsplit(pf90$parameter$effects$mum, ' ')[[1]], 1))
+  expect_true(identical(unname(pf90$data[1, cols]), rep(0, length(cols))))
+
+  # blocks case
+  fc$spatial$model <- 'blocks'
+  fc$spatial$id <- mf$mum
+  eff <- build.effects(mf = mf,
+                       genetic = fc$genetic,
+                       spatial = fc$spatial,
+                       generic = fc$generic,
+                       var.ini = sapply(c(ranef, 'residuals'), function(x) 1))
+  pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10)
+
+  # the incidence matrix for the first individual is zero
+  expect_true(identical(sum(model.matrix(eff$spatial$effects[[1]])[1,]), 0))
+  cols <- as.numeric(head(strsplit(pf90$parameter$effects$spatial, ' ')[[1]], 1))
+  expect_true(identical(unname(pf90$data[1, cols]), rep(0, length(cols))))
+  
+})
+
+test_that('progsf90() admits missing values in coordinates', {
+  fc$spatial$coordinates$irow[1] <- NA;
+  
+  # splines
+  eff <- build.effects(mf = mf,
+                       genetic = fc$genetic,
+                       spatial = fc$spatial,
+                       generic = fc$generic,
+                       var.ini = sapply(c(ranef, 'residuals'), function(x) 1))
+  pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10)
+  
+  # the incidence matrix for the first individual is zero
+  expect_true(identical(sum(model.matrix(eff$spatial$effects$splines)[1,]), 0))
+  cols <- as.numeric(sapply(strsplit(pf90$parameter$effects$spatial, ' '),
+                            head, 1))
+  expect_true(identical(unname(pf90$data[1, cols]), rep(0, length(cols))))
+  
+  # AR
+  fc$spatial$model <- 'AR'
+  fc$spatial$rho <- c(.9, .9)
+  
+  eff <- build.effects(mf = mf,
+                       genetic = fc$genetic,
+                       spatial = fc$spatial,
+                       generic = fc$generic,
+                       var.ini = sapply(c(ranef, 'residuals'), function(x) 1))
+  pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10)
+  
+  # the incidence matrix for the first individual is zero
+  expect_true(identical(sum(model.matrix(eff$spatial$effects$ar)[1,]), 0))
+  
+  cols <- as.numeric(head(strsplit(pf90$parameter$effects$spatial, ' ')[[1]], 1))
+  expect_true(identical(unname(pf90$data[1, cols]), rep(0, length(cols))))
+})
+
+
+# ## How do lme4 and INLA deal with missing values in effects?
+# require(lme4)
+# require(INLA)
+# mf$sex[1] <- mf$mum[2] <- NA;
+# 
+# res.lme4 <- lmer(phe_X~ sex + (1|mum), data = mf)
+# nrow(model.frame(res.lme4))  # 1598: removes observations
+# 
+# res.inla <- inla(
+#   phe_X~ sex + f(mum, model = 'iid'), 
+#   data = mf,
+#   # INLA gives an error, unless expand.factor.strategy = 'inla'
+#   control.fixed = list(expand.factor.strategy='inla'),
+#   # return results for the linear predictor
+#   control.predictor = list(compute = TRUE)
+# )
+# 
+# head(res.inla$model.matrix)  # uses 0 in the incidence matrix
+# str(res.inla$size.linear.predictor) # does not remove anything
