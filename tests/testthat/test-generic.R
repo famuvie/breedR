@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 ### Test the generic model ###
@@ -47,7 +48,6 @@ test_that('generic() takes either covariance or precision matrices', {
 #   - renderpf90()
 #   - all.equal.remlf90()
 #   - breedr_effect()
-#   - effect_group()
 #   - model.matrix.effect_group()
 #   - model.matrix.breedr_effect()
 #   - random()
@@ -70,11 +70,15 @@ nlevels.random <- nlevels(dat$bl)
 inc.mat <- model.matrix(~ 0 + bl, globulus)
 cov.mat <- diag(nlevels(globulus$bl))
 
-res <- try(remlf90(fixed   = fixed.fml,
-                   generic = list(bl = list(inc.mat,
-                                            cov.mat)),
-                   data    = dat),
-           silent = TRUE)
+res <- try(
+  suppressMessages(
+    remlf90(
+      fixed   = fixed.fml,
+      generic = list(bl = list(inc.mat,
+                               cov.mat)),
+      data    = dat)
+  )
+)
 
 
 

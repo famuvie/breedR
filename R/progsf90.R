@@ -205,7 +205,18 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   effect.lst <-
     sapply(effects.pf90,
            function(x) with(x, paste(pos, levels, type, na2empty(nest))))
-                          
+
+  # Phenotype
+  Y <- mf[, attr(attr(mf, 'terms'), 'response')]
+  
+  # Code for missing observations
+  # Use 0 if outside range of variation. Otherwise, use option 'missing'.
+  missing_code <- pf90_code_missing(Y)
+  Y[which(is.na(Y))] <- missing_code
+  if (!identical(missing_code, 0)) {
+    opt <- c(opt, paste('missing', missing_code))
+  }
+  
   parse.rangroup <- function(x) {
     group.size <- nrow(as.matrix(effects.pf90[[x]]$var))
     ## The group 'head' is the first effect with a number of levels > 0
@@ -235,16 +246,6 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
               options = opt
   )
   
-
-  # Phenotype. Account for missing values.
-  # Encode NA as 0 for Misztal's programs. Make sure there are no "real" zeroes.
-  Y <- mf[, attr(attr(mf, 'terms'), 'response')]
-  if( any(is.na(Y)) ) {
-    if( 0. %in% Y )
-      stop("Can't include missing values while some real observations are 0.\n")
-    Y[which(is.na(Y))] <- 0
-  }
-  
   # Data 
   # Columns ordered as in the effects list
   # after the trait(s) 
@@ -261,6 +262,13 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
                  c(list(phenotype = Y),
                    dat.l))
   
+  # Forbid missing values in dependent variables
+  if (anyNA(dat[, -(1:ntraits)])) {
+    idx <- which(is.na(dat[, -(1:ntraits), drop = FALSE]), arr.ind = TRUE)[, 1]
+    stop('\nMissing values in covariates are not allowed\n',
+         paste('check individuals:', paste(idx, collapse = ', ')))
+  }
+
   # Additional Files
   build.file.single <- function(ef) {
     
@@ -638,4 +646,28 @@ build.mf <- function(call) {
     attr(attr(mf, 'terms'), 'dataClasses')[str.idx] <- 'factor'
 	}
   return(mf)
+}
+
+
+#' Determine a numeric code for missing observations
+#' 
+#' This function returns a code outside the range of variation of the observed values.
+#' 
+#' If the range of variation strictly excludes zero, then it is used as the code
+#' for missing observations (which is the default code in PROGSF90). Otherwise, 
+#' returns 1 - the second power of 10 greater than the maximum observed 
+#' magnitude. This ensures a code an order of magnitude greater than the
+#' observed values. E.g., for observations in the range -40 -- 28, the code is
+#' -999.
+#' 
+#' @param x a numeric vector.
+#' 
+#' @examples 
+#'   pf90_code_missing(rnorm(100))
+pf90_code_missing <- function(x) {
+  if (min(x, na.rm = TRUE) > 0 || max(x, na.rm = TRUE) < 0) return(0)
+  
+  ## Second power of 10 greater than maximum observed magnitude
+  p10 <- 10^(1+ceiling(log10(max(abs(x), na.rm = TRUE))))
+  return(1-p10)
 }

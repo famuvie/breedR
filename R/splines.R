@@ -59,9 +59,15 @@ breedr_splines <- function(coordinates,
   #   browser()
   # Scaling so that the characteristic marginal variance equals 1/sigma^2
   # Sorbye and Rue (2014)
-  sc <- ifelse(sparse,
-               gmean(Matrix::diag(B %*% Matrix::tcrossprod(U, B))),
-               gmean(diag(B %*% tcrossprod(U, B))))
+  sc <- suppressWarnings(
+    # if B has some row of zeroes (e.g. missing coordinate for an individual)
+    # then gmean warns about it and removes the 0 from computation.
+    # this is ok. but I don't want the warning to be displayed.
+    ifelse(sparse,
+           gmean(Matrix::diag(B %*% Matrix::tcrossprod(U, B))),
+           gmean(diag(B %*% tcrossprod(U, B))))
+  )
+  
   Uscaled <- as(U/sc, 'CsparseMatrix')
   
   ## Build the spatial effect, return the knot coordinates
@@ -210,16 +216,25 @@ build.splines1d.sparse <- function(n, model = 'GreenSilverman2003') {
 #'   temperature interaction using two-dimensional penalized signal regression.
 #'   \emph{Chemometrics and Intelligent Laboratory Systems} 66(2), 159-174.
 bispline_incidence <- function (knots, xx, ord, sparse) {
-  b.x <- splines::splineDesign(knots[[1]], xx[, 1], ord = ord)  #, sparse=TRUE)
-  b.y <- splines::splineDesign(knots[[2]], xx[, 2], ord = ord)  #, sparse=TRUE)
-  # The rgument sparse was introduced at some point between versions 2.15.0
+  ## Account for missing coordinates
+  ## setting corresponding incidence values to zero
+  miss.idx <- list(x = is.na(xx[, 1]),
+                   y = is.na(xx[, 2]))
+  if (sparse) {
+    b.x <- Matrix(0, nrow(xx), length(knots[[1]]) - ord)
+    b.y <- Matrix(0, nrow(xx), length(knots[[2]]) - ord)
+  } else {
+    b.x <- matrix(0, nrow(xx), length(knots[[1]]) - ord)
+    b.y <- matrix(0, nrow(xx), length(knots[[2]]) - ord)
+  }
+  b.x[!miss.idx$x] <- 
+    splines::splineDesign(knots[[1]], xx[!miss.idx$x, 1], ord = ord)  #, sparse=TRUE)
+  b.y[!miss.idx$y] <- 
+    splines::splineDesign(knots[[2]], xx[!miss.idx$y, 2], ord = ord)  #, sparse=TRUE)
+  # The argument sparse was introduced at some point between versions 2.15.0
   # and 3.0.2 of the splines package.
   # sparseness is useful but unnecessary. I prefer to keep this
   # more widely compatible, and make things sparse myself.
-  if (sparse) {
-    b.x <- as(b.x, 'CsparseMatrix')
-    b.y <- as(b.y, 'CsparseMatrix')
-  }
   
   ones.y <- matrix(1, ncol = ncol(b.y))
   ones.x <- matrix(1, ncol = ncol(b.x))

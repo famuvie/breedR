@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 context("Blocks infrastructure")
@@ -42,12 +43,16 @@ n.fixed   <- length(attr(terms(fixed.fml), 'term.labels'))
 nlevels.fixed <- nlevels(dat$gg)
 n.blocks   <- nlevels(dat$bl)
 
-res <- try(remlf90(fixed = fixed.fml, 
-                   spatial = list(model = 'blocks', 
-                                  coord = globulus[, c('x', 'y')],
-                                  id = dat$bl), 
-                   data = dat),
-           silent = TRUE)
+res <- try(
+  suppressMessages(
+    remlf90(
+      fixed = fixed.fml, 
+      spatial = list(model = 'blocks', 
+                     coord = globulus[, c('x', 'y')],
+                     id = dat$bl), 
+      data = dat)
+  )
+)
 
 # # Manual verification of block estimates:
 # library(dplyr)

@@ -1,5 +1,6 @@
 ### For testing prediction, we perform a cross-validation excercise ###
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 data(m1)
@@ -14,27 +15,34 @@ m1$Data$y[sel.idx] <- NA
 dat <- as.data.frame(m1)
 
 # Fit with no missings
-res.full <- remlf90(fixed   = phe_X ~ sex, 
-                    genetic = list(model = 'add_animal', 
-                                   pedigree = get_pedigree(m1),
-                                   id = 'self'), 
-                    spatial = list(model = 'AR', 
-                                   coord = coordinates(m1),
-                                   rho = c(.9, .9)), 
-                    data = dat,
-                    method = 'ai')
+res.full <- try(
+  suppressMessages(
+    remlf90(fixed   = phe_X ~ sex, 
+            genetic = list(model = 'add_animal', 
+                           pedigree = get_pedigree(m1),
+                           id = 'self'), 
+            spatial = list(model = 'AR', 
+                           coord = coordinates(m1),
+                           rho = c(.9, .9)), 
+            data = dat,
+            method = 'ai')
+  )
+)
 
 # Fit with missings
-res.pred <- remlf90(fixed   = y ~ sex, 
-                    genetic = list(model = 'add_animal', 
-                                   pedigree = get_pedigree(m1),
-                                   id = 'self'), 
-                    spatial = list(model = 'AR', 
-                                   coord = coordinates(m1),
-                                   rho = c(.9, .9)), 
-                    data = dat,
-                    method = 'ai')
-
+res.pred <- try(
+  suppressMessages(
+    remlf90(fixed   = y ~ sex, 
+            genetic = list(model = 'add_animal', 
+                           pedigree = get_pedigree(m1),
+                           id = 'self'), 
+            spatial = list(model = 'AR', 
+                           coord = coordinates(m1),
+                           rho = c(.9, .9)), 
+            data = dat,
+            method = 'ai')
+  )
+)
 
 #### Context: Prediction and cross-validation ####
 context("Prediction")
@@ -85,3 +93,21 @@ test_that("Fixed effects are similar", {
   expect_equal(fixef(res.full), fixef(res.pred), tolerance = 10*tol)
 })
 
+
+
+test_that('(ai)remlf90() predict correctly when missing code is not 0', {
+  ## dataset with positive and negative values
+  dat <- breedR.sample.phenotype(fixed = c(mu = 0), N = 1e3)
+  dat$group <- factor(rep(letters[1:4], each = 1e3/4))
+  dat$phenotype <- dat$phenotype + as.numeric(dat$group)
+  dat$phenotype[1] <- NA
+  res.try <- expect_error(
+    res <- remlf90(phenotype ~ group, data = dat),
+    NA
+  )
+  
+  if (res.try$passed) {
+    expect_equal(fitted(res)[1], fixef(res)$group[1, 'value'], 
+                 check.attributes = FALSE)
+  }
+})

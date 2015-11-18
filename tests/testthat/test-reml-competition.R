@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 ### For testing competition, we perform a simulation excercise ###
@@ -148,19 +149,24 @@ dat <- transform(dat, z = a + wnc + pec + e)
 context('Fitting competition models')
 ########################
 
-res <- try(remlf90(fixed  = z ~ 1,
-                   genetic = list(model = c('comp'), 
-                                  pedigree = dat[, c('id', 'mum', 'dad')],
-                                  id = 'id',
-                                  coord = dat[, c('x', 'y')],
-                                  competition_decay = 1,
-                                  pec = list(present = TRUE)), 
-                   data = dat,
-                   method = 'em',
-                   debug = F),
-           silent = TRUE)
+res <- try(
+  suppressMessages(
+    remlf90(
+      fixed  = z ~ 1,
+      genetic = list(model = c('comp'), 
+                     pedigree = dat[, c('id', 'mum', 'dad')],
+                     id = 'id',
+                     coord = dat[, c('x', 'y')],
+                     competition_decay = 1,
+                     pec = list(present = TRUE)), 
+      data = dat,
+      method = 'em',
+      debug = F)
+  )
+)
 
-# qplot(dat$z - dat$e, fitted(res)) + geom_abline(int = 0, sl = 1, col = 'darkgray')
+# ggplot2::qplot(dat$z - dat$e, fitted(res)) + 
+#   ggplot2::geom_abline(int = 0, sl = 1, col = 'darkgray')
 
 
 

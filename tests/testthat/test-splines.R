@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 context("Number of knots")
@@ -59,14 +60,17 @@ n.knots   <- c(4, 3)
 n.splines <- prod(n.knots + 2)
 
 # Use a different number of knots for rows and columns
-res <- try(remlf90(fixed = fixed.fml, 
-                   spatial = list(model = 'splines', 
-                                  coord = coordinates(m1),
-                                  n.knots = n.knots), 
-                   data = dat,
-                   method = 'em'),
-           silent = TRUE)
-
+res <- try(
+  suppressMessages(
+    remlf90(fixed = fixed.fml, 
+            spatial = list(model = 'splines', 
+                           coord = coordinates(m1),
+                           n.knots = n.knots), 
+            data = dat,
+            method = 'em')
+  )
+)
+  
 
 test_that("The splines model runs with EM-REML without errors", {
   expect_that(!inherits(res, "try-error"), is_true())

@@ -56,6 +56,8 @@ install_progsf90 <- function(
   quiet = !interactive()
 ) {
   
+  if (!breedR_online()) return(FALSE)
+  
   execs <- progsf90_files(platform)
   
   f.url <- file.path(url, platform, arch)
@@ -113,4 +115,16 @@ progsf90_files <- function(os = breedR.os.type()) {
   }
   
   ans
+}
+
+
+## Check whether there is internet connection
+breedR_online <- function() {
+  tf <- tempfile()
+  !inherits(
+    suppressWarnings(
+      try(download.file('http://famuvie.github.io/breedR/', tf, quiet = TRUE))
+    ), 
+    'try-error'
+  )
 }

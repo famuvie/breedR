@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 
@@ -93,13 +94,17 @@ datlist <- c(datlist,
 
 # Fit models both with EM and AI-REML
 run.model <- function(dat, method) {
-  res = try(remlf90(fixed = y ~ 1 + z, 
-                    spatial = list(model = 'AR',
-                                   coord = dat[, 1:2],
-                                   rho = c(.9, .9)),
-                    data = dat,
-                    method = method),
-  silent = TRUE)
+  res = try(
+    suppressMessages(
+      remlf90(
+        fixed = y ~ 1 + z, 
+        spatial = list(model = 'AR',
+                       coord = dat[, 1:2],
+                       rho = c(.9, .9)),
+        data = dat,
+        method = method)
+    )
+  )
   return(list(dat = dat,
               method = method,
               res = res))
@@ -149,11 +154,15 @@ for(i in 1:length(reslist))
 #### Context: selection of autoregressive parameters ####
 context("Selection of autoregressive parameters")
 
-res.unset <- try(remlf90(fixed = y ~ z, 
-                         spatial = list(model = 'AR',
-                                        coordinat = datlist[[1]][, 1:2]),
-                         data = datlist[[1]]),
-                 silent = TRUE)
+res.unset <- try(
+  suppressMessages(
+    remlf90(
+      fixed = y ~ z, 
+      spatial = list(model = 'AR',
+                     coordinat = datlist[[1]][, 1:2]),
+      data = datlist[[1]])
+  )
+)
 
 test_that("if rho unset, remlf90 tries a grid of combinations", {
   # remlf90() returns an evaluation grid
@@ -167,12 +176,17 @@ gridlist <- list(expand.grid(seq(80, 90, 5), c(87, 93))/100,
                  expand.grid(seq(80, 90, 5), NA)/100,
                  expand.grid(NA, c(87, 93))/100)
 reslist.spec <- lapply(gridlist, function(g)
-  try(remlf90(fixed = y ~ z, 
-              spatial = list(model = 'AR',
-                             coord = datlist[[1]][, 1:2],
-                             rho = g),
-              data = datlist[[1]]),
-      silent = TRUE))
+  try(
+    suppressMessages(
+      remlf90(
+        fixed = y ~ z, 
+        spatial = list(model = 'AR',
+                       coord = datlist[[1]][, 1:2],
+                       rho = g),
+        data = datlist[[1]])
+    )
+  )
+)
 
 test_that("the user can specify a full or partial grid of combinations", {
   
@@ -232,13 +246,16 @@ coord = dat[, 1:2]
 n.AR <- prod(sapply(loc_grid(coord, autofill = TRUE), length))
 
 # Use a different number of knots for rows and columns
-res <- try(remlf90(fixed = fixed.fml, 
-                   spatial = list(model = 'AR', 
-                                  coord = coord,
-                                  rho = rho), 
-                   data = dat,
-                   method = 'ai'),
-           silent = TRUE)
+res <- try(
+  suppressMessages(
+    remlf90(fixed = fixed.fml, 
+            spatial = list(model = 'AR', 
+                           coord = coord,
+                           rho = rho), 
+            data = dat,
+            method = 'ai')
+  )
+)
 
 
 test_that("The AR model runs with EM-REML without errors", {

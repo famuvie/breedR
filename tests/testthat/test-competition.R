@@ -1,19 +1,10 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 
-#### Context: additive_genetic_competition() ####
+#### Context: competition infrastructure ####
 context("competition infrastructure")
-
-
-#' dat <- data.frame(id   = 1:5,
-#'                   sire = c(11, 11, 2, 3, 2),
-#'                   dam  = c(12, NA, 1, 12, 1),
-#'                   x    = c(rep(1:2, times = 2), 3),
-#'                   y    = c(rep(1:2, each = 2), 3))
-#' ped <- build_pedigree(1:3, data = dat)
-#' breedR:::additive_genetic_competition(ped, coord = dat[, c('x', 'y')], dat$id, 2)
-
 
 ## Minimal dataset
 dat <- data.frame(id   = 1:6,
@@ -21,9 +12,64 @@ dat <- data.frame(id   = 1:6,
                   dam  = c(12, NA, 1, 12, 12, 1),
                   x    = c(1,2,-1,0,0,1),
                   y    = c(-1,0,0,1,-1,1))
+## Corresponding pedigree with additional offspring
 ped <- build_pedigree(1:3, data = rbind(dat, c(7, 1, 2)))
 var.ini <- 1.5
 var.ini.mat <- matrix(c(1, -.5, -.5, 1), 2, 2)
+
+
+test_that("Valid alternative model specifications pass checks", {
+  ## specify var.ini, but use pec=FALSE
+  comp.spec <- try(
+    breedR::check_genetic(model = 'competition',
+                          pedigree = ped,
+                          coordinates = dat[, c('x', 'y')],
+                          id = dat$id,
+                          var.ini = var.ini)
+  )
+  expect_true(!inherits(comp.spec, 'try-error'))
+  
+  ## non-recoded pedigree
+  idx <- attr(ped, 'map')[dat$id]
+  dat[, 1:3] <- as.data.frame(ped)[idx, ]
+  comp.spec <- try(
+    breedR::check_genetic(model = 'competition',
+                          pedigree = dat[, 1:3],
+                          coordinates = dat[, c('x', 'y')],
+                          id = dat$id,
+                          var.ini = var.ini)
+  )
+  expect_true(!inherits(comp.spec, 'try-error'))
+  
+})
+
+
+
+test_that("Invalid alternative model specifications fail checks", {
+  ## specify var.ini, but use pec=FALSE
+  comp.spec <- try(
+    breedR::check_genetic(model = 'competition',
+                          pedigree = ped,
+                          coordinates = dat[, c('x', 'y')],
+                          id = dat$id,
+                          var.ini = var.ini)
+  )
+  expect_true(!inherits(comp.spec, 'try-error'))
+  
+  ## incomplete non-recoded pedigrees
+  idx <- attr(ped, 'map')[dat$id]
+  dat[, 1:3] <- as.data.frame(ped)[idx, ]
+  comp.spec <- try(
+    breedR::check_genetic(model = 'competition',
+                          pedigree = dat[-nrow(dat), 1:3],
+                          coordinates = dat[, c('x', 'y')],
+                          id = dat$id,
+                          var.ini = var.ini),
+  )
+  expect_error(comp.spec, 
+               'The following individuals in id are not represented')
+  
+})
 
 ## Full specification, from minimal input
 comp.spec <- check_genetic(model = 'competition',

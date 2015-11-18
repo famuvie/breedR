@@ -393,10 +393,15 @@ renderpf90.blocks <- function(x) {
   ## Do not use model.matrix() as this can be a factor
   mmx <- x$incidence.matrix
   
-  dat <- factor(mmx@perm, labels = colnames(mmx))
+  ## general sparse matrix format: dgCMatrix
+  stopifnot(all(mmx@x == 1))
+  dp <- diff(mmx@p)
+  j <- rep(seq_along(dp),dp)
+  dat <- vector('integer', length = nrow(mmx))
+  dat[mmx@i + 1] <- j
   
   ans <- list(pos = 1,
-              levels = nlevels(dat),
+              levels = ncol(mmx),
               type   = 'cross',
               nest = NA,
               model = 'diagonal',

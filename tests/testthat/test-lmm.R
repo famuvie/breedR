@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 #### Simulated dataset ####
@@ -42,7 +43,7 @@ lm_models <- list(y ~ 0 + f3,
                   y ~ 0 + x + f3 + o4)
 # Run REML and lm and save estimates and MLEs
 run_model <- function(m, data = dat, method) {
-  res.reml <- remlf90(m, data = data, method = method)
+  res.reml <- try(suppressMessages(remlf90(m, data = data, method = method)))
   res.lm   <- lm(update(m, ~ . -1), data = data)
   return(list(res.reml, res.lm))
 }
@@ -88,12 +89,22 @@ run_expectations <- function(m, data = dat, method) {
 }
 
 test_that("Character variables are treated as factors", {
-  res_em.f3_char <- remlf90(y ~ f3,
-                            data = within(dat, f3 <- as.character(f3)), 
-                            method = 'em')
-  res_ai.f3_char <- remlf90(y ~ f3, 
-                            data = within(dat, f3 <- as.character(f3)), 
-                            method = 'ai')
+  res_em.f3_char <- try(
+    suppressMessages(
+      remlf90(
+        y ~ f3,
+        data = within(dat, f3 <- as.character(f3)), 
+        method = 'em')
+    )
+  )
+  res_ai.f3_char <- try(
+    suppressMessages(
+      remlf90(
+        y ~ f3, 
+        data = within(dat, f3 <- as.character(f3)), 
+        method = 'ai')
+    )
+  )
   
   expect_that(is.factor(res_em.f3_char$mf$f3), is_true())
   expect_that(is.factor(res_ai.f3_char$mf$f3), is_true())
@@ -139,10 +150,15 @@ lmm_models <- lmm_models[!sapply(lmm_models, function(x) is.null(x$random))]
 
 # Run REML and lm and save estimates and MLEs
 run_lmm <- function(m, data = dat, method) {
-  res.reml <- remlf90(fixed = m$fixed,
-                      random = m$random, 
-                      data = data, 
-                      method = method)
+  res.reml <- try(
+    suppressMessages(
+      remlf90(
+        fixed = m$fixed,
+        random = m$random, 
+        data = data, 
+        method = method)
+    )
+  )
   fml.lme4 <- breedR:::lme4_fml(m$fixed, m$random)
   res.lmm   <- lmer(fml.lme4, data = data)
   return(list(res.reml, res.lmm))
@@ -195,12 +211,20 @@ run_lmmexpectations <- function(m, data = dat, method, tol = 1e-03) {
 
 # Run character conversion test for each method
 test_that("Character variables in random effects are treated as factors", {
-  res_em.f3_char <- remlf90(fixed = y ~ x, random = ~ f3,
-                            data = within(dat, f3 <- as.character(f3)), 
-                            method = 'em')
-  res_ai.f3_char <- remlf90(fixed = y ~ x, random = ~ f3,
-                            data = within(dat, f3 <- as.character(f3)), 
-                            method = 'em')
+  res_em.f3_char <- try(
+    suppressMessages(
+      remlf90(fixed = y ~ x, random = ~ f3,
+              data = within(dat, f3 <- as.character(f3)), 
+              method = 'em')
+    )
+  )
+  res_ai.f3_char <- try(
+    suppressMessages(
+      remlf90(fixed = y ~ x, random = ~ f3,
+              data = within(dat, f3 <- as.character(f3)), 
+              method = 'em')
+    )
+  )
   
   expect_that(is.factor(res_em.f3_char$mf$f3), is_true())
   expect_that(is.factor(res_ai.f3_char$mf$f3), is_true())

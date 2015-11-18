@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 #### Context: Models with several effects working together ####
@@ -33,19 +34,22 @@ if (!inherits(dat, 'try-error')) {
   coord <- dat[, c('Var1', 'Var2')]
   
   res <- try(
-    remlf90(phenotype ~ X.x,
-            random = ~ u,
-            genetic = list(model = 'competition',
-                           pedigree = dat[, 1:3],
-                           id = 'self',
-                           coord = coord,
-                           competition_decay = 1,
-                           pec = list(present = TRUE)),
-            spatial = list(model = 'splines',
-                           coord = coord,
-                           n.knots = c(3, 3)),
-            method = 'em',  # ai seems to work in interactive mode, but fails to converge in test()
-            data = dat)
+    suppressMessages(
+      remlf90(
+        phenotype ~ X.x,
+        random = ~ u,
+        genetic = list(model = 'competition',
+                       pedigree = dat[, 1:3],
+                       id = 'self',
+                       coord = coord,
+                       competition_decay = 1,
+                       pec = list(present = TRUE)),
+        spatial = list(model = 'splines',
+                       coord = coord,
+                       n.knots = c(3, 3)),
+        method = 'em',  # ai seems to work in interactive mode, but fails to converge in test()
+        data = dat)
+    )
   )
   
   test_that("Fitting of splines+competition simulation succeeds", {

@@ -1,11 +1,12 @@
 #### pedigree building and checking ####
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 context("Pedigree")
 
 # Retrieve pedigree from remlf90 objects
-res.lm <- remlf90(y~1, dat = data.frame(y=rnorm(100)))
+res.lm <- try(suppressMessages(remlf90(y~1, dat = data.frame(y=rnorm(100)))))
 test_that('get_pedigree() returns NULL when there is no genetic effect', {
   expect_true(is.null(get_pedigree(res.lm)))
 })
@@ -15,12 +16,15 @@ test.dat <- data.frame(matrix(sample(100, 15), 5, 3,
                               dimnames = list(NULL, c('self', 'sire', 'dam'))),
                        y = rnorm(5))
 ped.fix <- build_pedigree(1:3, data = test.dat)
-test.res <- try(remlf90(y~1,
-                        genetic = list(model = 'add_animal',
-                                       pedigree = test.dat[, 1:3],
-                                       id = 'self'),
-                        data = test.dat),
-                silent = TRUE)
+test.res <- try(
+  suppressMessages(
+    remlf90(y~1,
+            genetic = list(model = 'add_animal',
+                           pedigree = test.dat[, 1:3],
+                           id = 'self'),
+            data = test.dat)
+  )
+)
 
 test_that('remlf90() builds and recodes the pedigree', {
   expect_false(inherits(test.res, 'try-error'))
@@ -69,12 +73,13 @@ dat <- as.data.frame(m1)
 ped <- get_pedigree(m1)
 
 res_ok <- try(
-  remlf90(fixed = phe_X ~ sex, 
-          genetic = list(model = 'add_animal', 
-                         pedigree = ped,
-                         id = 'self'), 
-          data = dat),
-  silent = TRUE
+  suppressMessages(
+    remlf90(fixed = phe_X ~ sex, 
+            genetic = list(model = 'add_animal', 
+                           pedigree = ped,
+                           id = 'self'), 
+            data = dat)
+  )
 )
 
 # Shuffle the pedigree
@@ -88,12 +93,13 @@ m1_shuffled$Data[, 1:3] <- sapply(as.data.frame(ped), function(x) map[x])
 ped_fix <- build_pedigree(1:3, data = as.data.frame(get_pedigree(m1_shuffled)))
 
 res_shuffled <- try(
-  remlf90(fixed = phe_X ~ sex,
-          genetic = list(model = 'add_animal', 
-                         pedigree = ped_fix,
-                         id = 'self'), 
-          data = as.data.frame(m1_shuffled)),
-  silent = TRUE
+  suppressMessages(
+    remlf90(fixed = phe_X ~ sex,
+            genetic = list(model = 'add_animal', 
+                           pedigree = ped_fix,
+                           id = 'self'), 
+            data = as.data.frame(m1_shuffled))
+  )
 )
 
 # Except the call, and the reml output everything must be the same

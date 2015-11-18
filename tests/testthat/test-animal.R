@@ -1,4 +1,5 @@
-old.op <- options(warn = -1)  # suppressWarnings
+old.op <- options(warn = -1,  # suppressWarnings
+                  show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
 
 data(m1)
@@ -46,13 +47,15 @@ fixed_models <- list(phe_X ~ sex)
 # Run REML and lm and save estimates and MLEs
 run_model <- function(m, data = dat, method) {
   res.reml <- try(
-    remlf90(fixed = m,
-            genetic = list(model = 'add_animal', 
-                           pedigree = ped,
-                           id = 'self'), 
-            data = data,
-            method = method),
-    silent = TRUE)
+    suppressMessages(
+      remlf90(fixed = m,
+              genetic = list(model = 'add_animal', 
+                             pedigree = ped,
+                             id = 'self'), 
+              data = data,
+              method = method)
+    )
+  )
   return(res.reml)
 }
 
