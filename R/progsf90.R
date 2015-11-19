@@ -211,10 +211,13 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   
   # Code for missing observations
   # Use 0 if outside range of variation. Otherwise, use option 'missing'.
-  missing_code <- pf90_code_missing(Y)
-  Y[which(is.na(Y))] <- missing_code
-  if (!identical(missing_code, 0)) {
-    opt <- c(opt, paste('missing', missing_code))
+  # Overriden by user specification
+  if (!any(grepl('missing', opt))) {
+    missing_code <- pf90_code_missing(Y)
+    Y[which(is.na(Y))] <- missing_code
+    if (!identical(missing_code, 0)) {
+      opt <- c(opt, paste('missing', missing_code))
+    }
   }
   
   parse.rangroup <- function(x) {
@@ -500,13 +503,13 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
         varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
       } else {
         varsd.str <- lapply(mapply(function(x, y) x + 1:y,
-                                     varsd.idx-1,
-                                     rangroup.sizes),
-                              function(x) reml.out[x])
+                                   varsd.idx-1,
+                                   rangroup.sizes),
+                            function(x) reml.out[x])
         varsd <- mapply(parse.varmat, varsd.str, subnames)
         names(varsd) <- c(names(effects)[effect.type == 'random'], 'Residual')
       }
-  }
+    }
     
     # Update: we step back from this decision. We report the estimated variance
     # parameter of the spatial effect, even if it is not additive.

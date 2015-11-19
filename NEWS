@@ -1,6 +1,8 @@
 breedR 0.11
 ===========
 
+* remlf90() interface to PROGSF90 OPTIONS
+
 * Much more exhaustive testing ensures greater stability.
 
 * New datasets Douglas (multi-site) and Larix (repeated measurements)
