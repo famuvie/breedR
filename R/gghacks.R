@@ -7,7 +7,7 @@
 #' 
 #' The names of the objects in the list will be used for facet labels.
 #' @import ggplot2
-#' @export
+#' @export compare.plots
 compare.plots <- function(plots) {
   # require(plyr)
   if (!requireNamespace("plyr", quietly = TRUE)) {
