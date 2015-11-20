@@ -663,7 +663,7 @@ build.mf <- function(call) {
 #' @param x a numeric vector.
 #' 
 #' @examples 
-#'   pf90_code_missing(rnorm(100))
+#'   breedR:::pf90_code_missing(rnorm(100))
 pf90_code_missing <- function(x) {
   if (min(x, na.rm = TRUE) > 0 || max(x, na.rm = TRUE) < 0) return(0)
   
