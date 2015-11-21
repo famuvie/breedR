@@ -339,7 +339,56 @@ write.progsf90 <- function (pf90, dir) {
 
 # Parse results from a progsf90 'solutions' file
 parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
+
+  ## Parse a matrix from a text output
+  parse.txtmat <- function(v, names) {
+    # get the numeric values from the strings, spliting by spaces
+    ans <- sapply(v, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
+    # ensure matrix even if only a number
+    ans <- as.matrix(ans)
+    # if no sub-names passed, remove all naming
+    if( is.null(names) ) names(ans) <- dimnames(ans) <- NULL
+    # otherwise, put the given names in both dimensions (covariance matrix)
+    else dimnames(ans) <- list(names, names)
+    ans
+  }
   
+  ## Parse the AI matrix from AIREML output
+  parse_invAI <- function(x) {
+    ## precedent and subsequent line numbers
+    idx <- grep('inverse of AI matrix', x)
+    stopifnot(length(idx) == 2)
+    mat.txt <- x[(idx[1]+1):(idx[2]-1)]
+    invAI <- parse.txtmat(mat.txt, rownames(varcomp))
+    return(invAI)
+  }
+
+  
+  ## Parse functions of (co)variances
+  ## from OPTION se_covar_function
+  parse_functions <- function(x) {
+    
+    parse_function <- function(x) {
+      pick_nmbr <- function(x) {
+        conv <- suppressWarnings(as.numeric(x))
+        stopifnot(sum(idx <- !is.na(conv)) == 1)
+        return(conv[idx])
+      }
+      structure(sapply(strsplit(x, ' '), pick_nmbr),
+                names = c('mean', 'sample mean', 'sample sd'))
+    }
+    
+    pattern <- "^.*? SE for function of \\(co\\)variances (\\w+) .*$"
+    labels.idx <- grep(pattern, x)
+    labels <- gsub(pattern, "\\1", x[labels.idx])
+    idx <- grep('  - Function:', x)
+    stopifnot((N <- length(idx)) == length(labels.idx))
+    
+    ans <- sapply(lapply(idx, function(i) x[i+1:3]), parse_function)
+    if (N > 0L) colnames(ans) <- labels
+    return(ans)
+  }
+                              
   # Parsing the results
   sol.file <- try(read.table(solfile, header=FALSE, skip=1))
   if( inherits(sol.file, 'try-error') ) {
@@ -467,15 +516,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                                    varcomp.idx-1,
                                    rangroup.sizes),
                             function(x) reml.out[x])
-      parse.varmat <- function(v, names) {
-        # get the numeric values from the strings, spliting by spaces
-        ans <- sapply(v, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
-        # if no sub-names passed, remove all naming
-        if( is.null(names) ) names(ans) <- dimnames(ans) <- NULL
-        # otherwise, put the given names in both dimensions (covariance matrix)
-        else dimnames(ans) <- list(names, names)
-        ans
-      }
 
       # names for the members of a group (if more than one)
       get_subnames <- function(name) {
@@ -486,7 +526,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       }
       
       subnames <- sapply(names(rangroup.sizes), get_subnames)
-      varcomp <- mapply(parse.varmat, varcomp.str, subnames)
+      varcomp <- mapply(parse.txtmat, varcomp.str, subnames)
       names(varcomp) <- c(names(effects)[effect.type == 'random'], 'Residual')
     }
     
@@ -506,28 +546,13 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                                    varsd.idx-1,
                                    rangroup.sizes),
                             function(x) reml.out[x])
-        varsd <- mapply(parse.varmat, varsd.str, subnames)
+        varsd <- mapply(parse.txtmat, varsd.str, subnames)
         names(varsd) <- c(names(effects)[effect.type == 'random'], 'Residual')
       }
     }
-    
-    # Update: we step back from this decision. We report the estimated variance
-    # parameter of the spatial effect, even if it is not additive.
-    # It might be used for comparison of the same model fitted to different data.
-    #     # If spatial, report the observed spatial variance, rather than the
-    #     # estimated variance of the spline effects which is meaningless
-    #     # TODO: Return the true field variance multiplying matrices and whatever
-    #     if(isSpatial) { 
-    #       varcomp['spatial', 1] <- var(ranef$spatial)
-    #       if(method == 'ai') varcomp['spatial', 2] <- NA
-    #     }
-    
-    # For additive variance decomposition, we return as well the covariance matrices
-    # of each component.
-    # V(y) = \sigma_u^2 Z A Z' + \sigma_v^2 B U B' + \sigma_e^2 I
-    # This is not giving me anything additive ???
   }
   
+  # REML algorithm
   reml <- list(
     version = gsub('\\s+', ' ', reml.ver),
     rounds = last.round[1],
@@ -536,6 +561,8 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                                      split='delta convergence=')[[1]][2]),
     output = reml.out
   )
+  if (method == 'ai') reml$invAI <- parse_invAI(reml.out)
+
   # Fit info
   last.fit <- as.numeric(strsplit(strsplit(reml.out[last.round.idx-1],
                                            split='-2logL =')[[1]][2],
@@ -545,14 +572,8 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     AIC = last.fit[2]
   )
 
-  
-  #   # Response in the linear predictor scale
-  #   # TODO: apply link
-  #   y.scaled <- y
-  
   # TODO: Add inbreeding coefficient for each tree (in the pedigree) (use pedigreemm::inbreeding())
   #       Include the matrix A of additive relationships (as sparse. Use pedigreemm::getA)
-  #       Compute the heritability estimates and its standard error 
   #       Compute covariances estimates for multiple traits (and their standard errors)
   ans <- list(
     call = mcout,
@@ -561,18 +582,10 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                       spatial  = isSpatial), # TODO competition, ...
     effects = effects,
     mf = mf,
-#    mm = mm,
     fixed = result[result_effect.map %in% which(effect.type == 'fixed')],
     ranef = ranef,
-#     eta = eta,
-#     mu = mu,
-#     residuals = y - mu,
-#     genetic = list(fit        = genetic.fit),
-#     spatial = list(name       = effects$spatial$name,
-#                    model      = effects$spatial$sp[1:3],
-#                    fit        = spatial.fit,
-#                    prediction = spatial.pred),
     var = varcomp,
+    funvars = parse_functions(reml.out),
     fit = fit,
     reml = reml
   )

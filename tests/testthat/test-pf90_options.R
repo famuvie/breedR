@@ -54,9 +54,10 @@ test_that('remlf90 parses progsf90.options correctly', {
 })
 
 
-test_that('remlf90(method = "ai") returns heritability', {
+test_that('AI-remlf90() returns heritability and inverse AI matrix', {
   
   ## Simulate a dataset with a heritability of 2/(1+2+1+1) = 0.4
+  set.seed(1234)
   dat <- breedR.sample.phenotype(fixed   = c(mu = 10, x = 2),
                                  random = list(u = list(nlevels = 3,
                                                         sigma2  = 1)),
@@ -80,10 +81,85 @@ test_that('remlf90(method = "ai") returns heritability', {
                                 rho   = c(.7, .8)),
                  data   = dat)
 
-  expect_true(
-    all(
-      any(grepl('* SE for function of \\(co\\)variances H2', res$reml$output)),
-      any(grepl('H2  - Function: ', res$reml$output))
-    )
+  expect_true(any(grepl('* SE for function of \\(co\\)variances H2', res$reml$output)))
+  expect_true(any(grepl('H2  - Function: ', res$reml$output)))
+  expect_is(res$funvars, 'matrix')
+  expect_is(res$reml$invAI, 'matrix')
+  expect_identical(dim(res$reml$invAI), c(4L, 4L))
+})
+
+
+test_that('heritability and additional function are parsed correctly', {
+  
+  ## Simulate a dataset with a heritability of 2/(1+2+1+1) = 0.4
+  set.seed(1234)
+  dat <- breedR.sample.phenotype(fixed   = c(mu = 10, x = 2),
+                                 genetic = list(model    = 'add_animal',
+                                                Nparents = c(10, 10),
+                                                sigma2_a = 2,
+                                                check.factorial = FALSE),
+                                 N = 1e3,
+                                 residual.variance = 1)
+  
+  res <- remlf90(
+    phenotype ~ 1 + X.x,
+    genetic = list(model = 'add_animal',
+                   pedigree = dat[, 1:3],
+                   id = 'self'),
+    progsf90.options = 'se_covar_function Halt G_3_3_1_1/(1+G_3_3_1_1+R_1_1)',
+    data   = dat
   )
+  
+  expect_true(any(grepl('* SE for function of \\(co\\)variances H2', res$reml$output)))
+  expect_true(any(grepl('H2  - Function: ', res$reml$output)))
+  expect_true(any(grepl('Halt  - Function: ', res$reml$output)))
+  expect_is(res$funvars, 'matrix')
+  
+  expect_is(res$reml$invAI, 'matrix')
+  expect_identical(dim(res$reml$invAI), c(2L, 2L))
+})
+
+
+test_that('AI-remlf90() without genetic does not return heritability but does return inverse AI matrix', {
+  
+  ## Simulate a small dataset for testing purposes
+  dat <- breedR.sample.phenotype(fixed   = c(mu = 10),
+                                 N = 100,
+                                 residual.variance = 1)
+  
+  res <- remlf90(phenotype ~ 1,
+                 data   = dat)
+  
+  expect_false(any(grepl('* SE for function of \\(co\\)variances H2', res$reml$output)))
+  expect_false(any(grepl('H2  - Function: ', res$reml$output)))
+  expect_identical(res$funvars, list())
+  
+  expect_is(res$reml$invAI, 'matrix')
+  expect_identical(dim(res$reml$invAI), c(1L, 1L))
+})
+
+
+test_that('EM-remlf90() returns empty heritability and no inverse AI matrix', {
+
+  ## Simulate a small dataset for testing purposes
+  dat <- breedR.sample.phenotype(fixed   = c(mu = 10),
+                                 genetic = list(model    = 'add_animal',
+                                                Nparents = c(10, 10),
+                                                sigma2_a = 2,
+                                                check.factorial = FALSE),
+                                 N = 100,
+                                 residual.variance = 1)
+  
+  res <- remlf90(phenotype ~ 1 ,
+                 genetic = list(model = 'add_animal',
+                                pedigree = dat[, 1:3],
+                                id = 'self'),
+                 data   = dat,
+                 method = 'em')
+  
+  expect_false(any(grepl('* SE for function of \\(co\\)variances H2', res$reml$output)))
+  expect_false(any(grepl('H2  - Function: ', res$reml$output)))
+  expect_identical(res$funvars, list())
+
+  expect_null(res$reml$invAI)
 })
