@@ -1,6 +1,10 @@
 breedR 0.11
 ===========
 
+* Access to inverse Average-Information matrix
+
+* Automatic computation of heritability for genetic models and method 'ai'
+
 * remlf90() interface to PROGSF90 OPTIONS
 
 * Much more exhaustive testing ensures greater stability.
