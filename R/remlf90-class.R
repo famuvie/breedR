@@ -22,6 +22,13 @@
 #' @param breedR.bin character. The local directory where the package binaries 
 #'   are stored, or any of 'remote' or 'submit' for remote computing. See 
 #'   'Details'.
+#' @param progsf90.options character. Passed directly to OPTIONS field in 
+#'   PROGSF90. See available options for 
+#'   \href{http://nce.ads.uga.edu/wiki/doku.php?id=readme.reml#options}{REMLF90}
+#'   and for 
+#'   \href{http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options}{AIREMLF90}.
+#'    Option \code{sol se} is passed always and cannot be removed. No checks are
+#'   performed, handle with care.
 #' @param debug logical. If \code{TRUE}, the input files for blupf90 programs 
 #'   and their output are shown, but results are not parsed.
 #'   
@@ -292,6 +299,7 @@ remlf90 <- function(fixed,
                     var.ini = NULL,
                     method = c('ai', 'em'),
                     breedR.bin = breedR.getOption("breedR.bin"),
+                    progsf90.options = NULL,
                     debug = FALSE) {
   
   ## Assumptions:
@@ -430,7 +438,35 @@ remlf90 <- function(fixed,
   # TODO: Memory efficiency. At this point there are three copies of the 
   # dataset. One in data, one in mf (only needed variables)
   # and yet one more in pf90. This is a potential problem with large datasets.
-  pf90 <- progsf90(mf, effects, opt = c("sol se"), res.var.ini = var.ini$residuals)
+  pf90 <- progsf90(mf,
+                   effects,
+                   opt = union('sol se', progsf90.options), 
+                   res.var.ini = var.ini$residuals)
+  
+  # PROGSF90 OPTION for heritability
+  if (!is.null(genetic) && method == 'ai') {
+    
+    ## Number of random effects in EFFECTS list
+    ranef.idx <- sapply(pf90$parameter$rangroup, function(x) x$pos)
+    
+    ## Compose a formula term for the variance of random effect x
+    ## trait # is 1. See
+    ## http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
+    fterm <- function(x) paste('G', x, x, '1', '1', sep = '_')
+    
+    ## Additive-genetic variance in the numerator
+    numerator <- fterm(ranef.idx['genetic'])
+    
+    ## All variance estimates plus residual variance in the denominator
+    denom <- paste(c(sapply(ranef.idx, fterm), paste('R', '1', '1', sep = '_')),
+                   collapse = '+')
+    
+    H2fml <- paste0(numerator, "/(", denom, ")")
+      
+    pf90$parameter$options <- 
+      c(pf90$parameter$options,
+        paste('se_covar_function', 'Heritability', H2fml))
+  }
   
   # Temporary dir
   tmpdir <- tempdir()
@@ -1097,6 +1133,13 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
   cat("\nVariance components:\n")
   print(x$var, quote = FALSE, digits = digits, ...)
   
+  if (length(x$funvars)) {
+    cat("\n")
+    funvars <- t(x$funvars[-1, , drop = FALSE])
+    colnames(funvars) <- c("Estimate", "S.E.")
+    print(funvars, quote = FALSE, digits = digits, ...)
+  }
+    
   cat('\nFixed effects:\n')
   printCoefmat(x$coefficients)
   invisible(x)

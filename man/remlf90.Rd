@@ -6,7 +6,8 @@
 \usage{
 remlf90(fixed, random = NULL, genetic = NULL, spatial = NULL,
   generic = NULL, data, var.ini = NULL, method = c("ai", "em"),
-  breedR.bin = breedR.getOption("breedR.bin"), debug = FALSE)
+  breedR.bin = breedR.getOption("breedR.bin"), progsf90.options = NULL,
+  debug = FALSE)
 }
 \arguments{
 \item{fixed}{an object of class \link{formula} (or one that can be coerced to
@@ -37,6 +38,14 @@ Expectation-Maximization REML respectively}
 \item{breedR.bin}{character. The local directory where the package binaries 
 are stored, or any of 'remote' or 'submit' for remote computing. See 
 'Details'.}
+
+\item{progsf90.options}{character. Passed directly to OPTIONS field in 
+PROGSF90. See available options for 
+\href{http://nce.ads.uga.edu/wiki/doku.php?id=readme.reml#options}{REMLF90}
+and for 
+\href{http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options}{AIREMLF90}.
+ Option \code{sol se} is passed always and cannot be removed. No checks are
+performed, handle with care.}
 
 \item{debug}{logical. If \code{TRUE}, the input files for blupf90 programs 
 and their output are shown, but results are not parsed.}
