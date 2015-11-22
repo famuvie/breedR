@@ -463,8 +463,9 @@ remlf90 <- function(fixed,
     
     H2fml <- paste0(numerator, "/(", denom, ")")
       
-    pf90$parameter$options <- c(pf90$parameter$options,
-                                paste('se_covar_function', 'H2', H2fml))
+    pf90$parameter$options <- 
+      c(pf90$parameter$options,
+        paste('se_covar_function', 'Heritability', H2fml))
   }
   
   # Temporary dir
@@ -1132,6 +1133,13 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
   cat("\nVariance components:\n")
   print(x$var, quote = FALSE, digits = digits, ...)
   
+  if (length(x$funvars)) {
+    cat("\n")
+    funvars <- t(x$funvars[-1, , drop = FALSE])
+    colnames(funvars) <- c("Estimate", "S.E.")
+    print(funvars, quote = FALSE, digits = digits, ...)
+  }
+    
   cat('\nFixed effects:\n')
   printCoefmat(x$coefficients)
   invisible(x)

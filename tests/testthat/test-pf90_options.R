@@ -81,11 +81,18 @@ test_that('AI-remlf90() returns heritability and inverse AI matrix', {
                                 rho   = c(.7, .8)),
                  data   = dat)
 
-  expect_true(any(grepl('* SE for function of \\(co\\)variances H2', res$reml$output)))
-  expect_true(any(grepl('H2  - Function: ', res$reml$output)))
+  # AIREMLF90 output
+  expect_true(any(grepl('* SE for function of \\(co\\)variances Heritability', 
+                        res$reml$output)))
+  expect_true(any(grepl('Heritability  - Function: ', res$reml$output)))
+  
+  # parsed heritability and inverse AI matrix
   expect_is(res$funvars, 'matrix')
   expect_is(res$reml$invAI, 'matrix')
   expect_identical(dim(res$reml$invAI), c(4L, 4L))
+  
+  # heritability shown in summary
+  expect_output(summary(res), "Heritability")
 })
 
 
@@ -110,13 +117,18 @@ test_that('heritability and additional function are parsed correctly', {
     data   = dat
   )
   
-  expect_true(any(grepl('* SE for function of \\(co\\)variances H2', res$reml$output)))
-  expect_true(any(grepl('H2  - Function: ', res$reml$output)))
+  expect_true(any(grepl('* SE for function of \\(co\\)variances Heritability', 
+                        res$reml$output)))
+  expect_true(any(grepl('Heritability  - Function: ', res$reml$output)))
   expect_true(any(grepl('Halt  - Function: ', res$reml$output)))
+
   expect_is(res$funvars, 'matrix')
-  
   expect_is(res$reml$invAI, 'matrix')
+  
   expect_identical(dim(res$reml$invAI), c(2L, 2L))
+  
+  expect_output(summary(res), 'Halt')
+  expect_output(summary(res), 'Heritability')
 })
 
 
@@ -130,12 +142,16 @@ test_that('AI-remlf90() without genetic does not return heritability but does re
   res <- remlf90(phenotype ~ 1,
                  data   = dat)
   
-  expect_false(any(grepl('* SE for function of \\(co\\)variances H2', res$reml$output)))
-  expect_false(any(grepl('H2  - Function: ', res$reml$output)))
+  expect_false(any(grepl('* SE for function of \\(co\\)variances', 
+                         res$reml$output)))
+  expect_false(any(grepl('  - Function: ', res$reml$output)))
+  
   expect_identical(res$funvars, list())
   
   expect_is(res$reml$invAI, 'matrix')
   expect_identical(dim(res$reml$invAI), c(1L, 1L))
+  
+  expect_output(summary(res), 'Variance components')
 })
 
 
@@ -157,9 +173,12 @@ test_that('EM-remlf90() returns empty heritability and no inverse AI matrix', {
                  data   = dat,
                  method = 'em')
   
-  expect_false(any(grepl('* SE for function of \\(co\\)variances H2', res$reml$output)))
-  expect_false(any(grepl('H2  - Function: ', res$reml$output)))
-  expect_identical(res$funvars, list())
+  expect_false(any(grepl('* SE for function of \\(co\\)variances Heritability', 
+                         res$reml$output)))
+  expect_false(any(grepl('Heritability  - Function: ', res$reml$output)))
 
+  expect_identical(res$funvars, list())
   expect_null(res$reml$invAI)
+  
+  expect_output(summary(res), 'Variance components:')
 })
