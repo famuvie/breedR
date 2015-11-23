@@ -536,9 +536,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       # There should be one variance for each random effect plus one resid. var.
       stopifnot(identical(length(varcomp.idx), sum(effect.type == 'random') + 1L))
       
-      # Watch out!! AI-REML gives SE for R in the *first place*
-      # even when the variance component was last
-      varsd.idx <- c(varsd.idx[-1], varsd.idx[1])
       if( all(rangroup.sizes == 1) ){
         varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
       } else {
