@@ -421,7 +421,7 @@ summary(res.animal)
 
 - `gg` explains almost the same amount of phenotypic variability
 - The (additive) `genetic` effect explains **part** of the formerly residual variance
-- The heritability is computed automatically as $h^2 = \frac{\sigma_a^2}{\sigma_a^2 + \sigma^2}
+- The heritability is computed automatically as $h^2 = \frac{\sigma_a^2}{\sigma_a^2 + \sigma^2}$
 
 
 ## Extracting Predicted Breeding Values
