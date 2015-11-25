@@ -23,10 +23,14 @@ library(knitr)
 opts_chunk$set(echo       = TRUE,
                message    = TRUE,
                warning    = TRUE,
-#                comment    = NA,
+               # comment    = NA,
                fig.width  = 4,
                fig.height = 3,
-               cache      = TRUE)
+               cache      = TRUE,
+               autodep    = TRUE,
+               ## invalidate cache when either versions of R or breedR change
+               ## http://yihui.name/knitr/demo/cache/
+               cache.extra= list(R.version, packageVersion('breedR')))
 ```
 
 
@@ -417,6 +421,7 @@ summary(res.animal)
 
 - `gg` explains almost the same amount of phenotypic variability
 - The (additive) `genetic` effect explains **part** of the formerly residual variance
+- The heritability is computed automatically as $h^2 = \frac{\sigma_a^2}{\sigma_a^2 + \sigma^2}$
 
 
 ## Extracting Predicted Breeding Values

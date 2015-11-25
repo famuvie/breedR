@@ -1,0 +1,217 @@
+---
+title: "Missing values"
+author: "Facundo Muñoz"
+date: "`r paste(Sys.Date(), 'breedR version:', packageVersion('breedR'))`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 1
+  md_document:
+    variant: markdown_github
+    toc: true
+    toc_depth: 1
+vignette: >
+  %\VignetteIndexEntry{Missing values}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+The handling of missing values (i.e. `NA`) depends on *where* they are.
+
+## Missing response
+
+It is perfectly valid to have missing vaules in the dependent variable. There is
+no need of removing those individuals from the dataset. Furthermore, including
+them will yield
+[predictions](https://github.com/famuvie/breedR/wiki/Overview#prediction for
+their phenotype, based on the predictive variables.
+
+```{r missing-response, message=FALSE}
+library(breedR)
+
+N <- 1e3
+x <- rep(1:4, each = N/4)
+dat <- data.frame(y = x + rnorm(N),
+                  x = factor(letters[x]))
+dat$y[1] <- NA
+head(dat)
+res <- remlf90(y ~ x, data = dat)
+
+## The predicted phenotype for y[1] is the estimated effect
+## of the corresponding level of x
+fitted(res)[1] == fixef(res)$x['a', 'value']
+```
+
+
+
+## Missing value for a fixed effect
+
+This is not allowed, as it would yield an underdetermined system of equations.
+`breedR` issues a warning if missing values are detected.
+
+```{r missing-fixed, message = FALSE, error = TRUE}
+N <- 1e3
+x <- rep(1:4, each = N/4)
+dat <- data.frame(y = x + rnorm(N),
+                  x = factor(letters[x]))
+dat$x[c(1, 3, 5)] <- NA
+head(dat)
+res <- remlf90(y ~ x, data = dat)
+```
+
+Idem for a regression variable.
+
+```{r missing-fixed-regression, message = FALSE, error = TRUE}
+N <- 1e3
+x <- runif(N)
+dat <- data.frame(y = 1 + 2*x + rnorm(N),
+                  x = x)
+dat$x[c(1, 3, 5)] <- NA
+head(dat)
+res <- remlf90(y ~ x, data = dat)
+```
+
+
+
+## Missing value for a random effect
+
+These **are** allowed.
+The incidence matrix will have a row of zeros for the corresponding individual.
+
+```{r missing-diagonal, message = FALSE}
+N <- 1e3
+N.blk <- 20
+blk.effects <- rnorm(N.blk, sd = 2)
+blk.idx <- sample(seq_len(N.blk), N, replace = TRUE)
+dat <- data.frame(y = 1 + blk.effects[blk.idx] + rnorm(N),
+                  blk = factor(blk.idx))
+dat$blk[1] <- NA
+head(dat)
+
+res <- remlf90(y ~ 1, random = ~ blk, data = dat)
+
+sum(model.matrix(res)$blk[1,])
+```
+
+As a consequence, the predicted phenotype will be based on the remaining
+available effects. In this case, the global mean.
+
+
+```{r missing-diagonal-residual}
+fitted(res)[1] == fixef(res)$Intercept[1, 'value']
+```
+
+
+The spatial block effect is another way of writing the previous experiment.
+So it works in the same way.
+
+```{r missing-block, message = FALSE}
+coord <- expand.grid(row = 1:20, col = 1:50)
+res <- remlf90(y ~ 1,
+               spatial = list(model = 'blocks',
+                              coord = coord,
+                              id    = 'blk'), 
+               data = dat)
+
+c(sum(model.matrix(res)$spatial[1,]) == 0,
+fitted(res)[1] == fixef(res)$Intercept[1, 'value'])
+```
+
+
+
+However, the empirical residuals of the individuals with missing values of the
+random effects will have an increased variance.
+We can show that by replicating the previous experiment and computing the
+variance of the residual for the first observation.
+
+```{r sample-residual-function, echo = FALSE}
+sample_first_residual <- function(N = 1e3, N.blk = 20) {
+  blk.effects <- rnorm(N.blk, sd = 2)
+  blk.idx <- sample(seq_len(N.blk), N, replace = TRUE)
+  dat <- data.frame(y = 1 + blk.effects[blk.idx] + rnorm(N),
+                    blk = factor(blk.idx))
+  dat$blk[1] <- NA
+  res <- suppressMessages(remlf90(y ~ 1, random = ~ blk, data = dat))
+  return(unname(resid(res)[1]))
+}
+```
+
+
+```{r variance-missing-residuals}
+resid_sample <- replicate(1e3, sample_first_residual())
+var(resid_sample)
+
+```
+
+This can be important when fitting several random effects.
+See below.
+
+
+## Missing values in genetic effects
+
+For an additive genetic effect, the relationship between individuals is given in
+the pedigree.
+It is legitimate not knowing the relatives for some individual.
+This is what happens with founders, for example.
+
+Use `NA` for unknown relatives.
+If both are unknown (e.g. founders), the genetic effect (Breeding Value) will be
+predicted based on its phenotype, the other effects, and the estimated
+heritability.
+
+
+```{r missing-add_animal, message = FALSE}
+dat <- breedR.sample.phenotype(
+  fixed = c(mu = 10, x = 2),
+  genetic = list(model    = 'add_animal',
+                 Nparents = c(10, 10),
+                 sigma2_a = 2,
+                 check.factorial = FALSE),
+  N = 1e3)
+head(dat)
+
+res <- remlf90(phenotype ~ 1 + X.x,
+               genetic = list(model = 'add_animal',
+                              pedigree = dat[, 1:3],
+                              id    = 'self'),
+               data = dat)
+
+str(ranef(res)$genetic)
+```
+
+
+
+**Important issue**
+Having random effects with missing values in **combination** with genetic
+models, can yield spurious predictions of Breeding Values.
+This is due to the higher variability of the residual term, for the individuals
+with missing values in random effects.
+
+
+## Missing values in coordinates of spatial effects
+
+Are allowed. 
+Just like in any other random effect.
+For those cases, the spatial component will not participate in the prediction.
+
+```{r missing-coordinates, message = FALSE}
+dat <- breedR.sample.phenotype(
+  fixed = c(mu = 10, x = 2),
+  spatial = list(model     = 'AR',
+                 grid.size = c(10, 5),
+                 rho       = c(.2, .8),
+                 sigma2_s  = 1)
+)
+dat$Var1[1] <- NA
+head(dat)
+
+res <- remlf90(phenotype ~ 1 + X.x,
+               spatial = list(model = 'AR',
+                              coord = dat[, c('Var1', 'Var2')],
+                              rho   = c(0.2, 0.8)),
+               data = dat)
+
+sum(model.matrix(res)$spatial[1,])
+```
+
