@@ -8,18 +8,31 @@ This package provides frequentist and Bayesian statistical tools to build predic
 Last [Training Workshop](workshop) (June 2015, Jaca, Spain)
 
 ### Installation
-This will install the latest stable version of breedR.
-For the latest development version, please refer to the [development site](https://github.com/famuvie/breedR)
+This will install the latest stable version of breedR. For the latest development version, please refer to the [development site](https://github.com/famuvie/breedR)
 
-**Requirements:**
-- Install and get started with [R](getR)
-- Install the `devtools` R-package: `install.packages('devtools')`
+-   Install and get started with [R](getR)
+-   Set up breedR repository. This is only needed the first time.
 
 {% highlight r %}
-## Installation of breedR (latest development version)
-library(devtools)
-install_github('famuvie/breedR')
+expr <- expression(
+          r <- getOption("repos"),
+          r["breedR"] <- "http://famuvie.github.io/breedR",
+          options(repos = r)
+        )
+eval(expr)
+rprofile <- file.path(Sys.getenv('HOME'), '.Rprofile')
+if (file.exists(rprofile)) {
+  cat(paste(sapply(expr, deparse), collapse = '\n'),
+      file = rprofile, append = TRUE)
+} else writeLines(sapply(expr, deparse), rprofile)
 {% endhighlight r %}
+
+-   Install as a regular package. You can use package-management menus on RGui, Rstudio or whatever, or in plain R:
+  
+    {% highlight r %}
+    install.packages('breedR')
+    {% endhighlight r %}
+
 
 ### Getting started
 - Check the [breedR-wiki](https://github.com/famuvie/breedR/wiki)
