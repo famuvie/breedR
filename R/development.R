@@ -28,6 +28,11 @@ breedR.update_guides <- function(pkg = "."){
   breedR.clean_vignettes(vigns)
 }
 
+
+## This function renders md, pdf and R versions of vignettes
+## Furthermore, stores images into _files directories
+## It returns a vector of **new** file names (that were not there
+## when the process started.) Make sure the directory is clean.
 breedR.build_vignettes <- function (vigns) {
   
   
@@ -146,15 +151,18 @@ breedR.clean_vignettes <- function(vigns) {
 
 # Download (recursive) dependencies
 # specify where to store packages and type
-breedR.download_deps <- function(dir, type) {
+breedR.download_deps <- function(dir, type = 'all', add) {
   
   typelst <- c('source', 'win.binary', 'mac.binary', 'mac.binary.mavericks')
-  if (missing(type)) type <- getOption("pkgType")
   type <- match.arg(type, c('all', typelst), several.ok = TRUE)
   if ('all' %in% type) type <- typelst
   
   pkgnms <- dev_package_deps(dependencies = TRUE)$package
   
+  if (!missing(add)){
+    pkgnms <- c(pkgnms, add)
+  }
+    
   for (t in type) {
     dest <- file.path(dir, t)
     dir.create(dest)
@@ -303,12 +311,12 @@ breedR.download_bins <- function(
   invisible(names(!eqls))
 }
 
-# Update binaries in some location (package bins, by default)
+# Update binaries in some location (breedR web, by default)
 # Only updates changed files. If it is longer than max_days
 # since last download from site, then update local source.
 breedR.update_bins <- function(
   source = path.expand('~/t4f/bin/PROGSF90'),
-  dest   = c('pkg', 'web'),
+  dest   = 'web',
   max_days = 30,
   quiet = FALSE
 ) {
@@ -332,23 +340,17 @@ breedR.update_bins <- function(
   ## Last local version of binaries
   srcfn <- list.files(source, recursive = TRUE)
   srcfn <- srcfn[-grep('changelog\\.rds', srcfn)]
-  
-  ## The package ships only 32bit versions
-  if (dest == 'pkg') {
-    idx <- !grepl('64bit', srcfn)
-    srcfn <- srcfn[idx]
-    destfn <- gsub('/32bit', '', srcfn)
-  } else {
-    destfn <- srcfn
-  }
+
+  ## Update all files from source to destinatino  
+  destfn <- srcfn
 
   ## Complete paths
   srcfn <- file.path(source, srcfn)
   destfn <- file.path(
     switch(
       dest,
-      pkg = system.file('bin', package = 'breedR'),
-      web = path.expand('~/t4f/src/breedR-web/bin')
+      web = path.expand('~/t4f/src/breedR-web/bin'),
+      dest
     ),
     destfn
   )
@@ -363,7 +365,7 @@ breedR.update_bins <- function(
   
   ## New versions of binaries
   ## isTRUE gives FALSE for NAs
-  eqls <- sapply(tools::md5sum(srcfn) == tools::md5sum(destfn),
+  eqls <- sapply(tools::md5sum(destfn) == tools::md5sum(srcfn),
                  isTRUE)
 
   if (!quiet) {
@@ -380,4 +382,79 @@ breedR.update_bins <- function(
   }
   
   invisible(names(!eqls))
+}
+
+## Usage:
+## repo <- file.path('file://', path.expand('~/t4f/pkgrepo'))
+## available.packages(contrib.url(repo, 'source'))
+## install.packages(pkgs[, 'Package'], repos = repo)
+breedR.update_drat <- function(
+  repodir  = '~/t4f/pkgrepo'
+) {
+  ## TODO: vignettes error?
+  file <- devtools::build(vignettes = FALSE)
+  drat::insertPackage(file, repodir)
+  
+  srcdir <- tempdir()
+  breedR.download_deps(dir = srcdir, type = 'source')
+  pkgs <- list.files(srcdir, full.names = TRUE, recursive = TRUE)
+  for (fn in pkgs) {
+    drat::insertPackage(fn, repodir, action = "prune")
+  }
+}
+
+## Releases package versions to the web (or any other repository)
+## Comparsed released and current versions, and releases only if necessary
+## Calls build() for releasing the source and build_win() for the windows binaries
+## No binary relase for mac.
+breedR_release <- function(
+  repodir = normalizePath('../breedR-web'),
+  silent = FALSE
+) {
+  pkg <- as.package('.')
+  pkg_basename <- paste(pkg$package, pkg$version, sep = '_')
+  
+  ## Check latest released versions for windows binaries and source
+  released.win <- try(
+    available.packages(contrib.url(file.path('file://', repodir), 'win.binary')),
+    silent = TRUE
+  )
+  win.update <- 
+    inherits(released.win, 'try-error') ||
+    !"breedR" %in% rownames(released.win) || 
+    package_version(released.win["breedR", 'Version']) < 
+    package_version(pkg$version)
+
+  released.src <- try(
+    available.packages(contrib.url(file.path('file://', repodir), 'source'))
+  )
+  src.update <- 
+    inherits(released.src, 'try-error') ||
+    !"breedR" %in% rownames(released.src) || 
+    package_version(released.src["breedR", 'Version']) < 
+      package_version(pkg$version)
+  
+  ## builds and deploys packages if necessary
+  if (win.update) {
+    if (!silent) message('Building windows binary pacakge ..')
+    build_win()
+    if (!silent)
+      ## Manually deploy later
+      message('Wait for email from buildwin service and deploy with:\n',
+              deparse(bquote(drat::insertPackage(pkg, .(repodir)))))
+  } else {
+    if (!silent) message('Windows binaries are up to date')
+  }
+  
+  if (src.update) {
+    if (!silent) message('Building source pacakge ..')
+    src.fn <- devtools::build()
+    
+    ## deploy
+    drat::insertPackage(src.fn, repodir)
+  }
+  
+  
+  if (!silent && (win.update || src.update))
+    message('Finnished. Dont forget to commit breedR-web and push.')
 }

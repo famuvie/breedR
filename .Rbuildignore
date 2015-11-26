@@ -1,5 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^inst/bin*
 ^vignettes/.*_cache
 ^vignettes/.*_files
 ^R/development.R
