@@ -22,9 +22,10 @@ expr <- expression(
 eval(expr)
 rprofile <- file.path(Sys.getenv('HOME'), '.Rprofile')
 if (file.exists(rprofile)) {
-  cat(paste(sapply(expr, deparse), collapse = '\n'),
-      file = rprofile, append = TRUE)
-} else writeLines(sapply(expr, deparse), rprofile)
+  p <- readLines(rprofile)
+} else p <- c()
+writeLines(c(p, sapply(expr, deparse)), rprofile)
+
 {% endhighlight r %}
 
 -   Install as a regular package. You can use package-management menus on RGui, Rstudio or whatever, or in plain R:
