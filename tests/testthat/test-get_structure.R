@@ -43,3 +43,35 @@ test_that('get_structure() recovers the common structure in Matrix format', {
   expect_is(eg.str, 'Matrix')
   expect_identical(eg.str, spl.str)
 })
+
+
+## Extracting structure matrices from breedR objects
+
+test_that('get_structure() retrieves an empty list from a model fit without random effects', {
+  res.ar  <- suppressMessages(
+    remlf90(fixed  = phe_X ~ gg,
+            data = globulus)
+  )
+  
+  breedr.str <- get_structure(res.ar)
+  
+  expect_is(breedr.str, 'list')
+  expect_equal(breedr.str, list(), check.attributes = FALSE)
+})
+
+
+test_that('get_structure() retrieves a list of structure matrices from a model fit', {
+  res.ar  <- suppressMessages(
+    remlf90(fixed  = phe_X ~ 1,
+            random = ~ gg,
+            spatial = list(model = 'AR', 
+                           coord = globulus[, c('x','y')],
+                           rho = c(.85, .8)), 
+            data = globulus)
+  )
+  
+  breedr.str <- get_structure(res.ar)
+  
+  expect_is(breedr.str, 'list')
+  sapply(breedr.str, expect_is, 'Matrix')
+})

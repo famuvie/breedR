@@ -3,9 +3,9 @@
 get_structure.breedR <- function (x) {
   
   ## Only works for refactored effects
-  eg.idx <- vapply(object$effects, inherits, TRUE, 'effect_group')
+  eg.idx <- vapply(x$effects, inherits, TRUE, 'effect_group')
   
-  sml <- lapply(object$effects[eg.idx], get_structure.effect_group)
+  sml <- lapply(x$effects[eg.idx], get_structure.effect_group)
   
   return(sml)
 }
