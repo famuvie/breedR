@@ -66,7 +66,8 @@ summary(res.ar)
 
 # Spatial effects estimates in the positions of the observations
 # multiply the spatial incidence matrix by the BLUP of the spatial random effect
-space.pred <- function(x) model.matrix(x)$random$spatial %*% ranef(x)$spatial
+space.pred <- function(x) 
+  as.vector(model.matrix(x)$spatial %*% ranef(x)$spatial)
 
 # Ordered by blocks and increasing values of the splines effect
 spatial.dat <- transform(globulus,

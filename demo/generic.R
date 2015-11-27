@@ -43,7 +43,7 @@ system.time(
 )  ## ~ 0.16
 
 
-gen.inc <- model.matrix(res.anm)$random$genetic
+gen.inc <- model.matrix(res.anm)$genetic
 gen.cov <- pedigreemm::getA(ped)
 system.time(
   res.anm2 <- remlf90(fixed   = phe_X ~ gg + x,
@@ -89,7 +89,7 @@ system.time(
                       method = 'em')
 )  # ~ 6 s
 
-spl.inc <- model.matrix(res.spl)$random$spatial
+spl.inc <- model.matrix(res.spl)$spatial
 spl.cov <- get_structure(res.spl)$spatial
 
 system.time(
@@ -113,13 +113,8 @@ system.time(
 )  # ~ .6
 
 
-ar.inc <- model.matrix(res.ar)$random$spatial
-ar.prc <- with(res.ar$effects$spatial$sp,
-               Matrix::spMatrix(nrow = ncol(ar.inc),
-                                ncol = ncol(ar.inc),
-                                i = U[, 1],
-                                j = U[, 2],
-                                x = U[, 3]))
+ar.inc <- model.matrix(res.ar)$spatial
+ar.prc <- get_structure(res.ar)$spatial
 
 ## Note that the latter is a precision matrix (inverse covariance)
 ## So we need to tell so explicitly:
@@ -127,7 +122,7 @@ system.time(
   res.ar2  <- remlf90(fixed  = phe_X ~ gg,
                       genetic = gen.globulus, 
                       generic = list(ar = list(ar.inc,
-                                               prec = ar.cov)), 
+                                               prec = ar.prc)), 
                       data = globulus)
 )  # ~ .96
 
