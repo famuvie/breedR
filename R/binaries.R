@@ -49,21 +49,25 @@ check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
 #' @param quiet logical. Whether not to display messages.
 #' @export
 install_progsf90 <- function(
-  url = "http://famuvie.github.io/breedR/bin",
+  url      = breedr_progsf90_repo(),
   dest   = system.file('bin', package = 'breedR'),
   platform = breedR.os.type(),
   arch  = paste0(breedR.os.32or64bit(), 'bit'),
   quiet = !interactive()
 ) {
   
-  if (!breedR_online()) return(FALSE)
-  
+  ## Check connection if URL is http:
+  if (grepl("^http\\:", url) && !breedR_online()) return(FALSE)
+
+  ## Binary files for this platform
   execs <- progsf90_files(platform)
   
+  ## full URL for this platform and architecture
   f.url <- file.path(url, platform, arch)
   if (platform == 'mac')  # remove arch for mac
     f.url <- dirname(f.url)
   
+  ## Retrieve each exec to dest
   res <- sapply(execs, 
                 retrieve_bin, 
                 url = f.url,
@@ -127,4 +131,12 @@ breedR_online <- function() {
     ), 
     'try-error'
   )
+}
+
+#' Default repository for PROGSF90 binaries
+breedr_progsf90_repo <- function() {
+  if (!nchar(url <- Sys.getenv("PROGSF90_URL"))) {
+    url <- "http://famuvie.github.io/breedR/bin"
+  }
+  return(url)
 }
