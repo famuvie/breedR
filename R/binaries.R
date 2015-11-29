@@ -50,10 +50,10 @@ check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
 #' @export
 install_progsf90 <- function(
   url      = breedr_progsf90_repo(),
-  dest   = system.file('bin', package = 'breedR'),
+  dest     = system.file('bin', package = 'breedR'),
   platform = breedR.os.type(),
-  arch  = paste0(breedR.os.32or64bit(), 'bit'),
-  quiet = !interactive()
+  arch     = breedR.os.32or64bit(),
+  quiet    = !interactive()
 ) {
   
   ## Check connection if URL is http:
@@ -63,7 +63,7 @@ install_progsf90 <- function(
   execs <- progsf90_files(platform)
   
   ## full URL for this platform and architecture
-  f.url <- file.path(url, platform, arch)
+  f.url <- file.path(url, platform, paste0(arch, 'bit'))
   if (platform == 'mac')  # remove arch for mac
     f.url <- dirname(f.url)
   

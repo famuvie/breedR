@@ -40,11 +40,19 @@
     stop("This shouldn't happen.")
 }
 
-## this seems be to a nice way to test 32/64 bits architecture.
+#' test 32/64 bits architecture
+#' 
+#' Give precedence to current R architecture
 `breedR.os.32or64bit` = function()
 {
-    return (ifelse(.Machine$sizeof.pointer == 4, "32", "64"))
+  if (!nchar(r_arch <- Sys.getenv("R_ARCH"))) {
+    arch <- ifelse(.Machine$sizeof.pointer == 4, "32", "64")
+  } else {
+    arch <- ifelse(grepl("64", r_arch), "64", "32")
+  }
+  return (arch)
 }
+
 `breedR.os.is.32bit` = function()
 {
     return (breedR.os.32or64bit() == "32")
@@ -53,3 +61,4 @@
 {
     return (breedR.os.32or64bit() == "64")
 }
+
