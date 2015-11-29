@@ -21,7 +21,7 @@ check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
   
   check <- FALSE
   if (file.exists(path)) {
-    check <- all(!is.na(match(bin.list, list.files(path))))
+    check <- all(bin.list %in% list.files(path))
   }
   
   if (!check && !quiet) {
