@@ -69,11 +69,14 @@ gmean <- function(x) {
 # BreedR binaries
 # 
 # Return the default path to breedR binaries checking its existence.
-`breedR.bin.builtin` = function()
+breedR.bin.builtin  <- function()
 {
 
   if( breedR.os.type() != 'else') {
-    fnm <- system.file('bin', package='breedR')
+    bindir <- 'bin'
+    if (breedR.os('windows'))
+      bindir <- file.path(bindir, paste0(breedR.os.32or64bit(), 'bit'))
+    fnm <- system.file(bindir, package='breedR')
   } else {
     stop("Unknown platform")
   }
