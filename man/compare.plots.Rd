@@ -4,7 +4,7 @@
 \alias{compare.plots}
 \title{Compare two or more ggplots of the same kind}
 \usage{
-\method{compare}{plots}(plots)
+compare.plots(plots)
 }
 \arguments{
 \item{plots}{List of ggplots with meaningful names
