@@ -6,44 +6,39 @@ on.exit(options(old.op))
 context("Binary dependencies")
 
 # breedR.os.type() returns the current platform (broadly)
-check <- switch(.Platform$OS.type,
-                 windows = identical(breedR.os.type(), 'windows'),
-                 unix = breedR.os.type() %in% c('linux', 'mac'))
-
 test_that(paste('breedR.os.type()', breedR.os.type(), 'identifies the platform', .Platform$OS.type), {
+  check <- switch(.Platform$OS.type,
+                  windows = identical(breedR.os.type(), 'windows'),
+                  unix = breedR.os.type() %in% c('linux', 'mac'))
+  
   expect_true(check)
 })
   
 
 # Install binaries somewhere, and check their installation
-# Only perform test if online
-
-if (breedR_online()) {
-  tdir <- tempdir()
-  os_arch.list <- expand.grid(os = c('windows', 'linux', 'mac'),
-                              arch = paste0(c(32, 64), 'bit'))
-  os_arch.list <- 
-    os_arch.list[!with(os_arch.list, os == 'mac' & arch == '32bit'),]
-  for(i in seq_len(nrow(os_arch.list))) {
-    os   <- os_arch.list[i, 'os']
-    arch <- os_arch.list[i, 'arch']
-    
-    path <- file.path(tdir, os, arch)
-    
-    out <- try(install_progsf90(dest = path,
-                                platform = os,
-                                arch = arch)
-    )
-    
-    test_that(paste('Installation of binaries succeeded'), {
-      expect_true(!inherits(out, 'try-error'))
-    })
-    
-    test_that(paste('Checking installation succeeds'), {
+test_that('Installation of binaries and checking runs smoothly', {
+  # Only perform test if online
+  if (breedR_online()) {
+    tdir <- tempdir()
+    os_arch.list <- expand.grid(os = c('windows', 'linux', 'mac'),
+                                arch = c(32, 64))
+    os_arch.list <- 
+      os_arch.list[!with(os_arch.list, os == 'mac' & arch == '32'),]
+    for (i in seq_len(nrow(os_arch.list))) {
+      os   <- os_arch.list[i, 'os']
+      arch <- os_arch.list[i, 'arch']
+      
+      path <- file.path(tdir, os, paste0(arch, 'bit'))
+      
+      expect_error(install_progsf90(dest = path,
+                                    platform = os,
+                                    arch = arch),
+                   NA)
+      
       expect_true(check_progsf90(path, platform = os, quiet = TRUE))
-    })
+    }
   }
-}
+})
 
 # checking somewhere else should fail
 empty.dir <- tempfile()
