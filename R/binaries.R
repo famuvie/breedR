@@ -16,8 +16,9 @@
 check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
                            platform = breedR.os.type(),
                            quiet = !interactive() ) {
-
-  bin.list <- progsf90_files(platform)
+  
+  bin.list <- progsf90_files(platform,
+                             compressed = FALSE)
   
   check <- FALSE
   if (file.exists(path)) {
@@ -58,14 +59,15 @@ install_progsf90 <- function(
   
   ## Check connection if URL is http:
   if (grepl("^http\\:", url) && !breedR_online()) return(FALSE)
-
-  ## Binary files for this platform
-  execs <- progsf90_files(platform)
+  
+  ## Binary files for this platform (packed and compressed)
+  execs <- progsf90_files(platform,
+                          compressed = TRUE)
   
   ## full URL for this platform and architecture
-  f.url <- file.path(url, platform, paste0(arch, 'bit'))
-  if (platform == 'mac')  # remove arch for mac
-    f.url <- dirname(f.url)
+  f.url <- file.path(url, platform)
+  if (platform == 'linux') # further specify arch
+    f.url <- file.path(f.url, paste0(arch, 'bit'))
   
   ## Retrieve each exec to dest
   res <- sapply(execs, 
@@ -78,6 +80,7 @@ install_progsf90 <- function(
 
 
 ## Download files creating dest dir if necessary
+## uncompresses if necessary
 ## and set execution permissions
 retrieve_bin <- function(f, url, dest) {
   destf <- file.path(dest, f)
@@ -102,23 +105,40 @@ retrieve_bin <- function(f, url, dest) {
     return(FALSE)
   }
   
-  Sys.chmod(destf, mode = '0744')
-  return(destf)
+  if (grepl("\\.zip$", f)) {
+    ok <- all(unzip(destf, exdir = dest) > 0)
+  } else {
+    finalfs <- untar(destf, list = TRUE)
+    ok <- !untar(destf, exdir = dest)
+    if (ok) Sys.chmod(file.path(dest, finalfs), mode = '0744')
+  }
+  unlink(destf)
+  
+  return(ok)
 }
 
 
 ## Return the file names of the breedR dependencies on PROGSF90 binaries 
 ## according to the platform
-progsf90_files <- function(os = breedR.os.type()) {
-
-  ans <- c("remlf90", "airemlf90")
-  if (os == 'windows') {
-    ## Ship also required dll
-    ans <- c(paste0(ans, ".exe"),
-             "libiomp5md.dll")
+progsf90_files <- function(os = breedR.os.type(),
+                           compressed = FALSE) {
+  
+  if (compressed) {
+    ans <- paste('pf90',
+                 switch(os,
+                        windows = 'zip',
+                        'tar.gz'),
+                 sep = '.')
+  } else {
+    ans <- c("remlf90", "airemlf90")
+    if (os == 'windows') {
+      ## Ship also required dll
+      ans <- c(paste0(ans, ".exe"),
+               "libiomp5md.dll")
+    }
   }
   
-  ans
+  return(ans)
 }
 
 
