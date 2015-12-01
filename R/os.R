@@ -43,6 +43,8 @@
 #' test 32/64 bits architecture
 #' 
 #' Give precedence to current R architecture
+#' 
+#' @return Either "32" or "64"
 `breedR.os.32or64bit` = function()
 {
   if (!nchar(r_arch <- Sys.getenv("R_ARCH"))) {

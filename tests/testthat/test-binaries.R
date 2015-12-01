@@ -17,27 +17,45 @@ test_that(paste('breedR.os.type()', breedR.os.type(), 'identifies the platform',
 
 # Install binaries somewhere, and check their installation
 test_that('Installation of binaries and checking runs smoothly', {
-  # Only perform test if online
-  if (breedR_online()) {
+  
+  # If not online and test is performed in development machine
+  # then set environment variable to test from local repo
+  if (breedR_online() || Sys.getenv("USER") == "facu") {
+    
+    if (!breedR_online()){
+      Sys.setenv(PROGSF90_URL = paste0("file://",
+                                       normalizePath("~/t4f/src/breedR-web/bin")))
+    }
     tdir <- tempdir()
     os_arch.list <- expand.grid(os = c('windows', 'linux', 'mac'),
-                                arch = c(32, 64))
+                                arch = c(32, 64),
+                                stringsAsFactors = FALSE)
+    # Windows downloads both architectures
+    # Fo Mac only 64 bit available
     os_arch.list <- 
-      os_arch.list[!with(os_arch.list, os == 'mac' & arch == '32'),]
+      os_arch.list[!with(os_arch.list, os != 'linux' & arch == '32'),]
     for (i in seq_len(nrow(os_arch.list))) {
       os   <- os_arch.list[i, 'os']
       arch <- os_arch.list[i, 'arch']
       
-      path <- file.path(tdir, os, paste0(arch, 'bit'))
+      path <- file.path(tdir, os)
+
+      if (os == 'linux') {
+        ## further specify arch for installation on linux
+        path <- file.path(path, paste0(arch, 'bit'))
+      }
+      expect_true(install_progsf90(dest = path,
+                                   platform = os,
+                                   arch = arch))
       
-      expect_error(install_progsf90(dest = path,
-                                    platform = os,
-                                    arch = arch),
-                   NA)
-      
+      if (os == 'windows') {
+        ## further specify arch for checking on windows
+        path <- file.path(path, paste0(arch, 'bit'))
+      }
       expect_true(check_progsf90(path, platform = os, quiet = TRUE))
     }
   }
+  
 })
 
 # checking somewhere else should fail

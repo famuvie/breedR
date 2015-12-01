@@ -41,6 +41,7 @@ check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
 #' 
 #' Copy the  binaries for the specified platform into a directory.
 #' 
+#' The url can be either of form http:// or of form file:// for local urls.
 #' @param url where to download the files from
 #' @param dest destination directory for the binaries. Default is 'bin' under
 #'   the current installation dir.
@@ -88,16 +89,25 @@ retrieve_bin <- function(f, url, dest) {
   # file.exists checks for dirs as well
   if (!file.exists(dest))
     dir.create(dest, recursive = TRUE)
-  out <- tryCatch(
-    download.file(
-      url = file.path(url, f),
-      destfile = destf,
-      mode = 'wb',
-      cacheOK = FALSE,
-      quiet = TRUE
-    ),
-    error = identity
-  )
+  
+  if(grepl("^file://", url)) {
+    url <- gsub("^file://", "", url)
+    out <- tryCatch(
+      file.copy(file.path(url, f), destf, overwrite = TRUE)
+    )
+    
+  } else {
+    out <- tryCatch(
+      download.file(
+        url = file.path(url, f),
+        destfile = destf,
+        mode = 'wb',
+        cacheOK = FALSE,
+        quiet = TRUE
+      ),
+      error = identity
+    )
+  }
   
   ## Connection issues
   if (inherits(out, 'error')) {
