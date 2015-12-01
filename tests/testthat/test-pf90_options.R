@@ -1,6 +1,7 @@
 old.op <- options(warn = -1,  # suppressWarnings
                   show.error.messages = FALSE)  # silent try
 on.exit(options(old.op))
+require(spam)
 
 ### Test the interface to PROGSF90 OPTIONS ###
 
