@@ -111,20 +111,20 @@ retrieve_bin <- function(f, url, dest) {
   
   ## Connection issues
   if (inherits(out, 'error')) {
+    warning("download failed")
     unlink(destf)  # remove residual 0-byte file
     return(FALSE)
   }
-  
-  if (grepl("\\.zip$", f)) {
-    ok <- all(unzip(destf, exdir = dest) > 0)
-  } else {
-    finalfs <- untar(destf, list = TRUE)
-    ok <- !untar(destf, exdir = dest)
-    if (ok) Sys.chmod(file.path(dest, finalfs), mode = '0744')
-  }
+
+  ## unzip with internal method gave problems with R CMD check
+  ## under linux. However, I want to use internal in windows.
+  ## Hence, borrow solution from devtools.
+  path <- decompress(destf, dest)
   unlink(destf)
   
-  return(ok)
+  # Whatch out! coercion as in path > 0
+  # fails when R CMD check and path starts with a slash
+  return(nchar(path)>0)
 }
 
 
@@ -169,4 +169,73 @@ breedr_progsf90_repo <- function() {
     url <- "http://famuvie.github.io/breedR/bin"
   }
   return(url)
+}
+
+
+## Borrowed from devtools
+decompress <- function(src, target) {
+  stopifnot(file.exists(src))
+  
+  if (grepl("\\.zip$", src)) {
+    my_unzip(src, target)
+    outdir <- getrootdir(as.vector(utils::unzip(src, list = TRUE)$Name))
+    
+  } else if (grepl("\\.tar$", src)) {
+    utils::untar(src, exdir = target)
+    outdir <- getrootdir(utils::untar(src, list = TRUE))
+    
+  } else if (grepl("\\.(tar\\.gz|tgz)$", src)) {
+    utils::untar(src, exdir = target, compressed = "gzip")
+    outdir <- getrootdir(utils::untar(src, compressed = "gzip", list = TRUE))
+    
+  } else if (grepl("\\.(tar\\.bz2|tbz)$", src)) {
+    utils::untar(src, exdir = target, compressed = "bzip2")
+    outdir <- getrootdir(utils::untar(src, compressed = "bzip2", list = TRUE))
+    
+  } else {
+    ext <- gsub("^[^.]*\\.", "", src)
+    stop("Don't know how to decompress files with extension ", ext,
+         call. = FALSE)
+  }
+  
+  file.path(target, outdir)
+}
+
+
+# Given a list of files, returns the root (the topmost folder)
+# getrootdir(c("path/to/file", "path/to/other/thing")) returns "path/to"
+getrootdir <- function(file_list) {
+  slashes <- nchar(gsub("[^/]", "", file_list))
+  if (min(slashes) == 0) return("")
+  
+  getdir(file_list[which.min(slashes)])
+}
+
+# Returns everything before the last slash in a filename
+# getdir("path/to/file") returns "path/to"
+# getdir("path/to/dir/") returns "path/to/dir"
+getdir <- function(path)  sub("/[^/]*$", "", path)
+
+
+## Adapted from devtools
+my_unzip <- function(src, target, unzip = getOption("unzip")) {
+  if (unzip == "internal") {
+    return(utils::unzip(src, exdir = target))
+  }
+  
+  args <- paste(
+    "-oq", shQuote(src),
+    "-d", shQuote(target)
+  )
+
+  ## The following is a stripped version of devtools::system_check
+  ## I can't use other functions from breedR, because install.libs.R
+  ## sources only os.R and binaries.R
+  full <- paste(shQuote(unzip), " ", paste(args, collapse = " "), sep = "")
+  result <- suppressWarnings(system(full, intern = TRUE, ignore.stderr = TRUE))
+  if(is.null(status <- attr(result, "status"))) status <- 0
+  if (!identical(as.character(status), "0")) {
+    stop("Command failed (", status, ")", call. = FALSE)
+  }
+  invisible(TRUE)
 }

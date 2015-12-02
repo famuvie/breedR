@@ -26,36 +26,35 @@ test_that('Installation of binaries and checking runs smoothly', {
       Sys.setenv(PROGSF90_URL = paste0("file://",
                                        normalizePath("~/t4f/src/breedR-web/bin")))
     }
-    tdir <- tempdir()
-    os_arch.list <- expand.grid(os = c('windows', 'linux', 'mac'),
-                                arch = c(32, 64),
-                                stringsAsFactors = FALSE)
-    # Windows downloads both architectures
-    # Fo Mac only 64 bit available
-    os_arch.list <- 
-      os_arch.list[!with(os_arch.list, os != 'linux' & arch == '32'),]
-    for (i in seq_len(nrow(os_arch.list))) {
-      os   <- os_arch.list[i, 'os']
-      arch <- os_arch.list[i, 'arch']
-      
+    
+    expect_pf90_installs <- function(os, arch) {
+      tdir <- tempdir()
       path <- file.path(tdir, os)
-
+      
       if (os == 'linux') {
         ## further specify arch for installation on linux
         path <- file.path(path, paste0(arch, 'bit'))
       }
-      expect_true(install_progsf90(dest = path,
-                                   platform = os,
-                                   arch = arch))
+      eval(bquote(expect_true(install_progsf90(dest = .(path),
+                                               platform = .(os),
+                                               arch = .(arch)))))
       
       if (os == 'windows') {
         ## further specify arch for checking on windows
         path <- file.path(path, paste0(arch, 'bit'))
       }
-      expect_true(check_progsf90(path, platform = os, quiet = TRUE))
+      eval(bquote(expect_true(check_progsf90(.(path), 
+                                             platform = .(os), 
+                                             quiet = TRUE))))
+      
     }
+    
+    expect_pf90_installs('linux', '32')
+    expect_pf90_installs('linux', '64')
+    expect_pf90_installs('windows', '64')
+    expect_pf90_installs('mac', '64')
+    
   }
-  
 })
 
 # checking somewhere else should fail
