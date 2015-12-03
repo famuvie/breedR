@@ -4,10 +4,9 @@
 \alias{install_progsf90}
 \title{Install PROGSF90 binary dependencies}
 \usage{
-install_progsf90(url = "http://famuvie.github.io/breedR/bin",
-  dest = system.file("bin", package = "breedR"),
-  platform = breedR.os.type(), arch = paste0(breedR.os.32or64bit(), "bit"),
-  quiet = !interactive())
+install_progsf90(url = breedr_progsf90_repo(), dest = system.file("bin",
+  package = "breedR"), platform = breedR.os.type(),
+  arch = breedR.os.32or64bit(), quiet = !interactive())
 }
 \arguments{
 \item{url}{where to download the files from}
@@ -24,5 +23,8 @@ current.}
 }
 \description{
 Copy the  binaries for the specified platform into a directory.
+}
+\details{
+The url can be either of form http:// or of form file:// for local urls.
 }
 

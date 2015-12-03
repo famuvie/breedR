@@ -12,4 +12,6 @@
 source('../R/binaries.R')
 source('../R/os.R')
 
+# cat("PROGSF90_URL:", Sys.getenv("PROGSF90_URL"))
+message("Downloading PROGSF90 from:\n", breedr_progsf90_repo())
 install_progsf90(dest = file.path(R_PACKAGE_DIR, 'bin'))

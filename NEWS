@@ -1,6 +1,8 @@
 breedR 0.11
 ===========
 
+* Install breedR from package repository avoiding package devtools
+
 * New vignette: Computing Heritability
 
 * Access to inverse Average-Information matrix
