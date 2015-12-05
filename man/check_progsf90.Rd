@@ -11,6 +11,9 @@ check_progsf90(path = breedR.getOption("breedR.bin"),
 \item{path}{directory to check for the presence of binaries. Default is
 defined in the package options, and it depends on the platform.}
 
+\item{platform}{Either "linux", "windows" or "mac". Default is
+current platform.}
+
 \item{quiet}{if TRUE, it won't ask whether to install missing binaries.}
 }
 \description{

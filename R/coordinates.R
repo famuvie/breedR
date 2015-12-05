@@ -1,6 +1,7 @@
 # sp::coordinates() is an S4 function
 # Register the S3 classes from breedR as S4 classes
 setOldClass('breedR')
+setOldClass('remlf90')
 setOldClass('effect_group')
 setOldClass(c('blocks', 'spatial'))
 setOldClass(c('ar', 'spatial'))
@@ -11,7 +12,17 @@ setOldClass(c('additive_genetic_competition',
 setOldClass(c("permanent_environmental_competition",
               "competition", "spatial"))
 
+#' breedR coordinates methods
+#' 
+#' @param obj an object of the corresponding class
+#' @param object an object of the corresponding class
+#' @param value 2-column matrix or data frame with coordinates
+#' @param ... not used.
+#' @name coordinates_breedR
+NULL
+
 #' @importFrom methods setOldClass setMethod
+#' @rdname coordinates_breedR
 #' @export
 setMethod('coordinates', signature = 'breedR', 
           function(obj, ...) {
@@ -55,6 +66,7 @@ setMethod('coordinates', signature = 'breedR',
           }
 )
 
+#' @rdname coordinates_breedR
 #' @export
 setMethod('coordinates<-', signature = 'breedR', 
           function(object, value) {
@@ -74,6 +86,7 @@ setMethod('coordinates<-', signature = 'breedR',
 )
 
 
+#' @rdname coordinates_breedR
 setMethod('coordinates', signature = 'effect_group',
           function(obj, ...) {
             
@@ -90,6 +103,7 @@ setMethod('coordinates', signature = 'effect_group',
           }
 )
 
+#' @rdname coordinates_breedR
 setMethod('coordinates', signature = 'spatial',
           function(obj, ...) {
             obj$coordinates

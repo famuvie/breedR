@@ -15,9 +15,9 @@ install_progsf90(url = breedr_progsf90_repo(), dest = system.file("bin",
 the current installation dir.}
 
 \item{platform}{what version of the binaries are to be installed. Default is
-current.}
+current platform.}
 
-\item{arch}{}
+\item{arch}{Either "32" or "64". Coerced to string if necessary.}
 
 \item{quiet}{logical. Whether not to display messages.}
 }

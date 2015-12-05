@@ -16,10 +16,7 @@ Number of individuals
 }
 \seealso{
 Other metagene: \code{\link{Extract.metagene}},
-  \code{\link{as.data.frame.metagene}},
-  \code{\link{as.data.frame.pedigree}},
   \code{\link{get_ntraits}}, \code{\link{get_pedigree}},
-  \code{\link{ngenerations}}, \code{\link{plot.metagene}},
-  \code{\link{read.metagene}}
+  \code{\link{ngenerations}}
 }
 

@@ -17,6 +17,9 @@ breedR.update_guides <- function(pkg = "."){
   message("Building ", pkg$package, " vignettes")
   out <- breedR.build_vignettes(vigns)
   
+  ## Compact vignettes
+  tools::compactPDF(vigns$dir, gs_quality = "ebook")
+  
   wiki_dir <- file.path(pkg$path, '..', 'breedR-wiki')
   breedR.move_vignettes(pkg, vigns, out, wiki_dir)
   
@@ -404,7 +407,7 @@ breedR.update_drat <- function(
 }
 
 ## Releases package versions to the web (or any other repository)
-## Comparsed released and current versions, and releases only if necessary
+## Compares released and current versions, and releases only if necessary
 ## Calls build() for releasing the source and build_win() for the windows binaries
 ## No binary relase for mac.
 breedR_release <- function(
@@ -448,7 +451,7 @@ breedR_release <- function(
   
   if (src.update) {
     if (!silent) message('Building source pacakge ..')
-    src.fn <- devtools::build()
+    src.fn <- devtools::build(build_args = "--compact-vignettes=\"gs+qpdf\"")
     
     ## deploy
     drat::insertPackage(src.fn, repodir)
@@ -457,4 +460,66 @@ breedR_release <- function(
   
   if (!silent && (win.update || src.update))
     message('Finnished. Dont forget to commit breedR-web and push.')
+}
+
+
+## This function http-serves a package repository
+## and displays a slide with detailed installation instructions
+breedR_serve <- function(
+  repo = normalizePath('~/t4f/pkgrepo')
+) {
+  
+  get_ip <- function() {
+    ipline <- system('ifconfig wlan0 | grep "Direc\\. inet:"',
+           intern = TRUE)
+    gsub("^ +Direc. inet:([0-9\\.]+) .+$", "\\1", ipline)
+  }
+
+  wd <- setwd(repo)
+  on.exit(setwd(wd))
+  
+  ## serve repo on wlan1
+  # system('sudo python -m SimpleHTTPServer 80 &')
+  # sin tty presente y no hay programa askpass especificado
+  system('python -m SimpleHTTPServer &')
+  
+  ## find IP address (can I fix this?)
+  my_address <- paste(get_ip(), "8000", sep = ':')
+  # my_address <- get_ip()
+  
+  ## Local repository for PROGSF90
+  Sys.setenv(PROGSF90_URL = path.expand('~/t4f/src/breedR-web/bin'))
+  
+  ## installation instructions
+  install_code <- 
+    expression(
+      r <- getOption("repos"),
+      r["breedR"] <- "http://famuvie.github.io/breedR",
+      options(repos = r)
+    )
+  
+  contents <- c("## Install breedR from my computer", 
+                "```R",
+                # sapply(install_code, deparse), 
+                deparse(bquote(install.packages('breedR', repos = .(my_address)))),
+                "```")
+  
+  fn <- tempfile('install_breedR', fileext = ".md")
+  writeLines(contents, fn)
+  
+  ## installation instructions slide
+  if (!require(rmarkdown)) stop('Install rmarkdown')
+  out <- render(fn, beamer_presentation())
+  file.show(out)
+}
+
+breedR_build_win <- function() {
+  if (!breedR.os("windows"))
+    stop("This is supposed to be run from Windows")
+  if (inherits(try(breedR.bin.builtin()), 'try-error'))
+    stop("Please, first run on linux:\nln -sfT binwin inst/bin")
+  require(devtools)
+  setwd("Z:/t4f/src/breedR")
+  Sys.setenv(PROGSF90_URL = "file://z:/t4f/src/breedR-web/bin")
+  build(binary=T)
 }

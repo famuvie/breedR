@@ -24,7 +24,7 @@
 #' @param dam index or column name in \code{data} with codes of dams
 #' @param data a dataframe or a list to take the individual codes from
 #' @return A well-formed 'pedigree'-class object. Possibly sorted and recoded.
-#' @seealso \code{link{check_pedigree}}
+#' @seealso \code{\link{check_pedigree}}
 #' @examples
 #' # Founders are missing in the globulus dataset
 #' data(globulus)
@@ -188,6 +188,21 @@ check_pedigree <- function(ped) {
            codes_sorted = codes_sorted,
            codes_consecutive = codes_consec))
 }
+
+
+#' @method as.data.frame pedigree
+#' @param ... Not used
+#' @describeIn build_pedigree Coerce to a data.frame. One row per individual,
+#'   the first column being the identification code, and the other two columns
+#'   are dad and mum codes respectively.
+#' @export
+as.data.frame.pedigree <- function(x, ...) {
+  y <- as(x, 'data.frame')
+  codes <- as.numeric(row.names(y))
+  z <- cbind(self=codes, sapply(y, function(x) codes[x]))
+  return(as.data.frame(z))
+}
+
 
 # # Tests for sorting as graphs
 # # A pedigree is a Directed Acyclic Graph (DAG)

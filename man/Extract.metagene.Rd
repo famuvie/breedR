@@ -32,10 +32,8 @@ Write columns of the dataframe
 Subset data
 }
 \seealso{
-Other metagene: \code{\link{as.data.frame.metagene}},
-  \code{\link{as.data.frame.pedigree}},
-  \code{\link{get_ntraits}}, \code{\link{get_pedigree}},
-  \code{\link{ngenerations}}, \code{\link{nindividuals}},
-  \code{\link{plot.metagene}}, \code{\link{read.metagene}}
+Other metagene: \code{\link{get_ntraits}},
+  \code{\link{get_pedigree}}, \code{\link{ngenerations}},
+  \code{\link{nindividuals}}
 }
 

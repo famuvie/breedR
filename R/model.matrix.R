@@ -18,7 +18,7 @@ model.matrix.effect_group <- function(object, ...) {
 }
 
 #' @export 
-model.matrix.splines <- function(object, fullgrid = FALSE) {
+model.matrix.splines <- function(object, fullgrid = FALSE, ...) {
 
   if (!fullgrid) return(model.matrix.breedr_effect(object))
   
@@ -35,7 +35,7 @@ model.matrix.splines <- function(object, fullgrid = FALSE) {
 }
 
 #' @export 
-model.matrix.ar <- function(object, fullgrid = FALSE) {
+model.matrix.ar <- function(object, fullgrid = FALSE, ...) {
   
   if (!fullgrid) return(model.matrix.breedr_effect(object))
   
@@ -55,7 +55,7 @@ model.matrix.ar <- function(object, fullgrid = FALSE) {
 
 
 #' @export 
-model.matrix.blocks <- function(object, fullgrid = FALSE) {
+model.matrix.blocks <- function(object, fullgrid = FALSE, ...) {
 
   ## I don't really have a way to infer the corresponding block
   ## for unobserved locations.
@@ -66,23 +66,6 @@ model.matrix.blocks <- function(object, fullgrid = FALSE) {
                      coordinates = coordinates(object))
   
   return(ans)
-}
-
-#' @export 
-model.matrix.splines <- function(object, fullgrid = FALSE) {
-
-  if (!fullgrid) return(model.matrix.breedr_effect(object))
-  
-  coord <- coordinates(object)
-  obs.loc <- loc_grid(coord, autofill = TRUE)
-  grid <- expand.grid(obs.loc, KEEP.OUT.ATTRS = FALSE)
-  
-  inc.mat <- bispline_incidence(object$knots,
-                                grid,
-                                object$degree + 1,
-                                sparse = TRUE)
-  ans <- structure(inc.mat,
-                   coordinates = grid)
 }
 
 

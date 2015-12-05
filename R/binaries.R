@@ -11,6 +11,8 @@
 #' 
 #' @param path directory to check for the presence of binaries. Default is
 #'   defined in the package options, and it depends on the platform.
+#' @param platform Either "linux", "windows" or "mac". Default is
+#'   current platform.
 #' @param quiet if TRUE, it won't ask whether to install missing binaries.
 #' @export
 check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
@@ -46,8 +48,8 @@ check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
 #' @param dest destination directory for the binaries. Default is 'bin' under
 #'   the current installation dir.
 #' @param platform what version of the binaries are to be installed. Default is
-#'   current.
-#' @param arch 
+#'   current platform.
+#' @param arch Either "32" or "64". Coerced to string if necessary.
 #' @param quiet logical. Whether not to display messages.
 #' @export
 install_progsf90 <- function(

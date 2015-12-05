@@ -1,20 +1,16 @@
-#%%%%%%%%%%%%%%%%%%%%#
-#%% metagene class %%#
-#%% Facundo Muñoz  %%#
-#%%%%%%%%%%%%%%%%%%%%#
-
-
 #' Metagene Data Input
+#' 
+#' A basic interface to the \href{http://www.igv.fi.cnr.it/noveltree/}{metagene}
+#' simulator.
 #' 
 #' Read the output file (the one with the pedigree. Usually: insim.002) of the 
 #' Metagene program, and build an object of class metagene.
 #' @param fname file name of the second metagene output file (usually: 
 #'   insim.002)
-#' @return read.metagene returns the data in the file as an object of class 
-#'   \code{metagene}
+#' @return the data in the file as an object of class \code{metagene}
 #' @references \url{http://www.igv.fi.cnr.it/noveltree/}
-#' @family metagene
 #' @export
+#' @aliases metagene
 read.metagene <- function(fname) {
   file.path = fname
   file      = readLines(con = file.path)
@@ -73,7 +69,8 @@ read.metagene <- function(fname) {
 
 
 #' @method summary metagene
-#' @family metagene
+#' @param object a metagene object
+#' @describeIn read.metagene summary of a metagene object
 #' @export
 summary.metagene <- function(object, ...) {
 #   attach(x)
@@ -138,7 +135,7 @@ summary.metagene <- function(object, ...) {
 }
 
 #' @method print summary.metagene
-#' @family metagene
+#' @describeIn read.metagene print summary method
 #' @export
 print.summary.metagene <- function(x, ...) {
   cat('Metagene simulated dataset\n===========================\n')
@@ -171,14 +168,13 @@ print.summary.metagene <- function(x, ...) {
 
 #' Plot method for metagene objects
 #' 
-#' Plots either genetic and phenotypic values, or the spatial component of the
-#' phenotype
-#' @param x a metagene object.
+#' 
 #' @param type character. If 'default', the empirical density of the breeding and phenotypical values will be represented by generation. If 'spatial', the map of the spatial component will be plotted.
-#' @param ... Further layers passed to \code{\link[ggplot2]{ggplot}}.
 #' @method plot metagene
 #' @import ggplot2
-#' @family metagene
+#' @describeIn read.metagene plots either genetic and phenotypic values, or the
+#'   spatial component of the phenotype. Pass further
+#'   \code{\link[ggplot2]{ggplot}} layers in ...
 #' @export
 plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 #   dat <- data(x)
@@ -213,16 +209,19 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
 
 #### Interface functions ####
 
+#' @describeIn read.metagene gets the number of traits
 #' @export
 get_ntraits.metagene <- function(x, ...) {
   return(x$n.traits)
 }
 
+#' @describeIn read.metagene gets the number of generations
 #' @export
 ngenerations.metagene <- function(x, ...) {
   return(x$n.generations)
 }
 
+#' @describeIn read.metagene gets the number of individuals
 #' @export
 nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   N <- x$n.individuals
@@ -230,27 +229,6 @@ nindividuals.metagene <- function(x, exclude.founders = FALSE, ...) {
   return(N)
 }
 
-
-#' Coerce to a data.frame
-#' 
-#' This function returns a \code{\link[pedigree]{pedigree}} object in a data
-#' frame
-#' 
-#' @method as.data.frame pedigree
-#' @param x a \code{\link[pedigree]{pedigree}} object
-#' @param ... not used
-#'   
-#' @return returns a data frame with one row per individual, the first column
-#'   being the identification code, and the other two columns are dad and mum
-#'   codes respectively.
-#' @family metagene
-#' @export
-as.data.frame.pedigree <- function(x, ...) {
-  y <- as(x, 'data.frame')
-  codes <- as.numeric(row.names(y))
-  z <- cbind(self=codes, sapply(y, function(x) codes[x]))
-  return(as.data.frame(z))
-}
 
 #' Coerce to a data.frame
 #' 
@@ -267,7 +245,7 @@ as.data.frame.pedigree <- function(x, ...) {
 #'   coordinates if applicable, the pedigree information, the generation, the
 #'   true breeding value, the phenotype, the sex, the spatially structured
 #'   component of the phenotype and other internal metagene variables.
-#' @family metagene
+#' @describeIn read.metagene Coerce to a data.frame
 #' @export
 as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
   # Exclude founders if appropriate
@@ -474,11 +452,8 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
 # sp::coordinates() is an S4 function
 # Register the S3 class 'metagene' as an S4 class
 setOldClass('metagene')
-# @importFrom sp coordinates
-# @importClassesFrom sp Spatial
-# @importMethodsFrom sp coordinates coordinates<-
-# @export
-#' @import sp
+#' @export
+#' @rdname coordinates_breedR
 setMethod('coordinates', signature = 'metagene', 
           function(obj, ...) {
             if(!('spatial' %in% names(obj)))
@@ -488,8 +463,8 @@ setMethod('coordinates', signature = 'metagene',
           }
 )
 
-# Dummy method (Provide a proper def)
-# @export
+#' @export
+#' @rdname coordinates_breedR
 setMethod('coordinates<-', signature = 'metagene', 
           function(object, value) {
             NULL
