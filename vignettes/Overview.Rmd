@@ -57,24 +57,22 @@ library(ggplot2)
 ## Installation
 
 - Project web page [http://famuvie.github.io/breedR/](http://famuvie.github.io/breedR/)
-    - download `.zip` or `.tar.gz` source files
-    - `install.packages('famuvie-breedR-*', type = 'source', repos = NULL)`
+    - Set up this URL as a package repository in `.Rprofile` (detailed instructions on the web)
+    - `install.packages('breedR')`
+    - Not possible to use `CRAN` due to closed-source [`BLUPF90`](http://nce.ads.uga.edu/wiki/doku.php) programs
 
 - GitHub dev-site [https://github.com/famuvie/breedR](https://github.com/famuvie/breedR)
     - `if( !require(devtools) ) install.packages('devtools')`
     - `devtools::install_github('famuvie/breedR')`
-
-- [CRAN](http://cran.r-project.org/) not there yet... but soon
-    - `install.packages('breedR')`
 
 
 
 ## Where to find help
 
 - Package's help: `help(package = breedR)`
-    - Help pages
+    - Help pages `?remlf90`
     - Code demos `demo(topic, package = 'breedR')` (omit `topic` for a list)
-    - Vignettes (none yet)
+    - Vignettes `vignette(package = 'breedR')` (pkg and wiki)
   
 - [Wiki pages](https://github.com/famuvie/breedR/wiki)
     - Guides, tutorials, FAQ
@@ -101,7 +99,7 @@ library(ggplot2)
     - please consider contributing your improvements
     - you can **distribute** your modified version under the GPL
 
-- However, **breedR** makes (intensive) use of the [`BLUPF90`](http://nce.ads.uga.edu/wiki/doku.php) suite of Fortran programs, which **are not free**
+- However, **breedR** makes (intensive) use of the [`BLUPF90`](http://nce.ads.uga.edu/wiki/doku.php) suite of Fortran programs, which are for *free* but not **free** (remember CRAN?)
 
 
 
@@ -264,7 +262,10 @@ Crossed factors
 
 
 
-- Otherwise, in both cases we specify the same thing
+## Model specification
+
+- Otherwise, in both cases we specify the model in the same way:
+
 ```{r random-spec}
 random = ~ gg + factor(mum)  # note that mum is numeric
 ```
@@ -305,14 +306,14 @@ random = ~ gg + bl + interaction
 
 ## Hierarchical and Factorial models  #1 | Fitting models
 
-```{r hierarchical-exercise, purl=FALSE, message=FALSE}
+```{r hierarchical-exercise, purl=TRUE, message=FALSE}
 res.h <- remlf90(fixed = phe_X ~ 1,
                  random = ~ factor(mum) + gg,
                  data = globulus)
 
 ```
 
-```{r factorial-exercise, purl=FALSE, message=FALSE}
+```{r factorial-exercise, purl=TRUE, message=FALSE}
 # Interaction variable
 globulus.f <- transform(globulus,
                         gg_bl = factor(gg:bl))
@@ -329,7 +330,7 @@ res.f <- remlf90(fixed = phe_X ~ 1,
 - However, the model is a bit better with it (AIC, logLik)
 
 
-```{r interaction-exercise, purl=FALSE}
+```{r interaction-exercise, purl=TRUE}
 summary(res)
 summary(res.h)
 ```
@@ -344,11 +345,11 @@ summary(res.h)
 - compare with the model without interaction
 
 
-```{r factorial-summary, purl=FALSE}
+```{r factorial-summary, purl=TRUE}
 summary(res.f)
 ```
 
-```{r AIC-factorial, message=FALSE, purl=FALSE}
+```{r AIC-factorial, message=FALSE, purl=TRUE}
 ## result without interaction
 res.f0 <- remlf90(fixed  = phe_X ~ 1,
                   random = ~ gg + bl,
@@ -390,7 +391,7 @@ paste('AIC:', round(extractAIC(res.f0)),
 
 ## Specifying a _pedigree_
 
-- A 3-column`data.frame` or `matrix` with the codes for each individual and its parents
+- A 3-column `data.frame` or `matrix` with the codes for each individual and its parents
 
 - A **family** effect is easily translated into a pedigree:
     - use the **family code** as the identification of a fictitious **mother**
@@ -415,13 +416,16 @@ res.animal <- remlf90(fixed  = phe_X ~ 1,
 
 ## Animal model: results
 
+- `gg` explains almost the same amount of phenotypic variability
+
+- The (additive) `genetic` effect explains **part** of the formerly residual variance
+
+- The **heritability** is computed automatically as $$h^2 = \frac{\sigma_a^2}{\sigma_a^2 + \sigma_{gg}^2+ \sigma^2}$$
+
 ```{r genetic_result}
 summary(res.animal)
 ```
 
-- `gg` explains almost the same amount of phenotypic variability
-- The (additive) `genetic` effect explains **part** of the formerly residual variance
-- The heritability is computed automatically as $h^2 = \frac{\sigma_a^2}{\sigma_a^2 + \sigma^2}$
 
 
 ## Extracting Predicted Breeding Values
@@ -441,6 +445,7 @@ qplot(fitted(res.animal), phe_X,
   geom_abline(int = 0,
               slope = 1,
               col = 'gray')
+
 ```
 
 
@@ -657,7 +662,7 @@ res.blk <- remlf90(fixed   = phe_X ~ 1,
 summary(res.blk)
 ```
 
-- Now the additive-genetic variance increased! ($3.6$ before)
+- Now the additive-genetic variance and the heritability have increased! ($3.6$ and $0.18$ before)
 
 
 ## Variogram of residuals
@@ -760,7 +765,6 @@ ggplot(transform(data.frame(x = 10:1e3),
 ```
 
 
-
 ## Spatial parameters | Autoregressive parameters of a `AR` model
 
 - Analogously, the _patchiness_ of the `AR` effects can be controlled by the autoregressive parameter for each dimension
@@ -783,7 +787,7 @@ ggplot(transform(data.frame(x = 10:1e3),
 2. Visualize the log-likelihood of the fitted `AR` models
 
 3. Refine the grid around the most likely values, and refit using `rho = rho.grid`, where
-```{r spatial-exercise}
+```{r spatial-exercise, eval = FALSE}
 rho.grid <- expand.grid(rho_r = seq(.7, .95, length = 4),
                         rho_c = seq(.7, .95, length = 4))
 ```
@@ -797,7 +801,7 @@ rho.grid <- expand.grid(rho_r = seq(.7, .95, length = 4),
 
 - `nok` were (6, 6) by default (see `summary()`)
 
-```{r spatial-exercise-1, purl = FALSE, message=FALSE}
+```{r spatial-exercise-1, purl = TRUE, message=FALSE}
 res.spl99  <- remlf90(fixed  = phe_X ~ 1, random = ~ gg,
                       genetic = gen.globulus,
                       spatial = list(model   = 'splines', 
@@ -807,7 +811,7 @@ res.spl99  <- remlf90(fixed  = phe_X ~ 1, random = ~ gg,
 ```
 
 
-```{r spatial-exercise-1-results, purl = FALSE, echo = FALSE}
+```{r spatial-exercise-1-results, purl = TRUE, echo = TRUE}
 summary(res.spl)
 summary(res.spl99)
 ```
@@ -815,7 +819,7 @@ summary(res.spl99)
 
 
 ## Spatial #2 | Visualize log-likelihoods
-```{r spatial-exercise-2, purl = FALSE}
+```{r spatial-exercise-2, purl = TRUE}
 qplot(rho_r, rho_c,
       fill = loglik,
       geom = 'tile',
@@ -828,7 +832,9 @@ knitr::kable(res.ar1$rho)
 
 
 ## Spatial #3 | Refine grid
-```{r spatial-exercise-3, purl = FALSE, message=FALSE}
+```{r spatial-exercise-3, purl = TRUE, message=FALSE}
+rho.grid <- expand.grid(rho_r = seq(.7, .95, length = 4),
+                        rho_c = seq(.7, .95, length = 4))
 res.ar.grid  <- remlf90(fixed  = phe_X ~ gg,
                         genetic = list(model = 'add_animal', 
                                        pedigree = globulus[,1:3],
@@ -972,7 +978,8 @@ labels <- c(paste0(rep('sigma', 5),
 ggplot(var.comp, aes(True, Estimated)) + 
   geom_point() +
   geom_abline(int = 0, sl = 1, col = 'darkgray') + 
-  geom_text(label = labels, parse = TRUE, hjust = -.5)
+  geom_text(label = labels, parse = TRUE, hjust = -.5) +
+  expand_limits(x = 2.4, y = 2.6)
 
 ```
 
@@ -994,7 +1001,8 @@ ggplot(var.comp, aes(True, Estimated)) +
 
 
 ## Competition #1 | True vs. predicted components
-```{r competition-exercise-1, purl = FALSE, message=FALSE}
+
+```{r competition-exercise-1, purl = TRUE, message=FALSE}
 
 ## compute the predicted effects for the observations
 ## by matrix multiplication of the incidence matrix and the BLUPs
@@ -1004,10 +1012,15 @@ pred$direct <- Zd %*% ranef(res.comp)$'genetic_direct'
 
 ## Watch out! for the competition effects you need to use the incidence
 ## matrix of the direct genetic effect, to get their own value.
-## Otherwise, you get the predicted effect of the neighbours on each individual.
+## Otherwise, you get the predicted effect of the neighbours on each
+## individual.
 pred$comp <- Zd %*% ranef(res.comp)$'genetic_competition'
-pred$pec  <- as.vector(model.matrix(res.comp)$pec %*% ranef(res.comp)$pec)
+pred$pec  <- model.matrix(res.comp)$pec %*% ranef(res.comp)$pec
+```
 
+## Competition #1 | True vs. predicted components
+
+```{r competition-exercise-1bis, purl = TRUE, echo = TRUE}
 comp.pred <-
   rbind(
     data.frame(
@@ -1021,7 +1034,7 @@ comp.pred <-
     data.frame(
       Component = 'pec',
       True      = dat$pec,
-      Predicted = pred$pec))
+      Predicted = as.vector(pred$pec)))
 
 ggplot(comp.pred,
        aes(True, Predicted)) +
@@ -1035,6 +1048,7 @@ The predition of the Permanent Environmental Competition effect is not precisely
 
 
 ## Competition #2 | Map of residuals and their variogram
+
 ```{r competition-exercise-2, purl = FALSE, fig.show = 'hold'}
 plot(res.comp, type = 'resid')
 variogram(res.comp)
@@ -1044,6 +1058,8 @@ variogram(res.comp)
 
 
 # Generic component
+
+## The Generic model
 
 This additional component allows to introduce a random effect $\psi$ with
 **arbitrary** incidence and covariance matrices $Z$ and $\Sigma$:
@@ -1056,6 +1072,9 @@ y  =    & \mu + X \beta + Z \psi + \varepsilon \\
 \end{aligned}
 $$
 
+
+## Implementation of the generic component
+
 ```{r generic-example, message = FALSE}
 ## Fit a blocks effect using generic
 inc.mat <- model.matrix(~ 0 + bl, globulus)
@@ -1066,7 +1085,9 @@ res.blg <- remlf90(fixed  = phe_X ~ gg,
                    data   = globulus)
 ```
 
-```{r summary-generic}
+## Example of result
+
+```{r summary-generic, echo = FALSE}
 summary(res.blg)
 ```
 
@@ -1124,8 +1145,8 @@ res.comp.loo <- remlf90(fixed   = phenotype ~ 1,
 ## compute the predicted effects for the observations
 ## by matrix multiplication of the incidence matrix and the BLUPs
 Zd <- model.matrix(res.comp)$'genetic_direct'
-pred.BV.loo.mat <- with(ranef(res.comp.loo), cbind(`genetic_direct`,
-                                               `genetic_competition`))
+pred.BV.loo.mat <- with(ranef(res.comp.loo), 
+                        cbind(`genetic_direct`, `genetic_competition`))
 pred.genetic.loo <- Zd[rm.idx, ] %*% pred.BV.loo.mat
 
 valid.pred <- 
@@ -1143,7 +1164,7 @@ knitr::kable(round(valid.pred, 2))
 
 ## Exercise | Cross validation
 
-1. Extend the last table to include the predicted value when the phenotype is measured
+1. Extend the last table to include the predicted values with the full dataset
 
 2. Remove 1/10th of the phenotypes randomly, and predict their expected phenotype
     - Have the parameter estimations changed too much?
@@ -1157,26 +1178,19 @@ knitr::kable(round(valid.pred, 2))
 
 
 ## Cross-validation #1 | Include prediction with full data
-```{r prediction-exercise-1, purl = FALSE, results = 'asis', echo = -4}
-pred.BV.mat <- with(ranef(res.comp), cbind(`genetic_direct`,
-                                           `genetic_competition`))
-
-pred.genetic.loo <-
-  Zd[rm.idx, ] %*% with(ranef(res.comp),
-                        cbind(`genetic_direct`,
-                              `genetic_competition`))
+```{r prediction-exercise-1, purl = TRUE, results = 'asis', echo = -5}
+pred.BV.mat <- with(ranef(res.comp), 
+                    cbind(`genetic_direct`, `genetic_competition`))
 
 valid.pred$Pred.full <- c(Zd[rm.idx, ] %*% pred.BV.mat,
                           fitted(res.comp)[rm.idx])
 
-knitr::kable(round(valid.pred[,c(1,3,2)],
-                   2))
+knitr::kable(round(valid.pred[,c(1,3,2)], 2))
 ```
 
 ## Cross-validation #2 | Perform cross-validation on 1/10th of the observations
-```{r prediction-exercise-2, purl = FALSE, message = FALSE, echo = 1:4, results = 'asis'}
-rm.idx <- sample(nrow(dat),
-                 nrow(dat)/10)
+```{r prediction-exercise-2, purl = TRUE, message = FALSE, echo = 1:4, results = 'asis'}
+rm.idx <- sample(nrow(dat), nrow(dat)/10)
 dat.cv <- dat
 dat.cv[rm.idx, 'phenotype'] <- NA
 ## Re-fit the model and build table
@@ -1212,7 +1226,7 @@ knitr::kable(var.comp)
 ```
 
 ## Cross-validation #3 | MSE of Prediction
-```{r prediction-exercise-3, purl = FALSE}
+```{r prediction-exercise-3, purl = TRUE}
 true.exp.cv <- with(dat[rm.idx, ], phenotype - resid)
 round(sqrt(mean((fitted(res.comp.cv)[rm.idx] - true.exp.cv)^2)), 2)
 ```

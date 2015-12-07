@@ -50,6 +50,37 @@ dat <- transform(globulus,
                  interaction = factor(gg:bl))
 random = ~ gg + bl + interaction
 
+## ----hierarchical-exercise, purl=TRUE, message=FALSE---------------------
+res.h <- remlf90(fixed = phe_X ~ 1,
+                 random = ~ factor(mum) + gg,
+                 data = globulus)
+
+
+## ----factorial-exercise, purl=TRUE, message=FALSE------------------------
+# Interaction variable
+globulus.f <- transform(globulus,
+                        gg_bl = factor(gg:bl))
+
+res.f <- remlf90(fixed = phe_X ~ 1,
+                 random = ~ gg + bl + gg_bl,
+                 data = globulus.f)
+
+
+## ----interaction-exercise, purl=TRUE-------------------------------------
+summary(res)
+summary(res.h)
+
+## ----factorial-summary, purl=TRUE----------------------------------------
+summary(res.f)
+
+## ----AIC-factorial, message=FALSE, purl=TRUE-----------------------------
+## result without interaction
+res.f0 <- remlf90(fixed  = phe_X ~ 1,
+                  random = ~ gg + bl,
+                  data = globulus)
+paste('AIC:', round(extractAIC(res.f0)),
+      'logLik:', round(logLik(res.f0)))
+
 ## ----genetic, message = FALSE--------------------------------------------
 res.animal <- remlf90(fixed  = phe_X ~ 1,
                       random = ~ gg,
@@ -76,6 +107,7 @@ qplot(fitted(res.animal), phe_X,
   geom_abline(int = 0,
               slope = 1,
               col = 'gray')
+
 
 ## ----animal-residuals----------------------------------------------------
 ## Since coordinates have not
@@ -208,9 +240,40 @@ ggplot(transform(data.frame(x = 10:1e3),
        aes(x, nok)) + 
   geom_line()
 
-## ----spatial-exercise----------------------------------------------------
+## ----spatial-exercise, eval = FALSE--------------------------------------
+#  rho.grid <- expand.grid(rho_r = seq(.7, .95, length = 4),
+#                          rho_c = seq(.7, .95, length = 4))
+
+## ----spatial-exercise-1, purl = TRUE, message=FALSE----------------------
+res.spl99  <- remlf90(fixed  = phe_X ~ 1, random = ~ gg,
+                      genetic = gen.globulus,
+                      spatial = list(model   = 'splines', 
+                                     coord   = globulus[, c('x','y')],
+                                     n.knots = c(9, 9)), 
+                      data = globulus, method = 'em')
+
+## ----spatial-exercise-1-results, purl = TRUE, echo = TRUE----------------
+summary(res.spl)
+summary(res.spl99)
+
+## ----spatial-exercise-2, purl = TRUE-------------------------------------
+qplot(rho_r, rho_c,
+      fill = loglik,
+      geom = 'tile',
+      data = res.ar1$rho)
+
+## ----spatial-exercise-3, purl = TRUE, message=FALSE----------------------
 rho.grid <- expand.grid(rho_r = seq(.7, .95, length = 4),
                         rho_c = seq(.7, .95, length = 4))
+res.ar.grid  <- remlf90(fixed  = phe_X ~ gg,
+                        genetic = list(model = 'add_animal', 
+                                       pedigree = globulus[,1:3],
+                                       id = 'self'), 
+                        spatial = list(model = 'AR', 
+                                       coord = globulus[, c('x','y')],
+                                       rho = rho.grid), 
+                        data = globulus)
+summary(res.ar.grid)
 
 ## ----competition-data----------------------------------------------------
 # Simulation parameters
@@ -290,8 +353,47 @@ labels <- c(paste0(rep('sigma', 5),
 ggplot(var.comp, aes(True, Estimated)) + 
   geom_point() +
   geom_abline(int = 0, sl = 1, col = 'darkgray') + 
-  geom_text(label = labels, parse = TRUE, hjust = -.5)
+  geom_text(label = labels, parse = TRUE, hjust = -.5) +
+  expand_limits(x = 2.4, y = 2.6)
 
+
+## ----competition-exercise-1, purl = TRUE, message=FALSE------------------
+
+## compute the predicted effects for the observations
+## by matrix multiplication of the incidence matrix and the BLUPs
+pred <- list()
+Zd <- model.matrix(res.comp)$'genetic_direct'
+pred$direct <- Zd %*% ranef(res.comp)$'genetic_direct'
+
+## Watch out! for the competition effects you need to use the incidence
+## matrix of the direct genetic effect, to get their own value.
+## Otherwise, you get the predicted effect of the neighbours on each
+## individual.
+pred$comp <- Zd %*% ranef(res.comp)$'genetic_competition'
+pred$pec  <- model.matrix(res.comp)$pec %*% ranef(res.comp)$pec
+
+## ----competition-exercise-1bis, purl = TRUE, echo = TRUE-----------------
+comp.pred <-
+  rbind(
+    data.frame(
+      Component = 'direct BV',
+      True = dat$BV1,
+      Predicted = pred$direct),
+    data.frame(
+      Component = 'competition BV',
+      True = dat$BV2,
+      Predicted = pred$comp),
+    data.frame(
+      Component = 'pec',
+      True      = dat$pec,
+      Predicted = as.vector(pred$pec)))
+
+ggplot(comp.pred,
+       aes(True, Predicted)) +
+  geom_point() + 
+  geom_abline(int = 0, sl = 1,
+              col = 'darkgray') +
+  facet_grid(~ Component)
 
 ## ----generic-example, message = FALSE------------------------------------
 ## Fit a blocks effect using generic
@@ -302,7 +404,7 @@ res.blg <- remlf90(fixed  = phe_X ~ gg,
                                                cov.mat)),
                    data   = globulus)
 
-## ----summary-generic-----------------------------------------------------
+## ----summary-generic, echo = FALSE---------------------------------------
 summary(res.blg)
 
 ## ----prediction-remove-measure-------------------------------------------
@@ -330,8 +432,8 @@ res.comp.loo <- remlf90(fixed   = phenotype ~ 1,
 ## compute the predicted effects for the observations
 ## by matrix multiplication of the incidence matrix and the BLUPs
 Zd <- model.matrix(res.comp)$'genetic_direct'
-pred.BV.loo.mat <- with(ranef(res.comp.loo), cbind(`genetic_direct`,
-                                               `genetic_competition`))
+pred.BV.loo.mat <- with(ranef(res.comp.loo), 
+                        cbind(`genetic_direct`, `genetic_competition`))
 pred.genetic.loo <- Zd[rm.idx, ] %*% pred.BV.loo.mat
 
 valid.pred <- 
@@ -342,6 +444,54 @@ valid.pred <-
              row.names = c('direct BV', 'competition BV', 'exp. phenotype'))
 
 knitr::kable(round(valid.pred, 2))
+
+## ----prediction-exercise-1, purl = TRUE, results = 'asis', echo = -5-----
+pred.BV.mat <- with(ranef(res.comp), 
+                    cbind(`genetic_direct`, `genetic_competition`))
+
+valid.pred$Pred.full <- c(Zd[rm.idx, ] %*% pred.BV.mat,
+                          fitted(res.comp)[rm.idx])
+
+knitr::kable(round(valid.pred[,c(1,3,2)], 2))
+
+## ----prediction-exercise-2, purl = TRUE, message = FALSE, echo = 1:4, results = 'asis'----
+rm.idx <- sample(nrow(dat), nrow(dat)/10)
+dat.cv <- dat
+dat.cv[rm.idx, 'phenotype'] <- NA
+## Re-fit the model and build table
+res.comp.cv <-
+  remlf90(fixed   = phenotype ~ 1,
+          genetic = list(model = 'competition',
+                         pedigree = dat[, 1:3],
+                         id = 'self',
+                         coord = dat[, c('x', 'y')],
+                         competition_decay = 1,
+                         pec = list(present = TRUE)),
+          spatial = list(model = 'AR', 
+                         coord = dat[, c('x', 'y')],
+                         rho   = c(.3, .8)),
+          data = dat.cv,
+          method = 'em')
+
+var.comp <- 
+  data.frame(
+    'Fully estimated' = with(res.comp$var,
+                             round(c(genetic[1, 1], genetic[2, 2],
+                                     genetic[1, 2]/sqrt(prod(diag(genetic))),
+                                     spatial, pec, Residual), digits = 2)),
+    'CV estimated' = with(res.comp.cv$var,
+                          round(c(genetic[1, 1], genetic[2, 2],
+                                  genetic[1, 2]/sqrt(prod(diag(genetic))),
+                                  spatial, pec, Residual), digits = 2)),
+    row.names = c('direct', 'compet.', 'correl.',
+                  'spatial', 'pec', 'residual')
+    )
+
+knitr::kable(var.comp)
+
+## ----prediction-exercise-3, purl = TRUE----------------------------------
+true.exp.cv <- with(dat[rm.idx, ], phenotype - resid)
+round(sqrt(mean((fitted(res.comp.cv)[rm.idx] - true.exp.cv)^2)), 2)
 
 ## ----breedR-options------------------------------------------------------
 breedR.getOption()
