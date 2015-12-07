@@ -466,51 +466,49 @@ breedR_release <- function(
 ## This function http-serves a package repository
 ## and displays a slide with detailed installation instructions
 breedR_serve <- function(
-  repo = normalizePath('~/t4f/pkgrepo')
+  repo = normalizePath('~/t4f/pkgrepo'),
+  pf90 = normalizePath('~/t4f/src/breedR-web/bin'),
+  interface = 'wlan0'
 ) {
   
   get_ip <- function() {
-    ipline <- system('ifconfig wlan0 | grep "Direc\\. inet:"',
-           intern = TRUE)
-    gsub("^ +Direc. inet:([0-9\\.]+) .+$", "\\1", ipline)
+    ipline <- system(paste('ifconfig', interface, '| grep ".*inet[^6]*:"'),
+                     intern = TRUE)
+    gsub("^.*?\\b(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\b.*", "\\1", ipline)
   }
-
-  wd <- setwd(repo)
-  on.exit(setwd(wd))
-  
-  ## serve repo on wlan1
-  # system('sudo python -m SimpleHTTPServer 80 &')
-  # sin tty presente y no hay programa askpass especificado
-  system('python -m SimpleHTTPServer &')
   
   ## find IP address (can I fix this?)
-  my_address <- paste(get_ip(), "8000", sep = ':')
-  # my_address <- get_ip()
+  http_svr <- paste0("http://", get_ip())
+  pf90_svr <- file.path(http_svr, "pf90")
   
-  ## Local repository for PROGSF90
-  Sys.setenv(PROGSF90_URL = path.expand('~/t4f/src/breedR-web/bin'))
   
-  ## installation instructions
-  install_code <- 
-    expression(
-      r <- getOption("repos"),
-      r["breedR"] <- "http://famuvie.github.io/breedR",
-      options(repos = r)
-    )
-  
-  contents <- c("## Install breedR from my computer", 
-                "```R",
-                # sapply(install_code, deparse), 
-                deparse(bquote(install.packages('breedR', repos = .(my_address)))),
-                "```")
+  ## specific instructions
+  contents <- 
+    c("## Install breedR and dependencies from my computer", 
+      "```R",
+      deparse(bquote(svr <- .(http_svr))),
+      deparse(bquote(Sys.setenv(PROGSF90_URL = file.path(svr, "pf90")))),
+      deparse(bquote(install.packages('breedR', repos = svr))),
+      "```")
   
   fn <- tempfile('install_breedR', fileext = ".md")
   writeLines(contents, fn)
   
   ## installation instructions slide
   if (!require(rmarkdown)) stop('Install rmarkdown')
-  out <- render(fn, beamer_presentation())
-  file.show(out)
+  out <- render(fn, 
+                beamer_presentation(),
+                output_dir = ".",
+                output_file = "install_breedR.pdf")
+  system(paste("evince -s", out, "&"))
+  
+  ## serve repo on wlan1
+  # system('sudo python -m SimpleHTTPServer 80 &')
+  # sin tty presente y no hay programa askpass especificado
+  wd <- setwd(repo)
+  on.exit(setwd(wd))
+  system('python -m SimpleHTTPServer 80')
+  
 }
 
 breedR_build_win <- function() {
