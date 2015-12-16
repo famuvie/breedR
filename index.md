@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Home
+title: breedR
 ---
 
 This package provides frequentist and Bayesian statistical tools to build predictive models useful for the breeders, quantitative genetists and forest genetic resources analysts communities. It aims to assess the genetic value of individuals under a number of situations, including spatial autocorrelation, genetic/environment interaction and competition. It is under active development as part of the [Trees4Future project](http://www.trees4future.eu/ "T4F"), particularly developed having forest genetic trials in mind. But can be used for animals or other situations as well.
