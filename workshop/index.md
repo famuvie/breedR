@@ -117,4 +117,11 @@ monastery *San Juan de la Peña*
 - Genfored as a data base (E. Notivol)
 - Possible extensions of breedR (A. Legarra)
 
+![all](Jaca_all.JPG)
+
+![excursion](excursion.JPG)
+
+![participants](participants.JPG)
+
+![teachers](teachers.JPG)
 
