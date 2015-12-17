@@ -27,3 +27,5 @@ Warsaw, Poland 2015
 
 Note: some of the slides are in html format and require an internet connection to display correctly.
 If you want a standalone copy for local off-line visualization, you can find one in the compressed materials.
+
+![all](IBL_all.JPG)
