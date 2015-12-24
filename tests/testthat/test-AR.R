@@ -128,7 +128,7 @@ check.result <- function(m, datlabel, debug.plot = FALSE) {
       model.matrix(m$res)$spatial %*% ranef(m$res)$spatial
     if(debug.plot) {
       print(qplot(as.vector(m$dat$true.s), fit.s) +
-              geom_abline(int = 0, sl = 1))
+              geom_abline(intercept = 0, slope = 1))
     }
     # Mean Square Error for the spatial effect
     mse <- mean((as.vector(m$dat$true.s) - fit.s)^2)
@@ -218,7 +218,7 @@ test_that("the user can specify a full or partial grid of combinations", {
 # # Debug
 # image(s.mat)
 # image(matrix(res.bR$spatial$fit$z, nrow, ncol))
-# qplot(as.vector(s.mat), res.bR$spatial$fit$z) + geom_abline(int = 0, sl = 1, col = 'darkgray')
+# qplot(as.vector(s.mat), res.bR$spatial$fit$z) + geom_abline(intercept = 0, slope = 1, col = 'darkgray')
 # summary(res.bR)
 
 

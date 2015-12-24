@@ -31,8 +31,8 @@ ranef(res)
 qplot(
       fitted(res),
       globulus$phe_X) +
-  geom_abline(int = 0,
-              sl = 1,
+  geom_abline(intercept = 0,
+              slope = 1,
               col = 'darkgrey')
 str(resid(res))
 extractAIC(res)
@@ -104,7 +104,7 @@ PBV <- model.matrix(res.animal)$genetic %*% PBV.full
 # Note: fitted = mu + PBV
 qplot(fitted(res.animal), phe_X,
       data = globulus) +
-  geom_abline(int = 0,
+  geom_abline(intercept = 0,
               slope = 1,
               col = 'gray')
 
@@ -352,7 +352,7 @@ labels <- c(paste0(rep('sigma', 5),
 
 ggplot(var.comp, aes(True, Estimated)) + 
   geom_point() +
-  geom_abline(int = 0, sl = 1, col = 'darkgray') + 
+  geom_abline(intercept = 0, slope = 1, col = 'darkgray') + 
   geom_text(label = labels, parse = TRUE, hjust = -.5) +
   expand_limits(x = 2.4, y = 2.6)
 
@@ -391,7 +391,7 @@ comp.pred <-
 ggplot(comp.pred,
        aes(True, Predicted)) +
   geom_point() + 
-  geom_abline(int = 0, sl = 1,
+  geom_abline(intercept = 0, slope = 1,
               col = 'darkgray') +
   facet_grid(~ Component)
 

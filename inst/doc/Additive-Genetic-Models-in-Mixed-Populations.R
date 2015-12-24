@@ -105,7 +105,7 @@ PBV <- as.matrix(cbind(Z_EE, Z_JJ, Z_EJ)) %*%
 
 ggplot(cbind(dat, PBV), aes(bv, PBV)) +
   geom_point() +
-  geom_abline(int = 0, sl = 1, col = 'darkgray')
+  geom_abline(intercept = 0, slope = 1, col = 'darkgray')
 
 ## ----fit2----------------------------------------------------------------
 ## We only want to apply 'dad', 'mum' and 'sca' effects to hybrids,
@@ -145,7 +145,7 @@ PBV <- as.matrix(cbind(Z_EE, Z_JJ, Z_dad, Z_mum, Z_sca)) %*%
 
 ggplot(cbind(dat, PBV), aes(bv, PBV)) +
   geom_point() +
-  geom_abline(int = 0, sl = 1, col = 'darkgray')
+  geom_abline(intercept = 0, slope = 1, col = 'darkgray')
 
 ## ----likelihood-profiling------------------------------------------------
 ## Setup parallel computing
@@ -237,5 +237,5 @@ PBV <- as.matrix(Z[dat$sp != 'EJ', idx]) %*%
 
 ggplot(cbind(dat[dat$sp != 'EJ', ], PBV), aes(bv, PBV)) +
   geom_point() +
-  geom_abline(int = 0, sl = 1, col = 'darkgray')
+  geom_abline(intercept = 0, slope = 1, col = 'darkgray')
 

@@ -206,7 +206,7 @@ run_lmmexpectations <- function(m, data = dat, method, tol = 1e-03) {
   lmm.fitted   <- fitted(res[[2]])
   expect_that(pf90.fitted, 
               equals(lmm.fitted, check.attributes = FALSE, tolerance = tol))
-  qplot(pf90.fitted, lmm.fitted) + geom_abline(int = 0, sl = 1)
+  qplot(pf90.fitted, lmm.fitted) + geom_abline(intercept = 0, slope = 1)
 }
 
 # Run character conversion test for each method

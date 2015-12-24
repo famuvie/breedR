@@ -40,11 +40,11 @@ PSE <- as.vector(model.matrix(res.f90)$spatial %*% ranef(res.f90)$spatial)
 
 # Fitted values vs. Observed phenotypes by sex
 qplot(phe_X, FO, color = sex, data = dat) +
-  geom_abline(int=0, slope=1)
+  geom_abline(intercept=0, slope=1)
 
 # Predicted genetic values vs. true Breeding values by sex
 qplot(BV_X, PBV, color = sex, data = dat) +
-  geom_abline(int = 0, slope = 1, col = 'gray')
+  geom_abline(intercept = 0, slope = 1, col = 'gray')
 
 # Linear correlation between true and fitted breeding values
 cor(dat$BV_X, PBV)  # 0.84 !!
@@ -62,7 +62,7 @@ plot(res.f90, 'spatial')
 # Globally, however, the predictions are around the true values:
 # Predicted Spatial effect vs. true spatial structure
 qplot(sp_X, PSE, data = dat) +
-  geom_abline(int = 0, slope = 1, col = 'gray')
+  geom_abline(intercept = 0, slope = 1, col = 'gray')
 
 # Do the differences have any spatial pattern?
 # They shouldn't:

@@ -166,7 +166,7 @@ res <- try(
 )
 
 # ggplot2::qplot(dat$z - dat$e, fitted(res)) + 
-#   ggplot2::geom_abline(int = 0, sl = 1, col = 'darkgray')
+#   ggplot2::geom_abline(intercept = 0, slope = 1, col = 'darkgray')
 
 
 

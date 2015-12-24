@@ -67,9 +67,9 @@ res <- remlf90(y ~ 1,
 PGCA <- c(ranef(res)$male, ranef(res)$female)
 
 ## Check fit
-qplot(dat$eta, fitted(res)) + geom_abline(int=0, sl=1)
-qplot(GCA, PGCA) + geom_abline(int=0, sl=1)
-qplot(SCA, ranef(res)$SCA) + geom_abline(int=0, sl=1)
+qplot(dat$eta, fitted(res)) + geom_abline(intercept=0, slope=1)
+qplot(GCA, PGCA) + geom_abline(intercept=0, slope=1)
+qplot(SCA, ranef(res)$SCA) + geom_abline(intercept=0, slope=1)
 
 summary(res)
 
@@ -82,12 +82,12 @@ res.add <- remlf90(y ~ 1,
                    dat = dat)
 
 # Check fit
-qplot(dat$eta, fitted(res.add)) + geom_abline(int=0, sl=1)
+qplot(dat$eta, fitted(res.add)) + geom_abline(intercept=0, slope=1)
 # Predicted GCAs for the parents
 PGCA.add <- ranef(res.add)$genetic[do.call('c', parents.codes)]
-qplot(GCA, PGCA.add) + geom_abline(int=0, sl=1)
+qplot(GCA, PGCA.add) + geom_abline(intercept=0, slope=1)
 # Predicted SCAs for the families
-qplot(SCA, ranef(res.add)$SCA) + geom_abline(int=0, sl=1)
+qplot(SCA, ranef(res.add)$SCA) + geom_abline(intercept=0, slope=1)
 
 summary(res)
 

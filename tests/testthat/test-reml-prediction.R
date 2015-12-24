@@ -59,7 +59,7 @@ test_that("Estimated variance components are similar", {
 # Prediction of the spatial effect
 # qplot(ranef(res.full)$spatial,
 #       ranef(res.pred)$spatial) +
-#   geom_abline(int=0, sl=1)
+#   geom_abline(intercept=0, slope=1)
 test_that("Predicted spatial effects are similar everywhere", {
   expect_equal(ranef(res.full)$spatial,
                ranef(res.pred)$spatial,
@@ -74,7 +74,7 @@ test_that("Predicted spatial effects are similar everywhere", {
 #                       miss   = factor(0, levels = 0:1))
 # plotdat$miss[sel.idx] <- 1L
 # qplot(fullBV, predBV, data = plotdat, color = miss) + 
-#   geom_abline(int = 0, sl = 1, col ='darkgray')
+#   geom_abline(intercept = 0, slope = 1, col ='darkgray')
 test_that("Predicted Breeding Values are similar in observed individuals", {
   expect_equal(ranef(res.full)$genetic[-sel.idx],
             ranef(res.pred)$genetic[-sel.idx],

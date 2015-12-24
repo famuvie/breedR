@@ -46,6 +46,7 @@
 #'   
 #'   # Observed phenotypes vs. Fitted values
 #'   library(ggplot2)
-#'   qplot(phe_X, fitted(res.f90), color=gen, data = as.data.frame(m4)) + geom_abline(int=0, slope=1)
+#'   qplot(phe_X, fitted(res.f90), color=gen, data = as.data.frame(m4)) +
+#'     geom_abline(intercept=0, slope=1)
 #' 
 NULL
