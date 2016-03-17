@@ -452,20 +452,26 @@ remlf90 <- function(fixed,
     ## Compose a formula term for the variance of random effect x
     ## trait # is 1. See
     ## http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
+    ## vector-friendly
     fterm <- function(x) paste('G', x, x, '1', '1', sep = '_')
     
     ## Additive-genetic variance in the numerator
-    numerator <- fterm(ranef.idx['genetic'])
+    ## (Potentially more than one)
+    numerator <- fterm(ranef.idx[['genetic']])
     
     ## All variance estimates plus residual variance in the denominator
-    denom <- paste(c(sapply(ranef.idx, fterm), paste('R', '1', '1', sep = '_')),
-                   collapse = '+')
-    
-    H2fml <- paste0(numerator, "/(", denom, ")")
+    if (!all(vapply(ranef.idx, length, 1) == 1)) {
+      message("Can't compute the heritability formula automatically.")
+    } else {
+      denom <- paste(c(sapply(ranef.idx, fterm), paste('R', '1', '1', sep = '_')),
+                     collapse = '+')
       
-    pf90$parameter$options <- 
-      c(pf90$parameter$options,
-        paste('se_covar_function', 'Heritability', H2fml))
+      H2fml <- paste0(numerator, "/(", denom, ")")
+      
+      pf90$parameter$options <- 
+        c(pf90$parameter$options,
+          paste('se_covar_function', 'Heritability', H2fml))
+    }
   }
   
   # Temporary dir
