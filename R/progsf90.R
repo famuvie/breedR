@@ -684,3 +684,53 @@ pf90_code_missing <- function(x) {
   p10 <- 10^(1+ceiling(log10(max(abs(x), na.rm = TRUE))))
   return(1-p10)
 }
+
+
+
+#' Default formula for heritability
+#' 
+#' If all random effects are independent, computes a default formula in PROGSF90
+#' notation by dividing the genetic variance by the sum of all variance components plus the residual variance.
+#' 
+#' Assumes only one trait.
+#' 
+#' @param rglist list of random groups in the parameters of a \code{\link{progsf90}} object
+#' 
+#' @references 
+#'    http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
+pf90_default_heritability <- function (rglist, quiet = FALSE) {
+  
+  stopifnot(is.list(rglist))
+  
+  ## Positions of random effects in the list of random groups
+  ranef.idx <- sapply(rglist, function(x) x$pos)
+  
+  if (length(rglist) > 0 &&                       # there is at least one group
+      all(vapply(ranef.idx, length, 1) == 1) &&   # all of them of size 1
+      'genetic' %in% names(ranef.idx)) {          # there is a genetic effect
+    
+    ## Compose a formula term for the variance of random effect x
+    ## trait # is 1. vector-friendly
+    fterm <- function(x) paste('G', x, x, '1', '1', sep = '_')
+    
+    ## Additive-genetic variance in the numerator
+    ## (Potentially more than one)
+    numerator <- fterm(ranef.idx[['genetic']])
+    
+    ## All variance estimates plus residual variance in the denominator
+    denom <- paste(c(sapply(ranef.idx, fterm), paste('R', '1', '1', sep = '_')),
+                   collapse = '+')
+    
+    H2fml <- paste0(numerator, "/(", denom, ")")
+    
+    option.str <- paste('se_covar_function', 'Heritability', H2fml)
+    
+  } else {
+    
+    option.str <- NULL
+    if (!quiet)
+      message("Can't compute the heritability formula automatically.")
+  }
+  
+  return(option.str)
+}

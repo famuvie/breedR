@@ -443,29 +443,13 @@ remlf90 <- function(fixed,
                    opt = union('sol se', progsf90.options), 
                    res.var.ini = var.ini$residuals)
   
-  # PROGSF90 OPTION for heritability
+  
   if (!is.null(genetic) && method == 'ai') {
-    
-    ## Number of random effects in EFFECTS list
-    ranef.idx <- sapply(pf90$parameter$rangroup, function(x) x$pos)
-    
-    ## Compose a formula term for the variance of random effect x
-    ## trait # is 1. See
-    ## http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
-    fterm <- function(x) paste('G', x, x, '1', '1', sep = '_')
-    
-    ## Additive-genetic variance in the numerator
-    numerator <- fterm(ranef.idx['genetic'])
-    
-    ## All variance estimates plus residual variance in the denominator
-    denom <- paste(c(sapply(ranef.idx, fterm), paste('R', '1', '1', sep = '_')),
-                   collapse = '+')
-    
-    H2fml <- paste0(numerator, "/(", denom, ")")
-      
+    ## Compute default heritability if possible
+    ## add and additional PROGSF90 OPTION
     pf90$parameter$options <- 
-      c(pf90$parameter$options,
-        paste('se_covar_function', 'Heritability', H2fml))
+      c(pf90$parameter$options, 
+        pf90_default_heritability(pf90$parameter$rangroup))
   }
   
   # Temporary dir
