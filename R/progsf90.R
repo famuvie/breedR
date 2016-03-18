@@ -698,23 +698,26 @@ pf90_code_missing <- function(x) {
 #' 
 #' @references 
 #'    http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
-pf90_default_heritability <- function (rglist) {
-  ## Number of random effects in EFFECTS list
+pf90_default_heritability <- function (rglist, quiet = FALSE) {
+  
+  stopifnot(is.list(rglist))
+  
+  ## Positions of random effects in the list of random groups
   ranef.idx <- sapply(rglist, function(x) x$pos)
   
-  ## Compose a formula term for the variance of random effect x
-  ## trait # is 1. vector-friendly
-  fterm <- function(x) paste('G', x, x, '1', '1', sep = '_')
-  
-  ## Additive-genetic variance in the numerator
-  ## (Potentially more than one)
-  numerator <- fterm(ranef.idx[['genetic']])
-  
-  ## All variance estimates plus residual variance in the denominator
-  if (!all(vapply(ranef.idx, length, 1) == 1)) {
-    message("Can't compute the heritability formula automatically.")
-    option.str <- NULL
-  } else {
+  if (length(rglist) > 0 &&                       # there is at least one group
+      all(vapply(ranef.idx, length, 1) == 1) &&   # all of them of size 1
+      'genetic' %in% names(ranef.idx)) {          # there is a genetic effect
+    
+    ## Compose a formula term for the variance of random effect x
+    ## trait # is 1. vector-friendly
+    fterm <- function(x) paste('G', x, x, '1', '1', sep = '_')
+    
+    ## Additive-genetic variance in the numerator
+    ## (Potentially more than one)
+    numerator <- fterm(ranef.idx[['genetic']])
+    
+    ## All variance estimates plus residual variance in the denominator
     denom <- paste(c(sapply(ranef.idx, fterm), paste('R', '1', '1', sep = '_')),
                    collapse = '+')
     
@@ -722,6 +725,12 @@ pf90_default_heritability <- function (rglist) {
     
     option.str <- paste('se_covar_function', 'Heritability', H2fml)
     
+  } else {
+    
+    option.str <- NULL
+    if (!quiet)
+      message("Can't compute the heritability formula automatically.")
   }
+  
   return(option.str)
 }

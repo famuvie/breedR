@@ -4,7 +4,7 @@
 \alias{pf90_default_heritability}
 \title{Default formula for heritability}
 \usage{
-pf90_default_heritability(rglist)
+pf90_default_heritability(rglist, quiet = FALSE)
 }
 \arguments{
 \item{rglist}{list of random groups in the parameters of a \code{\link{progsf90}} object}
