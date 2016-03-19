@@ -12,7 +12,7 @@ r_check_args: --no-vignettes   # takes too long
 r_binary_packages: 
   - Matrix
   - ggplot2
-  - nlme
+  - lme4
   - reshape2
   - mass
   - plyr
@@ -27,3 +27,4 @@ before_install:
   # pre-install INLA (after its dependencies) to avoid build error
   - Rscript -e "install.packages(c('sp', 'Matrix', 'splines'), repos = 'http://cran.rstudio.com/')"
   - Rscript -e "install.packages('INLA', repos = 'http://www.math.ntnu.no/inla/R/testing')"
+  - Rscript -e 'install.packages("nlme", lib="/home/travis/R-bin/lib/R/library/")'
