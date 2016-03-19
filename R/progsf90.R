@@ -689,13 +689,18 @@ pf90_code_missing <- function(x) {
 
 #' Default formula for heritability
 #' 
-#' If all random effects are independent, computes a default formula in PROGSF90
-#' notation by dividing the genetic variance by the sum of all variance components plus the residual variance.
+#' If all random effects are independent, and there is an additive-genetic
+#' effect, computes a default formula in PROGSF90 notation by dividing the
+#' genetic variance by the sum of all variance components plus the residual
+#' variance.
 #' 
 #' Assumes only one trait.
 #' 
-#' @param rglist list of random groups in the parameters of a \code{\link{progsf90}} object
-#' 
+#' @param rglist list of random groups in the parameters of a
+#'   \code{\link{progsf90}} object
+#' @param quiet logical. If FALSE, the function issues a message when it fails
+#'   to build a formula.
+#'   
 #' @references 
 #'    http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
 pf90_default_heritability <- function (rglist, quiet = FALSE) {
