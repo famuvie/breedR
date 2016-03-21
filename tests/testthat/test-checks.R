@@ -334,3 +334,44 @@ test_that('validate_variance() stops for inconsistent values of variance', {
   expect_error(validate_variance(matrix(1, 2, 2)), 'SPD matrix')
   expect_error(validate_variance(-1.5, where = 'test'), 'positive number in the test')
 })
+
+test_that('default_initial_variance() works as expected', {
+  
+  ## One trait: always return half the phenotypic variance
+  x <- runif(100)
+  
+  expect_identical(as.matrix(var(x)/2), default_initial_variance(x))
+  expect_identical(as.matrix(var(x)/2), default_initial_variance(x, cor.trait = 0))
+  expect_identical(as.matrix(var(x)/2), default_initial_variance(x, cor.effect = 0))
+  
+  ## One trait - 2 dimensional effect (e.g. competition)
+  x <- runif(100)
+  dim = 2
+  default.covar <- 0.1*var(x)/2
+  
+  div <- default_initial_variance(x, dim = dim)
+  expect_identical(rep(as.matrix(var(x)/2), dim), diag(div))
+  expect_identical(default.covar, div[2,1])
+  expect_identical(default.covar, div[2,1])
+  
+  div <- default_initial_variance(x, dim = dim, cor.effect = 0)
+  expect_identical(rep(as.matrix(var(x)/2), dim), diag(div))
+  expect_identical(0, div[2,1])
+  
+  ## 5 traits: half phenotypic variance of each trait and default covariances
+  ## unless diag
+  x <- matrix(runif(500), ncol=5)
+  default.covar <- 0.1*gmean(diag(var(x)))/2
+  
+  div <- default_initial_variance(x)
+  expect_identical(diag(var(x))/2, diag(div))
+  expect_equal(default.covar, div[2,1])
+  
+  divd <- default_initial_variance(x, cor.trait = 0)
+  expect_identical(diag(var(x))/2, diag(divd))
+  expect_identical(0, divd[2, 1])
+  
+  ## Fail at constant traits
+  x[, 5] <- 123
+  expect_error(default_initial_variance(x), 'Trait 5 is constant.')
+})

@@ -18,7 +18,8 @@
 #'  gives the number of knots (nok) to be used for a splines model, if not 
 #'  otherwise specified
 #'  
-#'  \code{default.initial.variance}: a default value for all variance components
+#'  \code{default.initial.variance}: a function of the numeric response vector
+#'  of matrix which returns a default initial value for a variance component
 #'  
 #'  \code{col.seq}: a vector with the specification of default extreme breedR 
 #'  col for sequential scales in spatial quantitative plots. See Details.
@@ -113,7 +114,7 @@ breedR.getOption <- function(option = c("ar.eval",
     breedR.bin  = breedR.bin.builtin(),
     ar.eval     = c(-8, -2, 2, 8)/10,
     splines.nok = quote(determine.n.knots),
-    default.initial.variance = 1,
+    default.initial.variance = quote(default_initial_variance),
     col.seq = c('#034E7B', '#FDAE6B'),
     col.div = c('#3A3A98FF', '#832424FF'),
     cygwin = 'C:/cygwin',
@@ -226,3 +227,67 @@ breedR.setOption <- function(...) {
   }
   return (invisible(op))
 }
+
+#' Default initial value for variance components
+#' 
+#' A function of the response vector or matrix (multi-trait case) returning a
+#' SPD matrix of conforming dimensions.
+#' 
+#' The default initial variances are computed as half the empirical phenotypic
+#' variance of each trait. The default initial covariances are set to a neutral
+#' value of \code{cor.trait} times half the geometric mean of the variances.
+#' 
+#' If any column in \code{x} is constant (i.e. empirical variance of 0) then the
+#' function stops. It is better to remove this trait from the analysis.
+#' 
+#' If \code{dim} is greater than one, the function expands each variance to a 
+#' square matrix with the given dimension, with covariances given by 
+#' \code{cor.effect} times half the phenotypic variance. This is intendend to
+#' model correlated random effects.
+#' 
+#' @param x numeric vector or matrix with the phenotypic observations. Each 
+#'   trait in one column.
+#' @param dim integer. dimension of the random effect for each trait. Default is
+#'   1.
+#' @param cor.trait a number strictly in (-1, 1). The initial value for the
+#'   correlation across traits. Default is 0.1.
+#' @param cor.effect a number strictly in (-1, 1). The initial value for the
+#'   correlation across the different dimensions of the random effect. Default
+#'   is 0.1.
+#' @example 
+#'    ## Initial covariance matrix for a bidimensional random effect
+#'    ## acting independently over three traits
+#'    x <- cbind(rnorm(100, sd = 1), rnorm(100, sd = 2), rnorm(100, sd = 3))
+#'    div <- default_initial_variance(x, dim = 2, cor.trait = 0, cor.effect = 0.5)
+default_initial_variance <- 
+  function(x, dim = 1, cor.trait = 0.1, cor.effect = 0.1) {
+  
+  x <- as.matrix(x)
+  n.traits <- ncol(x)
+  
+  ## Empirical half-variances of each trait
+  vars <- diag(var(x))/2
+  
+  if (any(idx <- which(vars == 0))) {
+    stop(paste('Trait', idx, 'is constant.'))
+  }
+  
+  ## covariance matrix for a trait of a given dimension
+  trait.covmat <- function(var, dim, cor.effect) {
+    S <- matrix(cor.effect*var, dim, dim)
+    diag(S) <- var
+    return(S)
+  }
+
+  ## Trait-wise covariance matrices
+  sigma.trait <- lapply(vars, trait.covmat, dim, cor.effect)
+  
+  ## Covariance accross traits, based on empirical variances
+  covar.trait  <- cor.trait*gmean(vars)
+  
+  ## Diagonal-binding filling-in with initial covariance accross traits
+  sigma <- dbind(sigma.trait, fillin = covar.trait)
+  
+  return(sigma)
+}
+  
