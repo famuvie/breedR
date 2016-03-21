@@ -1,4 +1,4 @@
-#' Frequentist and Bayesian methods for breeders, quantitative genetists and
+#' Frequentist and Bayesian methods for breeders, quantitative geneticists and 
 #' forest genetic resources analysts.
 #' 
 #' This package provides statistical tools to build predictive models for the

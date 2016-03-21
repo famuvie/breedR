@@ -55,11 +55,11 @@ The number of levels and type for each 'virtual' effect; the progsf90
 Translates breedR effects into progsf90 parameters and data.
 }
 \details{
-This is an intenal function. Not exported.
+This is an internal function. Not exported.
 
 For the \code{generic} class, all matrices are converted to plain 
   matrix-class, for exporting to files. The progsf90 model is either
-  \code{user_file} or \code{user_file_i} depending on the type of sructure
+  \code{user_file} or \code{user_file_i} depending on the type of structure
   matrix; i.e. respectively precision or covariance.
 
 For the \code{splines} class, everything reduces to a generic effect

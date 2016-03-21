@@ -33,7 +33,7 @@ effect_size <- function(x) UseMethod('effect_size')
 #' 
 #' Translates breedR effects into progsf90 parameters and data.
 #' 
-#' This is an intenal function. Not exported.
+#' This is an internal function. Not exported.
 #' 
 #' @param x object of class breedr_modelframe, effect_group or breedr_effect.
 #' @return The number of levels and type for each 'virtual' effect; the progsf90
@@ -96,7 +96,7 @@ nindividuals <- function(x, ...) UseMethod('nindividuals')
 #' The spatial unit is the distance between consecutive trees.
 #' @param meta A metagene object
 #' @param variance A number between 0 and 1. The variance of the spatial field 
-#'   as a proportion of the non-inheritable pehnotype variance. See Details.
+#'   as a proportion of the non-inheritable phenotypic variance. See Details.
 #' @param range A number between 0 and 1. The range of the spatial field, as a 
 #'   proportion of the region size.
 #' @param ... Arguments to be passed to methods.

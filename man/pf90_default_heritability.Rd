@@ -7,11 +7,17 @@
 pf90_default_heritability(rglist, quiet = FALSE)
 }
 \arguments{
-\item{rglist}{list of random groups in the parameters of a \code{\link{progsf90}} object}
+\item{rglist}{list of random groups in the parameters of a
+\code{\link{progsf90}} object}
+
+\item{quiet}{logical. If FALSE, the function issues a message when it fails
+to build a formula.}
 }
 \description{
-If all random effects are independent, computes a default formula in PROGSF90
-notation by dividing the genetic variance by the sum of all variance components plus the residual variance.
+If all random effects are independent, and there is an additive-genetic
+effect, computes a default formula in PROGSF90 notation by dividing the
+genetic variance by the sum of all variance components plus the residual
+variance.
 }
 \details{
 Assumes only one trait.

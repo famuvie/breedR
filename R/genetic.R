@@ -73,7 +73,8 @@ additive_genetic <- function(pedigree, incidence) {
 #' codification. If recoding took place when building the pedigree, this
 #' function will convert the codes internally.
 #' 
-#' @param idx integer vector of observed individuals (in the original codif.)
+#' @param idx integer vector of observed individuals (in the original
+#'   codification)
 #' @inheritParams additive_genetic
 #'   
 #' @return A list with elements \code{pedigree}, \code{incidence.matrix}, 

@@ -10,7 +10,7 @@ sim.spatial(meta, variance, range, ...)
 \item{meta}{A metagene object}
 
 \item{variance}{A number between 0 and 1. The variance of the spatial field 
-as a proportion of the non-inheritable pehnotype variance. See Details.}
+as a proportion of the non-inheritable phenotypic variance. See Details.}
 
 \item{range}{A number between 0 and 1. The range of the spatial field, as a 
 proportion of the region size.}

@@ -9,7 +9,8 @@ additive_genetic_animal(pedigree, idx)
 \arguments{
 \item{pedigree}{object of class 'pedigree'}
 
-\item{idx}{integer vector of observed individuals (in the original codif.)}
+\item{idx}{integer vector of observed individuals (in the original
+codification)}
 }
 \value{
 A list with elements \code{pedigree}, \code{incidence.matrix}, 

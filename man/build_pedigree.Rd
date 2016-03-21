@@ -36,7 +36,7 @@ for using it in a statistical model, it is necessary to \emph{complete} the
 pedigree by introducing new individuals with unknown parents.
 
 Furthermore, the codes must be sorted in ascending and consecutive order 
-begining from 1, and the offspring must follow parents. All this is checked, 
+beginning from 1, and the offspring must follow parents. All this is checked, 
 and the pedigree is reordered and recoded if needed.
 
 If recoding is needed, the function issues a warning and an attribute 'map' 

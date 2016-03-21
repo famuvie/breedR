@@ -16,7 +16,7 @@
 #' Unless \code{coord} or \code{z} are specified by the user, \code{variogram} 
 #' builds the variogram with the residuals of the model fit in \code{x}. If 
 #' \code{coord} or \code{z} are specified, then the spatial coordinates or the 
-#' residuals are respectively overrided.
+#' residuals are respectively overridden.
 #' 
 #' This function assumes that there is at most one observation per spatial 
 #' location. Otherwise, are observations measured at different times? should a 

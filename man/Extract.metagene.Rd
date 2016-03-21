@@ -16,7 +16,7 @@
 \arguments{
 \item{x}{a metagene object.}
 
-\item{name}{character. A varaible name.}
+\item{name}{character. A variable name.}
 
 \item{value}{a vector.}
 

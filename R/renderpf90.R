@@ -73,7 +73,7 @@ renderpf90.diagonal <- function(x) {
 #' For each row, it keeps the non-zero elements and their respective column 
 #' index. The gaps are filled with zeros.
 #' 
-#' @return A matrix with a number of colums equal to twice the maximum number of
+#' @return A matrix with a number of columns equal to twice the maximum number of
 #'   non-zero elements in one row. The first half of the columns are the 
 #'   non-zero values (except for filling-in) while the second half are the 
 #'   column indices.
@@ -235,7 +235,7 @@ renderpf90.effect_group <- function(x) {
 
 #' @details For the \code{generic} class, all matrices are converted to plain 
 #'   matrix-class, for exporting to files. The progsf90 model is either
-#'   \code{user_file} or \code{user_file_i} depending on the type of sructure
+#'   \code{user_file} or \code{user_file_i} depending on the type of structure
 #'   matrix; i.e. respectively precision or covariance.
 #' @describeIn renderpf90 Compute the parameters of a progsf90 representation of
 #'   a generic effect.
