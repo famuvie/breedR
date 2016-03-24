@@ -42,6 +42,7 @@ check_var.ini <- function (x, random) {
 }
 
 
+## Checks and completes the specification of a genetic model
 check_genetic <- function(model = c('add_animal', 'competition'),
                           pedigree,
                           id,
@@ -51,18 +52,15 @@ check_genetic <- function(model = c('add_animal', 'competition'),
                           autofill = TRUE,
                           var.ini,
                           data,
+                          response,
                           ...) {
   
   ## do not include data in the call
   ## data is an auxiliar for checking and substituting id
   ## but it is not part of the genetic component specification
   mc <- match.call()
-  mc <- mc[names(mc) != 'data']
+  mc <- mc[!names(mc) %in% c('data', 'response')]
   
-  ## flag indicating whether the var.ini was taken by default
-  ## or specified by the user
-  attr(mc, 'var.ini.default') <- FALSE
-
   ## Mandatory arguments
   for (arg in c('model', 'pedigree', 'id')) {
     if (eval(call('missing', as.name(arg))) || 
@@ -115,23 +113,32 @@ check_genetic <- function(model = c('add_animal', 'competition'),
                'not represented in the pedigree:\n',
                toString(mc$id[which(!idx)])))
 
+  ## flag indicating whether the var.ini was taken by default
+  ## or specified by the user
+  attr(mc, 'var.ini.default') <- FALSE
+
+  ## default initial variance function
+  div_fun <- breedR.getOption('default.initial.variance')
+  
+  ## dimension of the genetic effect
+  dim <- switch(mc$model, add_animal = 1, competition = 2)
+  
   ## Set default var.ini if missing
   if (missing(var.ini) || is.null(var.ini)) {
 
-    var.ini <- switch(
-      mc$model,
-      add_animal = breedR.getOption('default.initial.variance'),
-      competition = {
-        var.ini.mat <- diag(breedR.getOption('default.initial.variance'), 2)
-        var.ini.mat[1,2] <- var.ini.mat[2,1] <- -var.ini.mat[1,1]/2
-        var.ini.mat
-      }
-    )
+    ## default initial covariance matrix
+    var.ini <- 
+      eval(div_fun)(response, dim, cor.trait = 0.1, cor.effect = 0.1)
+    
+    ## set flag indicating a default initial value
     attr(mc, 'var.ini.default') <- TRUE
   }
   
-  ## Validate initial variance
-  validate_variance(var.ini)
+  ## Validate initial variance (SPD, dimensions, etc.)
+  validate_variance(
+    var.ini,
+    dimension = rep(dim*ncol(as.matrix(response)), 2),
+    where = 'genetic component.')
   
   ## Checks specific to competition models
   if (mc$model == 'competition') {
@@ -184,7 +191,9 @@ check_genetic <- function(model = c('add_animal', 'competition'),
                     'in the competition specification.\n',
                     'e.g. pec = list(present = TRUE, var.ini = 1)'))
       }
-      pec$var.ini <- breedR.getOption('default.initial.variance')
+      
+      ## default initial covariance matrix
+      pec$var.ini <- eval(div_fun)(response, dim = 1, cor.trait = 0.1)
     }
     
     ## Validate initial variance in pec

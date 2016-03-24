@@ -125,7 +125,8 @@ gen_spec <- check_genetic(model = 'competition',
                           pedigree = data[, c('self', 'dad', 'mum')],   # pedigree
                           id = data$self,          # vector
                           coordinates = data[, c('irow', 'icol')],  # matrix
-                          pec = TRUE)
+                          pec = TRUE,
+                          response = data$phe_X)
 
 sp_spec <- check_spatial(model = 'splines',
                          coordinates = data[, c('irow', 'icol')])

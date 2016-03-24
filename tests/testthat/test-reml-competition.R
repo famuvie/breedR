@@ -145,12 +145,11 @@ dat <- transform(dat, z = a + wnc + pec + e)
 
 
 
-#### Fitting the competition model with remlf90
+#### Fitting the competition model with remlf90 ################################
 context('Fitting competition models')
-########################
 
-res <- try(
-  suppressMessages(
+expect_error(
+  res <- suppressMessages(
     remlf90(
       fixed  = z ~ 1,
       genetic = list(model = c('comp'), 
@@ -162,20 +161,16 @@ res <- try(
       data = dat,
       method = 'em',
       debug = F)
-  )
-)
+  ),
+  NA)
+
 
 # ggplot2::qplot(dat$z - dat$e, fitted(res)) + 
 #   ggplot2::geom_abline(intercept = 0, slope = 1, col = 'darkgray')
 
-
-
-test_that('remlf90() suceeds in fitting a single competition model', {
-  expect_false(inherits(res, 'try-error'))
-})
-
+#### Context: Extraction of results from competition model #####################
 context("Extraction of results from competition model")
-########################
+
 
 n.fixed   <- 1
 nlevels.fixed <- 1

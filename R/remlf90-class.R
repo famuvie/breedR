@@ -313,10 +313,18 @@ remlf90 <- function(fixed,
   # Allow for multiple responses
   # Allow for generalized mixed models
 
-  
 
   ###  Call
   mc <- mcout <- match.call()
+
+  # Builds model frame by joining the fixed and random terms
+  # and translating the intercept (if appropriate) to a fake covariate
+  # Add an additional 'term.types' attribute within 'terms'
+  # indicating whether the term is 'fixed' or 'random'
+  # progsf90 does not allow for custom model parameterizations
+  # and they don't use intercepts
+  mf <- build.mf(mc)
+  mt <- attr(mf, 'terms')
   
   ### Checks
   if ( missing(fixed) | missing(data) ) { 
@@ -348,9 +356,20 @@ remlf90 <- function(fixed,
   method <- tolower(method)
   method <- match.arg(method)
   
+
+  ### Number of traits
+  # ntraits <- ncol(as.matrix(model.response(mf)))
+  
+  ### Response matrix (ntraits = ncols)
+  responsem <- as.matrix(model.response(mf))
+  
   ## Genetic specification
   if (!is.null(genetic)) {
-    genetic <- do.call('check_genetic',  c(genetic, list(data = data)))
+    ## TODO: Ideally, I should pass the model frame only, containing the
+    ## necessary variables (also for special effects and response)
+    genetic <- do.call('check_genetic',
+                       c(genetic, list(data = data, 
+                                       response = responsem)))
   }
   
   ## Spatial specification
@@ -421,15 +440,6 @@ remlf90 <- function(fixed,
                   '\tSee ?breedR.getOption.\n'))
   }
   
-  
-  # Builds model frame by joining the fixed and random terms
-  # and translating the intercept (if appropriate) to a fake covariate
-  # Add an additional 'term.types' attribute within 'terms'
-  # indicating whether the term is 'fixed' or 'random'
-  # progsf90 does not allow for custom model parameterizations
-  # and they don't use intercepts
-  mf <- build.mf(mc)
-  mt <- attr(mf, 'terms')
   
   # Build a list of parameters and information for each effect
   effects <- build.effects(mf, genetic, spatial, generic, var.ini)

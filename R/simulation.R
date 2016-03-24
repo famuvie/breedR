@@ -222,6 +222,8 @@ breedR.sample.phenotype <- function(fixed = NULL,
       genetic$pedigree <- ped
       genetic$id <-sum(genetic$Nparents) + 1:Nobs  # index of individuals
       genetic$coord <- coord[ord, ]
+      genetic$var.ini <- genetic$sigma2_a
+      genetic$response <- 1   # fake response to establish n. traits
       genetic <- do.call(check_genetic, genetic)
       
       ## Build components

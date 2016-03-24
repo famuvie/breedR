@@ -6,34 +6,43 @@ on.exit(options(old.op))
 
 context("Checks for model components")
 
-##Model add_animal##
-dat <- data.frame(id = 1:4,
+## Model add_animal ##
+dat <- data.frame(id   = 1:4,
                   sire = c(11, 11, 2, 3),
-                  dam  = c(12, NA, 1, 12))
+                  dam  = c(12, NA, 1, 12),
+                  y    = rnorm(4),
+                  z    = rnorm(4, sd = 2))
 ped <- build_pedigree(1:3, data = dat)
 id <- dat$id
 var.ini <- 1.5
 
+divf <- breedR.getOption('default.initial.variance')
+
 test_that("The minimal add_animal specification checks without error and completes missing values",{
   
   ## Try alternative correct specification formats:
-  add_animal_minimalspec <- list(
-    try(check_genetic(model = 'add_animal',
-                      pedigree = ped,
-                      id = id)),
-    try(check_genetic(model = 'add_animal',
-                      pedigree = ped,
-                      id = 'id',
-                      data = dat)),
-    try(check_genetic(model = 'add_animal',
-                      pedigree = as.data.frame(ped)[-(1:2),],
-                      id = id)),
-    try(check_genetic(model = 'add',
-                      pedigree = ped,
-                      id = id))
+  animal_minimalspec <- list(
+    list(model = 'add_animal',
+         pedigree = ped,
+         id = id),
+    list(model = 'add_animal',
+         pedigree = ped,
+         id = 'id',
+         data = dat),
+    list(model = 'add_animal',
+         pedigree = as.data.frame(ped)[-(1:2),],
+         id = id),
+    list(model = 'add',
+         pedigree = ped,
+         id = id)
   )
+
+  ## Single-trait
+  animal_check_input <- lapply(animal_minimalspec, c, response = list(dat$y))
+  animal_checks <- 
+    lapply(animal_check_input, function(x) try(do.call('check_genetic', x)))
   
-  for (x in add_animal_minimalspec) {
+  for (x in animal_checks) {
     expect_false(inherits(x, "try-error"))
     
     expect_true(setequal(names(x),
@@ -41,145 +50,232 @@ test_that("The minimal add_animal specification checks without error and complet
     
     ## var.ini should have been added with the default value
     ## and the attribute 'var.ini.default' set to TRUE
-    expect_equal(x$var.ini, breedR.getOption('default.initial.variance'))
+    expect_equal(x$var.ini, eval(divf)(dat$y))
+    expect_true(attr(x, 'var.ini.default'))
+  }
+
+  ## Two-trait
+  animal_check_input <- lapply(animal_minimalspec, c, 
+                               response = list(cbind(dat$y, dat$z)))
+  animal_checks <- 
+    lapply(animal_check_input, function(x) try(do.call('check_genetic', x)))
+  
+  for (x in animal_checks) {
+    expect_false(inherits(x, "try-error"))
+    
+    expect_true(setequal(names(x),
+                         c('model', 'pedigree', 'id', 'var.ini', 'autofill')))
+    
+    ## var.ini should have been added with the default value
+    ## and the attribute 'var.ini.default' set to TRUE
+    expect_equal(x$var.ini, eval(divf)(dat[, c('y', 'z')]))
     expect_true(attr(x, 'var.ini.default'))
   }
 })
 
-test_that("check_genetic() returns an error if missing values",{
-  expect_error(check_genetic(pedigree = ped, id = id, var.ini = var.ini ))
-  expect_error(check_genetic(model = 'add_animal', pedigree = ped, var.ini = var.ini ))
-  expect_error(check_genetic(model = 'add_animal'))
+test_that("check_genetic() returns an error if missing arguments",{
+  expect_error(check_genetic(pedigree = ped, id = id, var.ini = var.ini),
+               'model required')
+  expect_error(check_genetic(model = 'add_animal', pedigree = ped, var.ini = var.ini),
+               'id required')
+  expect_error(check_genetic(model = 'add_animal'), 'pedigree required')
 })
 
-test_that("check_genetic() returns an error if var.ini is negative or null, or even not a number ",{
-  expect_error(check_genetic(model = 'add_animal', pedigree = ped, id = id, var.ini = -1.1 ))
-  expect_error(check_genetic(model = 'add_animal', pedigree = ped, id = id, var.ini = 0 ))
-  expect_error(check_genetic(model = 'add_animal', pedigree = ped, id = id, var.ini = 'test' ))
+test_that("check_genetic() returns an error if var.ini is inconsistent",{
+  check_var <- function(x, Y = dat$y)
+    check_genetic(model = 'add_animal', 
+                  pedigree = ped, 
+                  id = id, 
+                  var.ini = x, 
+                  response = Y)
+
+  ## var.ini not of right dimension
+  expect_error(check_var(1, Y = dat[, c('y', 'z')]), '2x2 matrix')
 })
 
 test_that("check_genetic() returns an error if pedigree is not of class pedigree or data.frame ",{
-  expect_error(check_genetic(model = 'add_animal', pedigree = FALSE, id = id, var.ini = var.ini ))
+  expect_error(check_genetic(model = 'add_animal', 
+                             pedigree = FALSE, 
+                             id = id, 
+                             var.ini = var.ini),
+               'argument pedigree')
 })
 
-##Model competition##
+## Model competition ##
 coordinates <- matrix(c(1,2,-1,0,0,1,-1,1),4,2)
 var.ini.mat <- matrix(c(1, -.5, -.5, 1), 2, 2)
 pec<- list(a = FALSE, b = TRUE, c = FALSE)
 
-test_that("The competition model runs without error",{
+test_that("Correctly-specified competition models runs without error",{
 
   ## Try alternative correct specification formats:
   comp_minimalspec <- list(
-    try(check_genetic(model = 'competition',
-                      pedigree = ped,   # pedigree
-                      id = id,          # vector
-                      coordinates = coordinates,  # matrix
-                      pec = TRUE)),     # logical spec; default var.ini
-    try(check_genetic(model = 'competition',
-                      pedigree = ped,   # pedigree
-                      id = 'id',        # variable name with data spec
-                      coordinates = as.data.frame(coordinates),  # data.frame
-                      pec = list(var = 1),  # list spec with var.ini abbrev.
-                      var.ini = var.ini.mat,  # user var.ini
-                      data = dat)),
-    try(check_genetic(model = 'competition',
-                      pedigree = as.data.frame(ped)[-(1:2),],  # data.frame obs.
-                      id = id,          # vector
-                      coordinates = as.list(as.data.frame(coordinates)),  # list
-                      pec = list(present = TRUE, var.ini = 2),  # full spec
-                      var.ini = var.ini.mat)), # var.ini spec
-    try(check_genetic(model = 'comp',   # abbreviated name
-                      pedigree = ped,   # pedigree
-                      id = id,          # vector
-                      coordinates = coordinates,  # matrix
-                      pec = list(pres = TRUE)))  # list spec; default var.ini
+    list(model = 'competition',
+         pedigree = ped,   # pedigree
+         id = id,          # vector
+         coordinates = coordinates,  # matrix
+         pec = TRUE),     # logical spec; default var.ini
+    list(model = 'competition',
+         pedigree = ped,   # pedigree
+         id = 'id',        # variable name with data spec
+         coordinates = as.data.frame(coordinates),  # data.frame
+         pec = list(var = 1),  # list spec with var.ini abbrev.
+         var.ini = var.ini.mat,  # user var.ini
+         data = dat),
+    list(model = 'competition',
+         pedigree = as.data.frame(ped)[-(1:2),],  # data.frame obs.
+         id = id,          # vector
+         coordinates = as.list(as.data.frame(coordinates)),  # list
+         pec = list(present = TRUE, var.ini = 2),  # full spec
+         var.ini = var.ini.mat), # var.ini spec
+    list(model = 'comp',   # abbreviated name
+         pedigree = ped,   # pedigree
+         id = id,          # vector
+         coordinates = coordinates,  # matrix
+         pec = list(pres = TRUE))  # list spec; default var.ini
   )
 
-  for (i in seq.int(comp_minimalspec)) {
-    x <- comp_minimalspec[[i]]
-    var.ini.default <- c(TRUE, FALSE, FALSE, TRUE)
-    
-    expect_false(inherits(x, "try-error"))
-    
-    expect_true(setequal(names(x),
-                         c('model', 'pedigree', 'id', 'coordinates', 'pec',
-                           'competition_decay', 'var.ini', 'autofill')))
+  ## Single-trait
+  comp_check_input <- lapply(comp_minimalspec, c, response = list(dat$y))
+  comp_checks <- 
+    lapply(comp_check_input, function(x) try(do.call('check_genetic', x)))
+  
+  expect_false(any(sapply(comp_checks, inherits, 'try-error')))
+  
+  all.names <- c('model', 'pedigree', 'id', 'coordinates', 'pec',
+                 'competition_decay', 'var.ini', 'autofill')
+  expect_true(all(sapply(lapply(comp_checks, names), setequal, all.names)))
+  
+  pec.names <- lapply(lapply(comp_checks, function(x) x$pec), names)
+  expect_true(all(sapply(pec.names, setequal, c('present', 'var.ini'))))
 
-    expect_true(setequal(names(x$pec), c('present', 'var.ini')))
-    
-    ## var.ini should have been added with the default value
-    ## in the cases where isTRUE(var.ini.default[[i]])
-    ## and the attribute 'var.ini.default' set to TRUE
-    var.ini.def <- diag(breedR.getOption('default.initial.variance'), 2)
-    var.ini.def[1,2] <- var.ini.def[2,1] <- -var.ini.def[1,1]/2
-    
-    if (var.ini.default[[i]]) {
-      expect_equal(x$var.ini, var.ini.def)
-    }
-    
-    expect_equal(attr(x, 'var.ini.default'), var.ini.default[[i]])
-  }
+  ## var.ini should have been added with the default value
+  ## in the cases where isTRUE(var.ini.default[[i]])
+  ## and the attribute 'var.ini.default' set to TRUE
+  expect_defvar <- eval(divf)(dat$y, dim = 2)
+  expect_var <- list(expect_defvar, var.ini.mat, var.ini.mat, expect_defvar)
+  expect_identical(lapply(comp_checks, function(x) x$var.ini),
+                   expect_var)
+  
+  expect_var.ini.default <- c(TRUE, FALSE, FALSE, TRUE)
+  expect_identical(sapply(comp_checks, attr, 'var.ini.default'),
+                   expect_var.ini.default)
+  
+
+  ## Two traits
+  var.ini.mat <- dbind(list(var.ini.mat, var.ini.mat))
+  comp_minimalspec[[2]]$var.ini <- comp_minimalspec[[3]]$var.ini <- var.ini.mat
+  comp_check_input <- lapply(comp_minimalspec, c,
+                             response = list(dat[, c('y', 'z')]))
+  comp_checks <- 
+    lapply(comp_check_input, function(x) try(do.call('check_genetic', x)))
+  
+  expect_false(any(sapply(comp_checks, inherits, 'try-error')))
+  
+  all.names <- c('model', 'pedigree', 'id', 'coordinates', 'pec',
+                 'competition_decay', 'var.ini', 'autofill')
+  expect_true(all(sapply(lapply(comp_checks, names), setequal, all.names)))
+  
+  pec.names <- lapply(lapply(comp_checks, function(x) x$pec), names)
+  expect_true(all(sapply(pec.names, setequal, c('present', 'var.ini'))))
+  
+  ## var.ini should have been added with the default value
+  ## in the cases where isTRUE(var.ini.default[[i]])
+  ## and the attribute 'var.ini.default' set to TRUE
+  expect_defvar <- eval(divf)(dat[, c('y', 'z')], dim = 2)
+  expect_var <- list(expect_defvar, var.ini.mat, var.ini.mat, expect_defvar)
+  expect_identical(lapply(comp_checks, function(x) x$var.ini),
+                   expect_var)
+  
+  expect_var.ini.default <- c(TRUE, FALSE, FALSE, TRUE)
+  expect_identical(sapply(comp_checks, attr, 'var.ini.default'),
+                   expect_var.ini.default)
+  
 })
 
-test_that("check_genetic() returns an error if missing 'coordinates' component",{
-  expect_error(check_genetic(
-    model = 'competition', pedigree = ped, id = id, var.ini = var.ini
-  ))
+test_that("check_genetic() returns an error if missing arguments",{
+  expect_error(check_genetic(model = 'competition', 
+                             pedigree = ped, 
+                             id = id, 
+                             var.ini = var.ini.mat, 
+                             response = dat$y),
+               'coordinates required')
 })
 
-test_that("check_genetic() returns an error if var.ini is not a SPD matrix",{
+test_that("check_genetic() returns an error if var.ini is incorrect",{
+  
+  ## Single trait
   expect_error(
     check_genetic(
       model = 'competition', pedigree = ped, coordinates = coordinates,
-      id = id, var.ini = diag(8,2,3)
-    )
+      id = id, var.ini = diag(-1,4,4), response = dat$y
+    ),
+    '2x2 matrix'
   )
+
+  ## Two traits
   expect_error(
     check_genetic(
       model = 'competition', pedigree = ped, coordinates = coordinates,
-      id = id, var.ini = diag(-1,4,4)
-    )
+      id = id, var.ini = diag(1,2,2), response = dat[, c('y', 'z')]
+    ),
+    '4x4 matrix'
   )
 })
 
 test_that("check_genetic() returns an error if coordinates has not exactly two columns",{
   expect_error(
     check_genetic(
-      model = 'competition', pedigree = ped, id = id, var.ini = var.ini
-      , coordinates = matrix(c(1,4,6,8,5,2,3,1,5,2,1,1),4,3)
-    )
+      model = 'competition', pedigree = ped, id = id, var.ini = var.ini.mat
+      , coordinates = matrix(c(1,4,6,8,5,2,3,1,5,2,1,1),4,3), response = dat$y
+    ),
+    'two dimensions admitted for coordinates'
   )
 })
 
 test_that("check_genetic() returns an error if pec is not a named list with logical elements",{
   expect_error(
     check_genetic(
-      model = 'competition', pedigree = ped, id = id, var.ini = var.ini
-      , coordinates = coordinates, pec = list(FALSE, TRUE, TRUE)
-    )
+      model = 'competition', 
+      pedigree = ped, 
+      id = id, 
+      var.ini = var.ini.mat,
+      coordinates = coordinates, 
+      pec = list(FALSE, TRUE, TRUE),
+      response = dat$y
+    ),
+    'pec must be a named list'
   )
+  
   expect_error(
     check_genetic(
-      model = 'competition', pedigree = ped, id = id, var.ini = var.ini
-      , coordinates = coordinates, pec = list(a = 5, b =
-                                                'TRUE', c = TRUE)
-    )
+      model = 'competition', 
+      pedigree = ped, 
+      id = id, 
+      var.ini = var.ini.mat ,
+      coordinates = coordinates, 
+      pec = list(a = 5, b = 'TRUE', c = TRUE), 
+      response = dat$y
+    ),
+    'should be one of'
   )
 })
 
 test_that("check_genetic() returns an error if competition_decay is not a positive number",{
   expect_error(
     check_genetic(
-      model = 'competition', pedigree = ped, id = id, var.ini = var.ini
-      , coordinates = coordinates, pec = pec, competition_decay = -5
-    )
+      model = 'competition', pedigree = ped, id = id, var.ini = var.ini.mat, 
+      coordinates = coordinates, pec = 1, competition_decay = -5, response = dat$y
+    ),
+    'competition_decay > 0'
   )
+  
   expect_error(
     check_genetic(
-      model = 'competition', pedigree = ped, id = id, var.ini = var.ini
-      , coordinates = coordinates, pec = pec, competition_decay = 'test'
-    )
+      model = 'competition', pedigree = ped, id = id, var.ini = var.ini.mat, 
+      coordinates = coordinates, pec = 1, competition_decay = 'test', response = dat$y
+    ),
+    'is.numeric\\(competition_decay\\)'
   )
 })
 
