@@ -236,17 +236,14 @@ check_spatial <- function(model = c('splines', 'AR', 'blocks'),
                           autofill = TRUE,
                           sparse   = TRUE,
                           var.ini,
-                          data) {
+                          data,
+                          response) {
 
   ## do not include data in the call
   ## data is an auxiliar for checking and substituting id
   ## but it is not part of the genetic component specification
   mc <- match.call()
-  mc <- mc[names(mc) != 'data']
-  
-  ## flag indicating whether the var.ini was taken by default
-  ## or specified by the user
-  attr(mc, 'var.ini.default') <- FALSE
+  mc <- mc[!names(mc) %in% c('data', 'response')]
   
   for (arg in c('model', 'coordinates')) {
     if (eval(call('missing', as.name(arg))))
@@ -330,15 +327,31 @@ check_spatial <- function(model = c('splines', 'AR', 'blocks'),
     mc$rho <- rho.grid
   }
   
+  ## flag indicating whether the var.ini was taken by default
+  ## or specified by the user
+  attr(mc, 'var.ini.default') <- FALSE
+  
+  ## default initial variance function
+  div_fun <- breedR.getOption('default.initial.variance')
+
+  ## dimension of the spatial effect
+  dim <- 1
+  
   if (missing(var.ini) || is.null(var.ini)) {
-    ## If not specified, return function that gives the value
-    ## in order to check later whether the value is default or specified
-    var.ini <- breedR.getOption('default.initial.variance')
+    
+    ## default initial covariance matrix
+    var.ini <- eval(div_fun)(response, dim, cor.trait = 0.1, cor.effect = 0.1)
+    
+    ## set flag indicating a default initial value
     attr(mc, 'var.ini.default') <- TRUE
   } 
-  
-  ## Validate initial variance
-  validate_variance(var.ini)
+
+  ## Validate initial variance (SPD, dimensions, etc.)
+  validate_variance(
+    var.ini,
+    dimension = rep(dim*ncol(as.matrix(response)), 2),
+    where = 'spatial component.'
+  )
   mc$var.ini <- var.ini
   
   ## evaluate remaining parameters

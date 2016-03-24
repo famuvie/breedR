@@ -372,10 +372,14 @@ remlf90 <- function(fixed,
                                        response = responsem)))
   }
   
+  
   ## Spatial specification
   if (!is.null(spatial)) {
-    
-    spatial <- do.call('check_spatial', c(spatial, list(data = data)))
+    ## TODO: Ideally, I should pass the model frame only, containing the
+    ## necessary variables (also for special effects and response)
+    spatial <- do.call('check_spatial', 
+                       c(spatial, list(data = data,
+                                       response = responsem)))
     
     # If AR model without rho specified
     # we need to fit it with several fixed rho's

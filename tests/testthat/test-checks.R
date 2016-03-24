@@ -281,74 +281,216 @@ test_that("check_genetic() returns an error if competition_decay is not a positi
 
 
 ## Spatial
-
-
-## Model splines##
 var.ini <- 1.2
+
+
+## Model splines ##
 n.knots <- c(7,7)
 
-test_that("Minimal specification of splines",{
-  test_splines <- check_spatial(model = 'splines',
-                                coordinates = coordinates)
-  x <- test_splines
 
-  expect_false(inherits(x, "try-error"))
+test_that("Minimal correct specification of splines",{
   
-  expect_true(all(names(x) %in%
+  ## One trait
+  spl_check <- check_spatial(model = 'splines',
+                             coordinates = coordinates,
+                             response = dat$y)
+  
+  expect_false(inherits(spl_check, "try-error"))
+  
+  expect_true(all(names(spl_check) %in%
                     c('model', 'coordinates', 'var.ini', 'autofill', 'sparse')))
   
   ## var.ini should have been added with the default value
   ## and the attribute 'var.ini.default' set to TRUE
-  expect_equal(x$var.ini, breedR.getOption('default.initial.variance'))
-  expect_true(attr(x, 'var.ini.default'))
+  expect_equal(spl_check$var.ini, eval(divf)(dat$y))
+  expect_true(attr(spl_check, 'var.ini.default'))
+  
+  ## Two traits
+  spl_check <- check_spatial(model = 'splines',
+                             coordinates = coordinates,
+                             response = dat[, c('y', 'z')])
+  
+  expect_false(inherits(spl_check, "try-error"))
+  
+  expect_true(all(names(spl_check) %in%
+                    c('model', 'coordinates', 'var.ini', 'autofill', 'sparse')))
+  
+  ## var.ini should have been added with the default value
+  ## and the attribute 'var.ini.default' set to TRUE
+  expect_equal(spl_check$var.ini, eval(divf)(dat[, c('y', 'z')]))
+  expect_true(attr(spl_check, 'var.ini.default'))
   
 })
 
-test_that("Full specification of splines",{
-  test_splines <- check_spatial(model = 'splines',
-                                coordinates = coordinates,
-                                n.knots = n.knots,
-                                var.ini = var.ini)
-  expect_false(inherits(test_splines, "try-error"))
+test_that("Full correct specification of splines",{
+  
+  ## One trait
+  spl_check <- check_spatial(model = 'splines',
+                             coordinates = coordinates,
+                             n.knots = n.knots,
+                             var.ini = var.ini,
+                             response = dat$y)
+  expect_false(inherits(spl_check, "try-error"))
+
+  ## Two traits
+  spl_check <- check_spatial(model = 'splines',
+                             coordinates = coordinates,
+                             n.knots = n.knots,
+                             var.ini = diag(rep(var.ini, 2)),
+                             response = dat[, c('y', 'z')])
+  expect_false(inherits(spl_check, "try-error"))
 })
 
-test_that("check_spatial returns an error if missing 'coordinates' component",{
+test_that("check_spatial() errors if 'coordinates' is wrongly specified",{
+  
   expect_error(check_spatial(model = 'splines',
                              n.knots = n.knots,
-                             var.ini = var.ini))
+                             var.ini = var.ini,
+                             response = dat$y),
+               'coordinates required')
+
+  expect_error(check_spatial(model = 'splines',
+                             coordinates = diag(3),
+                             n.knots = n.knots,
+                             var.ini = var.ini,
+                             response = dat$y),
+               'Only two dimensions admitted for coordinates')
 })
 
-test_that("check_spatial returns an error if n.knots is not a vector of two integers",{
-  expect_error(check_spatial(model = 'splines', coordinates = coordinates, n.knots = c(3,3,3)
-                             , var.ini = var.ini))
-  expect_error(check_spatial(model = 'splines', coordinates = coordinates, n.knots = TRUE
-                             , var.ini = var.ini))
-  expect_error(check_spatial(model = 'splines', coordinates = coordinates, n.knots = c(1.2,1.2)
-                             , var.ini = var.ini))
+test_that("check_spatial() errors if 'n.knots' is wrongly specified",{
+
+  expect_nk_error <- function(x) 
+    eval(bquote(
+      expect_error(
+        check_spatial(model = 'splines', 
+                      coordinates = coordinates,
+                      n.knots = .(x),
+                      var.ini = var.ini,
+                      response = dat$y), 
+        'n.knots must be a vector of two integers')
+    ))
+  
+  expect_nk_error(c(3,3,3))
+  expect_nk_error(TRUE)
+  expect_nk_error(c(1.2,1.2))
+  
 })
 
-## Model AR##
+test_that("check_spatial() errors if var.ini is inconsistent",{
+  
+  ## Single trait
+  expect_error(
+    check_spatial(
+      model = 'splines', coordinates = coordinates,
+      id = id, var.ini = diag(-1,4,4), response = dat$y
+    ),
+    '1x1 matrix'
+  )
+
+  ## Two traits
+  expect_error(
+    check_spatial(
+      model = 'splines', coordinates = coordinates,
+      id = id, var.ini = diag(1,4,4), response = dat[, c('y', 'z')]
+    ),
+    '2x2 matrix'
+  )
+})
+
+
+## Model AR ##
 rho <- c(0.3,0.3)
 
 test_that("The AR model runs without error",{
-  test_ar <- check_spatial(model = 'AR', coordinates = coordinates, rho = rho, var.ini = var.ini)
-  expect_false(inherits(test_ar, "try-error"))
+  
+  ## One trait
+  ar_check <- check_spatial(model = 'AR',
+                           coordinates = coordinates, 
+                           rho = rho, 
+                           response = dat$y)
+  
+  expect_false(inherits(ar_check, "try-error"))
+  expect_true(all(names(ar_check) %in%
+                    c('model', 'coordinates', 'rho', 'var.ini', 'autofill', 'sparse')))
+  
+  ## var.ini should have been added with the default value
+  ## and the attribute 'var.ini.default' set to TRUE
+  expect_equal(ar_check$var.ini, eval(divf)(dat$y))
+  expect_true(attr(ar_check, 'var.ini.default'))
+  
+  ## Two traits
+  ar_check <- check_spatial(model = 'AR',
+                            coordinates = coordinates, 
+                            rho = rho, 
+                            response = dat[, c('y', 'z')])
+  
+  expect_false(inherits(ar_check, "try-error"))
+  expect_true(all(names(ar_check) %in%
+                    c('model', 'coordinates', 'rho', 'var.ini', 'autofill', 'sparse')))
+  
+  ## var.ini should have been added with the default value
+  ## and the attribute 'var.ini.default' set to TRUE
+  expect_equal(ar_check$var.ini, eval(divf)(dat[, c('y', 'z')]))
+  expect_true(attr(ar_check, 'var.ini.default'))
+  
 })
 
-test_that("check_spatial returns an error if coordinates is not a two-dimensions vector",{
-  expect_error(check_spatial(model = 'AR', coordinates = diag(3), rho = rho, var.ini = var.ini))
+test_that("check_spatial() errors if 'coordinates' is wrongly specified",{
+
+  expect_error(check_spatial(model = 'AR', 
+                             rho = rho, 
+                             var.ini = var.ini),
+               'coordinates required')
+
+  expect_error(check_spatial(model = 'AR', 
+                             coordinates = diag(3),
+                             rho = rho, 
+                             var.ini = var.ini),
+               'Only two dimensions admitted for coordinates')
 })
 
-test_that("check_spatial returns an error if rho does not contain what is expected",{
-  expect_error(check_spatial(model = 'AR', coordinates = coordinates, rho = c(-2,1), var.ini = var.ini),
-               'must contain numbers strictly between -1 and 1')
-  expect_error(check_spatial(model = 'AR', coordinates = coordinates, rho = matrix(c(0.5,0,1,0),2,2), var.ini = var.ini),
-               'must contain numbers strictly between -1 and 1')
-  expect_error(check_spatial(model = 'AR', coordinates = coordinates, rho = c(.1,.1,.1), var.ini = var.ini),
-               'must contain exactly two components')
-  expect_error(check_spatial(model = 'AR', coordinates = coordinates, rho = 'test', var.ini = var.ini),
-               'must be numeric')
+test_that("check_spatial() errors if 'rho' is incorrectly specified",{
+  
+  expect_rho <- function(x, msg) {
+    eval(bquote(
+      expect_error(
+        check_spatial(model = 'AR', 
+                      coordinates = coordinates, 
+                      rho = .(x), 
+                      var.ini = var.ini, 
+                      response = dat$y),
+        msg)
+    ))
+  }
+  
+  expect_rho(c(-2,1), 'strictly between -1 and 1')
+  expect_rho(matrix(c(0.5,0,1,0),2,2), 'strictly between -1 and 1')
+  expect_rho(c(.1,.1,.1), 'exactly two components')
+  expect_rho('test', 'be numeric')
+
 })
+
+test_that("check_spatial() errors if var.ini is inconsistent",{
+  
+  ## Single trait
+  expect_error(
+    check_spatial(
+      model = 'AR', coordinates = coordinates,
+      id = id, var.ini = diag(-1,4,4), response = dat$y
+    ),
+    '1x1 matrix'
+  )
+  
+  ## Two traits
+  expect_error(
+    check_spatial(
+      model = 'AR', coordinates = coordinates,
+      id = id, var.ini = diag(1,4,4), response = dat[, c('y', 'z')]
+    ),
+    '2x2 matrix'
+  )
+})
+
 
 
 ## Generic

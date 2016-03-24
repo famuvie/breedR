@@ -129,7 +129,8 @@ gen_spec <- check_genetic(model = 'competition',
                           response = data$phe_X)
 
 sp_spec <- check_spatial(model = 'splines',
-                         coordinates = data[, c('irow', 'icol')])
+                         coordinates = data[, c('irow', 'icol')],
+                         response = data$phe_X)
 
 x1 <- list(inc = matrix(1,1600,3), cov = diag(3), var.ini = 6)
 x2 <- list(inc = matrix(1:8,1600,2), pre = diag(2), var.ini = 4)
