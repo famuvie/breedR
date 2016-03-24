@@ -329,10 +329,15 @@ test_that('validate_variance() returns TRUE for correct variance specifications'
 })
 
 test_that('validate_variance() stops for inconsistent values of variance', {
-  expect_error(validate_variance(0), 'positive number')
   expect_error(validate_variance(c(1, 1)), 'square matrix')
+  expect_error(validate_variance(c(1, 1), dim = c(1,1)), 'square matrix')
+  expect_error(validate_variance(c(1, 1), dim = c(1,2)), 'square matrix')
+
+  expect_error(validate_variance(0), 'SPD matrix')
   expect_error(validate_variance(matrix(1, 2, 2)), 'SPD matrix')
-  expect_error(validate_variance(-1.5, where = 'test'), 'positive number in the test')
+  expect_error(validate_variance(-1.5, where = 'test'), 'SPD matrix')
+  
+  expect_error(validate_variance(1, dim = c(2,2)), '2x2 matrix')
 })
 
 test_that('default_initial_variance() works as expected', {

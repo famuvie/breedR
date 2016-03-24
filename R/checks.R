@@ -477,26 +477,23 @@ normalise_coordinates <- function (x, where = '') {
 #' @param where string. Model component where coordinates were specified. For 
 #'   error messages only. E.g. \code{where = 'competition specification'}.
 #'
-#' @return \code{TRUE} is all checks pass
+#' @return \code{TRUE} if all checks pass
 validate_variance <- function (x, dimension = dim(as.matrix(x)), where = '') {
 
-  stopifnot(is.numeric(dimension) || length(dimension) != 2)
+  stopifnot(
+    is.numeric(x),
+    is.numeric(dimension),
+    length(dimension) == 2
+  )
   
-  if (isTRUE(all.equal(dimension, c(1, 1)))) {
-    ## Case for a number
-    if (!is.numeric(x) || !x > 0)
-      stop(paste('the variance must be a positive number in the', where))
-  } else {
-    ## Case for a matrix
-    x <- as.matrix(x)
-    if (nrow(x)!=ncol(x))
-      stop(paste('x must be a square matrix in the', where))
-    if (length(x) != prod(dimension))
-      stop(paste('x must be a', paste(dimension, collapse = 'x'),
-                 'matrix in the', where))
-    if (!all(x == t(x)) || !all(eigen(x)$values >0 ))
-      stop(paste('x must be a SPD matrix in the', where))
-  }
+  x <- as.matrix(x)
+  if (nrow(x)!=ncol(x))
+    stop(paste('x must be a square matrix in the', where))
+  if (length(x) != prod(dimension))
+    stop(paste('x must be a', paste(dimension, collapse = 'x'),
+               'matrix in the', where))
+  if (!all(x == t(x)) || !all(eigen(x)$values >0 ))
+    stop(paste('x must be a SPD matrix in the', where))
   
   return(TRUE)
 }
