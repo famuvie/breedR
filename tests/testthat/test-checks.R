@@ -500,9 +500,33 @@ x2 <- list(inc = matrix((3:8),3,2), pre = diag(2), var.ini = 4)
 x <- list (a = x1, b = x2)
 
 
-test_that("The function check_generic runs without error",{
-  test_gen <- check_generic(x)
-  expect_false(inherits(test_gen, "try-error"))
+test_that("Correct specification of individual generic elements", {
+
+  expect_ok <- function(x, Y) {
+    eval(bquote(
+      expect_error(do.call('validate_generic_element',
+                           c(.(x), response = list(.(Y)))),
+                   NA)
+    ))
+  }
+  
+  ## Single trait
+  expect_ok(x1, dat$y)
+  expect_ok(x2, dat$y)
+  expect_ok(x1[-3], dat$y)
+  expect_ok(x2[-3], dat$y)
+  
+  ## Two traits
+  x1$var.ini <- x2$var.ini <- diag(1,2)
+  expect_ok(x1, dat[, c('y', 'z')])
+  expect_ok(x2, dat[, c('y', 'z')])
+  expect_ok(x1[-3], dat[, c('y', 'z')])
+  expect_ok(x2[-3], dat[, c('y', 'z')])
+  
+})
+
+test_that("Correct specifications of check_generic()",{
+  expect_error(check_generic(x, response = dat$y), NA)
 })
 
 
@@ -510,48 +534,40 @@ test_that("check_generic returns null if specification is empty",{
   expect_null(check_generic())
 })
 
-test_that("check_generic returns an error if argument x is not a list",{
-  expect_error(check_generic(c(1,1)))
-})
+test_that("check_generic() errors if specification is wrong",{
+  
+  expect_error(check_generic(c(1,1)), 'be a list')
+  
+  expect_error(check_generic(list(x1, x2)), 'be a named list')
+  
+  expect_error(check_generic(list(a = x1, b = x2, c = 5)), 'be list elements')
+  
+  expect_error(check_generic(list(a = x1, a = x2)), 'different names')
+  
+  expect_error(check_generic(list(a = list(cov = diag(3), var.ini = 6)), 
+                             response = dat$y), 'incidence required')
+  
+  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), 
+                                           cov = diag(3),
+                                           pre = diag(2))), 
+                             response = dat$y), 
+               'one argument between covariance and precision')
+  
+  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), var.ini = 6)), 
+                             response = dat$y), 
+               'one argument between covariance and precision')
 
-test_that("check_generic returns an error if argument x not a named list",{
-  expect_error(check_generic(list(x1, x2)))
-})
+  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = 'test')), 
+                             response = dat$y),
+               'covariance must be of type matrix')
+  
+  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = c(1:3))), 
+                             response = dat$y),
+               'covariance must be of type matrix')
 
-test_that("check_generic returns an error if all elements in x are not lists",{
-  expect_error(check_generic(list(a = x1, b = x2, c = 5)))
-})
-
-test_that("check_generic returns an error if x is not a named list with different names",{
-  expect_error(check_generic(list(a = x1, a = x2)))
-})
-
-
-test_that("check_generic returns an error if the incidence matrix is missing",{
-  expect_error(check_generic(list(a = list( cov = diag(3), var.ini = 6))))
-})
-
-test_that("check_generic returns an error if both covariance and precision matrix are given",{
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = diag(3),
-                                           pre = diag(2), var.ini = 6))))
-})
-
-test_that("check_generic returns an error if both covariance and precision matrix are missing",{
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), var.ini = 6))))
-})
-
-test_that("check_generic returns an error if cov is not a matrix",{
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = 'test', var.ini = 6))))
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = c(1:3), var.ini = 6))))
-})
-
-test_that("check_generic returns an error if the dimensions are inconsistent",{
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = diag(5), var.ini = 6))))
-})
-
-test_that("check_generic returns an error var. ini is not a positive number",{
-  expect_error(check_generic(list(a = x1, b = list(inc = matrix((3:8),3,2), pre = diag(2), var.ini = -5))))
-  expect_error(check_generic(list(a = x1, b = list(inc = matrix((3:8),3,2), pre = diag(2), var.ini = 'test'))))
+  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = diag(5))), 
+                             response = dat$y),
+               'conformant incidence and covariance')
 })
 
 

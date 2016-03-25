@@ -135,7 +135,7 @@ sp_spec <- check_spatial(model = 'splines',
 x1 <- list(inc = matrix(1,1600,3), cov = diag(3), var.ini = 6)
 x2 <- list(inc = matrix(1:8,1600,2), pre = diag(2), var.ini = 4)
 x <- list (a = x1, b = x2)
-grc_spec <- check_generic(x)
+grc_spec <- check_generic(x, response = data$phe_X)
 
 fc <- call('remlf90',
            fixed  = m$fxd,

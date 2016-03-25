@@ -364,7 +364,7 @@ check_spatial <- function(model = c('splines', 'AR', 'blocks'),
 
 
 
-check_generic <- function(x){
+check_generic <- function(x, response){
   
   mc <- match.call()
   
@@ -384,7 +384,9 @@ check_generic <- function(x){
   
   ## validate individual elements
   for (arg.idx in seq_along(x)){ 
-    result <- try(do.call('validate_generic_element', x[[arg.idx]]), silent =TRUE)
+    result <- try(do.call('validate_generic_element', 
+                          c(x[[arg.idx]], response = list(response))),
+                  silent =TRUE)
     if (inherits(result, 'try-error')) {
       stop(paste(attr(result, 'condition')$message, 'in generic component',
                  names(x)[arg.idx]))
@@ -411,13 +413,14 @@ check_generic <- function(x){
 }
 
 
-validate_generic_element <- function(incidence, covariance, precision, var.ini) {
+validate_generic_element <- function(incidence, 
+                                     covariance, 
+                                     precision, 
+                                     var.ini, 
+                                     response) {
   
   mc <- match.call()
-  
-  ## flag indicating whether the var.ini was taken by default
-  ## or specified by the user
-  attr(mc, 'var.ini.default') <- FALSE
+  mc <- mc[names(mc) != 'response']
   
   for (arg in c('incidence')) {
     if (eval(call('missing', as.name(arg))))
@@ -440,18 +443,33 @@ validate_generic_element <- function(incidence, covariance, precision, var.ini) 
     stop(paste(str.name, 'must be of type matrix'))
   if(ncol(incidence) != nrow(structure))
     stop(paste('Non conformant incidence and', str.name, 'matrices'))
+
+  ## flag indicating whether the var.ini was taken by default
+  ## or specified by the user
+  attr(mc, 'var.ini.default') <- FALSE
+  
+  ## default initial variance function
+  div_fun <- breedR.getOption('default.initial.variance')
+  
+  ## dimension of the generic effect
+  dim <- 1
   
   if (missing(var.ini) || is.null(var.ini)) {
     ## If not specified, return function that gives the value
     ## in order to check later whether the value is default or specified
-    var.ini <- breedR.getOption('default.initial.variance')
+    var.ini <- eval(div_fun)(response, dim, cor.trait = 0.1, cor.effect = 0.1)
+    
+    ## set flag indicating a default initial value
     attr(mc, 'var.ini.default') <- TRUE
-  } 
+  }
   
-  ## Validate specified variance 
-  ## even if default, since the user could have changed the default option
-  validate_variance(var.ini)
-
+  ## Validate initial variance 
+  ## even if default: the user could have changed the default function
+  validate_variance(
+    var.ini,
+    dimension = rep(dim*ncol(as.matrix(response)), 2),
+    where = 'generic component.')
+  
   mc$var.ini <- var.ini
   
   return(structure(as.list(mc[-1]),

@@ -413,7 +413,9 @@ remlf90 <- function(fixed,
 
   ## Generic specification
   if (!is.null(generic)) {
-    generic <- check_generic(generic)
+    ## TODO: multitrait case shoud check initial variance conformity
+    ## and return a sensible default
+    generic <- check_generic(generic, response = responsem)
   }
   
   ## Initial variances specification
