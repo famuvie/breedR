@@ -60,18 +60,18 @@ test_that('Installation of binaries and checking runs smoothly', {
 # checking somewhere else should fail
 empty.dir <- tempfile()
 dir.create(empty.dir)
+
 test_that('breedR.check.bin() fails in the wrong directory', {
   expect_false(check_progsf90(empty.dir, quiet = TRUE))
 })
 
-
 # calling reml or aireml checks the installation
-breedR.setOption('breedR.bin', empty.dir)
-res <- try(suppressMessages(remlf90(fixed = phe_X ~ 1,
-                                    data = globulus,
-                                    debug = TRUE)))
-breedR.setOption('breedR.bin', NULL)
-
 test_that('(ai)remlf90 checks the installation of binaries', {
-  expect_error(res, 'Binary dependencies missing')
+  breedR.setOption('breedR.bin', empty.dir)
+  run_dummy <- function()
+    remlf90(fixed = phe_X ~ 1, data = globulus, debug = TRUE)
+  
+  expect_error(run_dummy(), 'Binary dependencies missing')
+  
+  breedR.setOption('breedR.bin', NULL)
 })

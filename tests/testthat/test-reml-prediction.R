@@ -101,13 +101,12 @@ test_that('(ai)remlf90() predict correctly when missing code is not 0', {
   dat$group <- factor(rep(letters[1:4], each = 1e3/4))
   dat$phenotype <- dat$phenotype + as.numeric(dat$group)
   dat$phenotype[1] <- NA
-  res.try <- expect_error(
+  
+  expect_error(
     res <- remlf90(phenotype ~ group, data = dat),
     NA
   )
   
-  if (res.try$passed) {
-    expect_equal(fitted(res)[1], fixef(res)$group[1, 'value'], 
-                 check.attributes = FALSE)
-  }
+  expect_equal(fitted(res)[1], fixef(res)$group[1, 'value'], 
+               check.attributes = FALSE)
 })

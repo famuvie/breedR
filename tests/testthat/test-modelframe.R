@@ -191,38 +191,36 @@ test_that('If phenotype excludes 0, use default missing code', {
   ## make sure we have posiive observations
   mf$phe_X <- 1 - min(mf$phe_X) + mf$phe_X
   mf$phe_X[1] <- NA
-  res.try <- expect_error(
+  
+  expect_error(
     pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10),
     NA
   )
   
-  if (res.try$passed) {
-    ## no explicit 'missing' (using default of 0)
-    expect_false(any(grepl('missing', pf90$parameter$options)))
-	
+  ## no explicit 'missing' (using default of 0)
+  expect_false(any(grepl('missing', pf90$parameter$options)))
+  
 	## observation value set at 0
-    expect_equal(pf90$data[1, 'phenotype'], 0, check.attributes = FALSE)
-  }
-})
+  expect_equal(pf90$data[1, 'phenotype'], 0, check.attributes = FALSE)
+
+  })
 
 test_that('If phenotype includes 0, use alternative missing code', {
   mf$phe_X[1] <- NA
-  res.try <- 
-    expect_error(
-      pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10), 
-      NA
-    )
+
+  expect_error(
+    pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10), 
+    NA
+  )
   
-  if (res.try$passed) {
-    ## explicit 'missing' 
-    missing_code <- pf90_code_missing(mf$phe_X)
-    expect_true(paste('missing', missing_code) %in% pf90$parameter$options)
-    
-    ## observation value set at corresponding missing code
-    expect_equal(pf90$data[1, 'phenotype'], 
-                 missing_code,
-                 check.attributes = FALSE)
-  }
+  ## explicit 'missing' 
+  missing_code <- pf90_code_missing(mf$phe_X)
+  expect_true(paste('missing', missing_code) %in% pf90$parameter$options)
+  
+  ## observation value set at corresponding missing code
+  expect_equal(pf90$data[1, 'phenotype'], 
+               missing_code,
+               check.attributes = FALSE)
 })
 
 
