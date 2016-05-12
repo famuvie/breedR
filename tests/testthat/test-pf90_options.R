@@ -93,7 +93,7 @@ test_that('AI-remlf90() returns heritability and inverse AI matrix', {
   expect_identical(dim(res$reml$invAI), c(4L, 4L))
   
   # heritability shown in summary
-  expect_output(summary(res), "Heritability")
+  expect_output(print(summary(res)), "Heritability")
   
   # reported SE are consistent with AI matrix
   expect_equal(res$var[, 'S.E.'], sqrt(diag(res$reml$invAI)), tol = 1e-04)
@@ -132,8 +132,8 @@ test_that('heritability and additional function are parsed correctly', {
   
   expect_identical(dim(res$reml$invAI), c(2L, 2L))
   
-  expect_output(summary(res), 'Halt')
-  expect_output(summary(res), 'Heritability')
+  expect_output(print(summary(res)), 'Halt')
+  expect_output(print(summary(res)), 'Heritability')
 })
 
 
@@ -156,7 +156,7 @@ test_that('AI-remlf90() without genetic does not return heritability but does re
   expect_is(res$reml$invAI, 'matrix')
   expect_identical(dim(res$reml$invAI), c(1L, 1L))
   
-  expect_output(summary(res), 'Variance components')
+  expect_output(print(summary(res)), 'Variance components')
 })
 
 
@@ -185,5 +185,5 @@ test_that('EM-remlf90() returns empty heritability and no inverse AI matrix', {
   expect_identical(res$funvars, list())
   expect_null(res$reml$invAI)
   
-  expect_output(summary(res), 'Variance components:')
+  expect_output(print(summary(res)), 'Variance components:')
 })

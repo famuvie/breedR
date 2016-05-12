@@ -165,8 +165,8 @@ test_that("residuals() gets a vector of length N", {
 })
 
 test_that("summary() shows summary information", {
-  expect_output(summary(res), 'Variance components')
-  expect_output(summary(res), 'knots:')
+  expect_output(print(summary(res)), 'Variance components')
+  expect_output(print(summary(res)), 'knots:')
 })
 
 test_that("vcov() gets the covariance matrix of the spatial component of the observations", {

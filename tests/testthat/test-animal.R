@@ -15,7 +15,7 @@ test_that("Correctly builds structure of additive_genetic_animal component", {
                     dam  = c(12, NA, 1, 12))
   ## Recoded pedigree with further unobserved descendants
   ## (with will come later in the codification)
-  ped <- build_pedigree(1:3, data = rbind(dat, c(5, 1, 2)))
+  ped <- suppressWarnings(build_pedigree(1:3, data = rbind(dat, c(5, 1, 2))))
   aga <- try(breedR:::additive_genetic_animal(ped, dat$id))
   
   expect_true(!inherits(aga, "try-error"))
@@ -204,7 +204,7 @@ test_that("residuals() gets a vector of length N", {
 })
 
 test_that("summary() shows summary information", {
-  expect_output(summary(res), 'Variance components')
+  expect_output(print(summary(res)), 'Variance components')
 })
 
 test_that("vcov() gets the covariance matrix of the genetic component of the observations", {

@@ -83,7 +83,7 @@ res <- try(
 
 
 test_that("The generic model runs with AI-REML without errors", {
-  expect_that(!inherits(res, "try-error"), is_true())
+  expect_error(res, NA)
 })
 
 test_that("coef() gets a named vector of coefficients", {
@@ -184,14 +184,14 @@ test_that("residuals() gets a vector of length N", {
 })
 
 test_that("summary() shows summary information", {
-  expect_output(summary(res), 'Variance components')
+  expect_output(print(summary(res)), 'Variance components')
 })
 
 test_that("vcov() gets the covariance matrix of the bl component of the observations", {
   
   ## Make it available after refactoring
   ## when we can recover the structure and model matrices
-  expect_error(x <- vcov(res, effect = 'bl'), 'Error in match.arg')
+  expect_error(vcov(res, effect = 'bl'), 'should be one of')
   #   expect_is(x, 'Matrix')
   #   expect_equal(dim(x), rep(n.obs, 2))
 })
