@@ -26,7 +26,8 @@ parameters should be evaluated if not otherwise specified
 gives the number of knots (nok) to be used for a splines model, if not 
 otherwise specified
 
-\code{default.initial.variance}: a default value for all variance components
+\code{default.initial.variance}: a function of the numeric response vector
+or matrix which returns a default initial value for a variance component
 
 \code{col.seq}: a vector with the specification of default extreme breedR 
 col for sequential scales in spatial quantitative plots. See Details.

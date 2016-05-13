@@ -27,8 +27,10 @@ check_var.ini <- function (x, random) {
   } else {
     
     ## set default values and flag
-    x <- as.list(rep(breedR.getOption('default.initial.variance'),
-                     length(random.terms)))
+    div_fun <- breedR.getOption('default.initial.variance')
+    default_ini <- 
+      eval(div_fun)(response, dim = 1, cor.effect = 0.1, digits = 2)
+    x <- lapply(random.terms, function(x) default_ini)
     names(x) <- random.terms
     attr(x, 'var.ini.default') <- TRUE
   }
@@ -128,7 +130,7 @@ check_genetic <- function(model = c('add_animal', 'competition'),
 
     ## default initial covariance matrix
     var.ini <- 
-      eval(div_fun)(response, dim, cor.trait = 0.1, cor.effect = 0.1)
+      eval(div_fun)(response, dim = dim, cor.effect = 0.1, digits = 2)
     
     ## set flag indicating a default initial value
     attr(mc, 'var.ini.default') <- TRUE
@@ -193,7 +195,8 @@ check_genetic <- function(model = c('add_animal', 'competition'),
       }
       
       ## default initial covariance matrix
-      pec$var.ini <- eval(div_fun)(response, dim = 1, cor.trait = 0.1)
+      pec$var.ini <-
+        eval(div_fun)(response, dim = 1, cor.effect = 0.1, digits = 2)
     }
     
     ## Validate initial variance in pec
@@ -340,7 +343,7 @@ check_spatial <- function(model = c('splines', 'AR', 'blocks'),
   if (missing(var.ini) || is.null(var.ini)) {
     
     ## default initial covariance matrix
-    var.ini <- eval(div_fun)(response, dim, cor.trait = 0.1, cor.effect = 0.1)
+    var.ini <- eval(div_fun)(response, dim, cor.effect = 0.1, digits = 2)
     
     ## set flag indicating a default initial value
     attr(mc, 'var.ini.default') <- TRUE
@@ -457,7 +460,7 @@ validate_generic_element <- function(incidence,
   if (missing(var.ini) || is.null(var.ini)) {
     ## If not specified, return function that gives the value
     ## in order to check later whether the value is default or specified
-    var.ini <- eval(div_fun)(response, dim, cor.trait = 0.1, cor.effect = 0.1)
+    var.ini <- eval(div_fun)(response, dim, cor.effect = 0.1, digits = 2)
     
     ## set flag indicating a default initial value
     attr(mc, 'var.ini.default') <- TRUE
@@ -532,7 +535,7 @@ validate_variance <- function (x, dimension = dim(as.matrix(x)), where = '') {
   if (length(x) != prod(dimension))
     stop(paste('x must be a', paste(dimension, collapse = 'x'),
                'matrix in the', where))
-  if (!all(x == t(x)) || !all(eigen(x)$values >0 ))
+  if (!isSymmetric(x) || !all(eigen(x)$values >0 ))
     stop(paste('x must be a SPD matrix in the', where))
   
   return(TRUE)

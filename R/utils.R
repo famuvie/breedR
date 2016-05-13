@@ -138,29 +138,3 @@ matrix.short16 <- function(M) {
                         x = x[-rm.idx])
   return(Z)
 }
-
-
-# Diagonally bind matrices
-# diagonally binds all matrices in the list x
-# filling the blanks with the given value
-dbind <- function(x, fillin = 0) {
-  stopifnot(is.list(x))
-  x <- lapply(x, as.matrix)
-  
-  ## nbr of rows and columns of each block
-  nrs <- sapply(x, nrow)
-  ncs <- sapply(x, ncol)
-  
-  ## compute consecutive indices of given lengths
-  get_ind <- function(x) split(seq_len(sum(x)), rep(seq_along(x), times = x))
-  
-  is <- get_ind(nrs)
-  js <- get_ind(ncs)
-  
-  ans <- matrix(fillin, sum(nrs), sum(ncs))
-  for (k in seq_along(x)) {
-    ans[is[[k]], js[[k]]] <- x[[k]]
-  }
-  return(ans)
-}
-

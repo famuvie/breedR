@@ -19,7 +19,7 @@
 #'  otherwise specified
 #'  
 #'  \code{default.initial.variance}: a function of the numeric response vector
-#'  of matrix which returns a default initial value for a variance component
+#'  or matrix which returns a default initial value for a variance component
 #'  
 #'  \code{col.seq}: a vector with the specification of default extreme breedR 
 #'  col for sequential scales in spatial quantitative plots. See Details.
@@ -233,61 +233,73 @@ breedR.setOption <- function(...) {
 #' A function of the response vector or matrix (multi-trait case) returning a
 #' SPD matrix of conforming dimensions.
 #' 
-#' The default initial variances are computed as half the empirical phenotypic
-#' variance of each trait. The default initial covariances are set to a neutral
-#' value of \code{cor.trait} times half the geometric mean of the variances.
+#' The default initial covariance matrix across traits is computed as half the 
+#' empirical covariance kronecker times a Positive-Definite matrix with Compound
+#' Symmetry Structure with a constant diagonal with value 1 and constant
+#' off-diagonal elements with the positive value given by \code{cor.effect},
+#' i.e. \deqn{\Sigma = Var(x)/2 \%*\% \psi(dim).} This implies that the default
+#' initial \strong{correlations} across traits equal the empirical correlations,
+#' except if \code{cor.trait} is not \code{NULL}.
+#' 
+#' \eqn{\psi(dim)} is intendend to model correlated random effects within
+#' traits, and only has an effect when \code{dim} > 1.
 #' 
 #' If any column in \code{x} is constant (i.e. empirical variance of 0) then the
 #' function stops. It is better to remove this trait from the analysis.
-#' 
-#' If \code{dim} is greater than one, the function expands each variance to a 
-#' square matrix with the given dimension, with covariances given by 
-#' \code{cor.effect} times half the phenotypic variance. This is intendend to
-#' model correlated random effects.
-#' 
+#'  
 #' @param x numeric vector or matrix with the phenotypic observations. Each 
 #'   trait in one column.
 #' @param dim integer. dimension of the random effect for each trait. Default is
 #'   1.
-#' @param cor.trait a number strictly in (-1, 1). The initial value for the
-#'   correlation across traits. Default is 0.1.
-#' @param cor.effect a number strictly in (-1, 1). The initial value for the
+#' @param cor.trait a number strictly in (-1, 1). The initial value for the 
+#'   correlation across traits. Default is NULL, which makes the function to 
+#'   take the value from the data. See Details.
+#' @param cor.effect a number strictly in (0, 1). The initial value for the
 #'   correlation across the different dimensions of the random effect. Default
 #'   is 0.1.
-#' @example 
+#' @param digits numeric. If not NULL (as default), the resulting matrix is rounded up
+#'   to 2 significant digits.
+#' @examples 
 #'    ## Initial covariance matrix for a bidimensional random effect
 #'    ## acting independently over three traits
 #'    x <- cbind(rnorm(100, sd = 1), rnorm(100, sd = 2), rnorm(100, sd = 3))
-#'    div <- default_initial_variance(x, dim = 2, cor.trait = 0, cor.effect = 0.5)
+#'    default_initial_variance(x, dim = 2, cor.effect = 0.5)
 default_initial_variance <- 
-  function(x, dim = 1, cor.trait = 0.1, cor.effect = 0.1) {
+  function(x, dim = 1, cor.trait = NULL, cor.effect = 0.1, digits = NULL) {
   
   x <- as.matrix(x)
   n.traits <- ncol(x)
   
   ## Empirical half-variances of each trait
-  vars <- diag(var(x))/2
+  halfvar <- var(x, na.rm = TRUE)/2
   
-  if (any(idx <- which(vars == 0))) {
+  ## Check for degenerate variances
+  if (any(idx <- which(diag(halfvar) == 0))) {
     stop(paste('Trait', idx, 'is constant.'))
   }
   
-  ## covariance matrix for a trait of a given dimension
-  trait.covmat <- function(var, dim, cor.effect) {
-    S <- matrix(cor.effect*var, dim, dim)
-    diag(S) <- var
-    return(S)
+  ## User-explicit correlation across traits
+  if (!is.null(cor.trait) && n.traits > 1) {
+    D <- diag(sqrt(diag(halfvar)))
+    C <- matrix(cor.trait, nrow(D), ncol(D)) +
+      diag(1 - cor.trait, nrow(D), ncol(D))
+    halfvar <- D %*% C %*% D
+  }
+  
+  
+  ## Matrix "expansion" for correlated effects within traits
+  
+  ## build exchangeable cov matrix of given dimension
+  ## with constant variance
+  exchangeable_covmat <- function(s2, rho, dim) {
+    matrix(rho*s2, dim, dim) +
+      diag((1-rho)*s2, dim, dim)
   }
 
-  ## Trait-wise covariance matrices
-  sigma.trait <- lapply(vars, trait.covmat, dim, cor.effect)
+  sigma <- kronecker(halfvar, exchangeable_covmat(1, cor.effect, dim))
   
-  ## Covariance accross traits, based on empirical variances
-  covar.trait  <- cor.trait*gmean(vars)
-  
-  ## Diagonal-binding filling-in with initial covariance accross traits
-  sigma <- dbind(sigma.trait, fillin = covar.trait)
+  ## Rounding
+  if (!is.null(digits)) sigma <- signif(sigma, digits)
   
   return(sigma)
 }
-  

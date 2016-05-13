@@ -50,7 +50,7 @@ test_that("The minimal add_animal specification checks without error and complet
     
     ## var.ini should have been added with the default value
     ## and the attribute 'var.ini.default' set to TRUE
-    expect_equal(x$var.ini, eval(divf)(dat$y))
+    expect_equal(x$var.ini, eval(divf)(dat$y, digits = 2))
     expect_true(attr(x, 'var.ini.default'))
   }
 
@@ -68,7 +68,7 @@ test_that("The minimal add_animal specification checks without error and complet
     
     ## var.ini should have been added with the default value
     ## and the attribute 'var.ini.default' set to TRUE
-    expect_equal(x$var.ini, eval(divf)(dat[, c('y', 'z')]))
+    expect_equal(x$var.ini, eval(divf)(dat[, c('y', 'z')], digits = 2))
     expect_true(attr(x, 'var.ini.default'))
   }
 })
@@ -152,7 +152,7 @@ test_that("Correctly-specified competition models runs without error",{
   ## var.ini should have been added with the default value
   ## in the cases where isTRUE(var.ini.default[[i]])
   ## and the attribute 'var.ini.default' set to TRUE
-  expect_defvar <- eval(divf)(dat$y, dim = 2)
+  expect_defvar <- eval(divf)(dat$y, dim = 2, digits = 2)
   expect_var <- list(expect_defvar, var.ini.mat, var.ini.mat, expect_defvar)
   expect_identical(lapply(comp_checks, function(x) x$var.ini),
                    expect_var)
@@ -163,7 +163,7 @@ test_that("Correctly-specified competition models runs without error",{
   
 
   ## Two traits
-  var.ini.mat <- dbind(list(var.ini.mat, var.ini.mat))
+  var.ini.mat <- Matrix::bdiag(list(var.ini.mat, var.ini.mat))
   comp_minimalspec[[2]]$var.ini <- comp_minimalspec[[3]]$var.ini <- var.ini.mat
   comp_check_input <- lapply(comp_minimalspec, c,
                              response = list(dat[, c('y', 'z')]))
@@ -182,7 +182,7 @@ test_that("Correctly-specified competition models runs without error",{
   ## var.ini should have been added with the default value
   ## in the cases where isTRUE(var.ini.default[[i]])
   ## and the attribute 'var.ini.default' set to TRUE
-  expect_defvar <- eval(divf)(dat[, c('y', 'z')], dim = 2)
+  expect_defvar <- eval(divf)(dat[, c('y', 'z')], dim = 2, digits = 2)
   expect_var <- list(expect_defvar, var.ini.mat, var.ini.mat, expect_defvar)
   expect_identical(lapply(comp_checks, function(x) x$var.ini),
                    expect_var)
@@ -302,7 +302,7 @@ test_that("Minimal correct specification of splines",{
   
   ## var.ini should have been added with the default value
   ## and the attribute 'var.ini.default' set to TRUE
-  expect_equal(spl_check$var.ini, eval(divf)(dat$y))
+  expect_equal(spl_check$var.ini, eval(divf)(dat$y, digits = 2))
   expect_true(attr(spl_check, 'var.ini.default'))
   
   ## Two traits
@@ -317,7 +317,7 @@ test_that("Minimal correct specification of splines",{
   
   ## var.ini should have been added with the default value
   ## and the attribute 'var.ini.default' set to TRUE
-  expect_equal(spl_check$var.ini, eval(divf)(dat[, c('y', 'z')]))
+  expect_equal(spl_check$var.ini, eval(divf)(dat[, c('y', 'z')], digits = 2))
   expect_true(attr(spl_check, 'var.ini.default'))
   
 })
@@ -415,7 +415,7 @@ test_that("The AR model runs without error",{
   
   ## var.ini should have been added with the default value
   ## and the attribute 'var.ini.default' set to TRUE
-  expect_equal(ar_check$var.ini, eval(divf)(dat$y))
+  expect_equal(ar_check$var.ini, eval(divf)(dat$y, digits = 2))
   expect_true(attr(ar_check, 'var.ini.default'))
   
   ## Two traits
@@ -430,7 +430,7 @@ test_that("The AR model runs without error",{
   
   ## var.ini should have been added with the default value
   ## and the attribute 'var.ini.default' set to TRUE
-  expect_equal(ar_check$var.ini, eval(divf)(dat[, c('y', 'z')]))
+  expect_equal(ar_check$var.ini, eval(divf)(dat[, c('y', 'z')], digits = 2))
   expect_true(attr(ar_check, 'var.ini.default'))
   
 })
@@ -580,6 +580,7 @@ test_that('validate_variance() returns TRUE for correct variance specifications'
   expect_true(validate_variance(1.5))
   expect_true(validate_variance(1000))
   expect_true(validate_variance(matrix(c(1,-.5,-.5,1), 2, 2)))
+  expect_true(validate_variance(Matrix::bdiag(matrix(c(1,-.5,-.5,1), 2, 2))))
 })
 
 test_that('validate_variance() stops for inconsistent values of variance', {
@@ -609,9 +610,9 @@ test_that('default_initial_variance() works as expected', {
   default.covar <- 0.1*var(x)/2
   
   div <- default_initial_variance(x, dim = dim)
-  expect_identical(rep(as.matrix(var(x)/2), dim), diag(div))
-  expect_identical(default.covar, div[2,1])
-  expect_identical(default.covar, div[2,1])
+  expect_equal(rep(as.matrix(var(x)/2), dim), diag(div))
+  expect_equal(default.covar, div[2,1])
+  expect_equal(default.covar, div[1,2])
   
   div <- default_initial_variance(x, dim = dim, cor.effect = 0)
   expect_identical(rep(as.matrix(var(x)/2), dim), diag(div))
@@ -620,17 +621,20 @@ test_that('default_initial_variance() works as expected', {
   ## 5 traits: half phenotypic variance of each trait and default covariances
   ## unless diag
   x <- matrix(runif(500), ncol=5)
-  default.covar <- 0.1*gmean(diag(var(x)))/2
   
-  div <- default_initial_variance(x)
-  expect_identical(diag(var(x))/2, diag(div))
-  expect_equal(default.covar, div[2,1])
-  
-  divd <- default_initial_variance(x, cor.trait = 0)
-  expect_identical(diag(var(x))/2, diag(divd))
-  expect_identical(0, divd[2, 1])
-  
+  expect_equal(default_initial_variance(x), var(x)/2)
+
+  expect_equal(default_initial_variance(x, cor.trait = 0),
+               diag(diag(var(x)/2)))
+
   ## Fail at constant traits
   x[, 5] <- 123
   expect_error(default_initial_variance(x), 'Trait 5 is constant.')
+  
+  ## 2 traits - 2 dimensions: positive definiteness
+  x <- data.frame(y=rnorm(4), z=rnorm(4, sd = 2))
+  varx <- default_initial_variance(x, dim = 2)
+  expect_error(validate_variance(varx), NA)
+  
 })
+
