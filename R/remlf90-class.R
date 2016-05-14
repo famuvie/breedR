@@ -421,9 +421,9 @@ remlf90 <- function(fixed,
   ## Initial variances specification
   ## We check even the NULL case, where the function returns the 
   ## default initial variances for all random effects + residuals
-  var.ini <- check_var.ini(var.ini, random)
+  var.ini <- check_var.ini(var.ini, random, responsem)
   
-  ## Whether the user specified all initial variances for each component
+  ## Whether the initial variances for each component are defaults
   has_var.ini <- 
     function(x) {
       if (eval(call('is.null', as.symbol(x)))) return(NA)

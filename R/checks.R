@@ -1,7 +1,21 @@
 ## Functions for checking model components
 ## Internal - not exported
 
-check_var.ini <- function (x, random) {
+
+#' Check initial variances specification
+#' 
+#' If the user specified initial values, verify that all random effects were
+#' included. Otherwise, set default values. In any case, validate all initial
+#' values.
+#' 
+#' @return A list with initial covariance matrices for all random effects in the
+#'   model. A logical attribute `var.ini.default` is TRUE if values were set by
+#'   default.
+#' 
+#' @param x list. user specification of var.ini (or NULL)
+#' @param random formula. user specification of random effects.
+#' @return  matrix of observation values.
+check_var.ini <- function (x, random, response) {
   
   
   ## terms in the random component + 'residual'
