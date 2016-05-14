@@ -439,11 +439,9 @@ remlf90 <- function(fixed,
                'Please specify either all or none.'))
   ## Issue a warning in the case of no specification
   if (all(var.ini.checks, na.rm = TRUE)) {
-    message(paste('No specification of initial variances.\n',
-                  '\tUsing default value of',
-                  breedR.getOption('default.initial.variance'),
-                  'for all variance components.\n',
-                  '\tSee ?breedR.getOption.\n'))
+    message(paste0('Using default initial variances given by ',
+                  breedR.getOption('default.initial.variance'), '()\n',
+                  'See ?breedR.getOption.\n'))
   }
   
   
