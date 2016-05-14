@@ -32,11 +32,14 @@ breedr_effect <- function(incidence) {
 #' object. In the future, the initial covariance matrix will be a matter of the
 #' inference engine, not inherent to the model.
 #' 
+#' The `ntraits` is used to check the dimension of the initial variance matrix.
+#' 
 #' @param x list of breedr_effect elements
 #' @param cov.ini initial covariance matrix for the estimation algorithm
+#' @param ntraits number of traits in the model
 #' 
 #' @return A list of \code{breedr_effect} elements.
-effect_group <- function(x, cov.ini) {
+effect_group <- function(x, cov.ini, ntraits) {
   
   ## Checks ==========================================
   ## x is a list and cov.ini a SPD matrix
@@ -53,7 +56,7 @@ effect_group <- function(x, cov.ini) {
   
   ## cov.ini is square and of size equal to number of effects
   nx <- length(x)
-  if (!all(dim(cov.ini) == nx))
+  if (!all(dim(cov.ini) == nx*ntraits))
     stop('Dimension of the initial covariance matrix do not conform with
          number of effects in the group.')
   

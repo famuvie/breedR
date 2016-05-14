@@ -36,7 +36,7 @@ test_that('get_structure() recovers the right structure type', {
 
 ## Extracting structure matrices from groups of effects
 
-eg <- effect_group(list(spl, gen), cov.ini = diag(1,2,2))
+eg <- effect_group(list(spl, gen), cov.ini = diag(1,2,2), ntraits = 1)
 eg.str <- get_structure(eg)
 
 test_that('get_structure() recovers the common structure in Matrix format', {

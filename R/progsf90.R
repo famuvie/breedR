@@ -40,7 +40,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
 
   for (x in names(mf.rnd)) {
     effect.item <- effect_group(list(diagonal(mf.rnd[[x]])),
-                                cov.ini = var.ini[[x]])
+                                cov.ini = var.ini[[x]],
+                                ntraits = ncol(model.response(mf)))
     effect.item.list <- structure(list(effect.item),
                                   names = x)
     effects <- c(effects, effect.item.list)
@@ -65,7 +66,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
       
       ## additive-genetic only
       effect.item <- effect_group(list(direct = gen_direct),
-                                  cov.ini = genetic$var.ini)
+                                  cov.ini = genetic$var.ini,
+                                  ntraits = ncol(model.response(mf)))
       effect.item.list <- list(genetic = effect.item)
     } else {
       
@@ -80,7 +82,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
       
       effect.item <- effect_group(list(genetic_direct = gen_direct,
                                        genetic_competition = gen_comp),
-                                  cov.ini = genetic$var.ini)
+                                  cov.ini = genetic$var.ini,
+                                  ntraits = ncol(model.response(mf)))
       effect.item.list <- list(genetic = effect.item)
       
       ## eventually, a second effect-group for pec      
@@ -91,7 +94,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
           autofill    = genetic$autofill
         )
         effect.item <- effect_group(list(pec = pec),
-                                    cov.ini = genetic$pec$var.ini)
+                                    cov.ini = genetic$pec$var.ini,
+                                    ntraits = ncol(model.response(mf)))
         effect.item.list <- c(
           effect.item.list,
           list(pec = effect.item)
@@ -115,7 +119,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
     
     ## build the effect group with the (single) spatial model
     effect.item <- effect_group(structure(list(sp), names = class(sp)[1]),
-                                cov.ini = spatial$var.ini)
+                                cov.ini = spatial$var.ini,
+                                ntraits = ncol(model.response(mf)))
     
     effects <- c(effects, list(spatial = effect.item))
   }
@@ -130,7 +135,9 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
     make_group <- function(x) {
       stopifnot('var.ini' %in% names(x))
       go <- do.call('generic', x[-grep('var.ini', names(x))])
-      ef <- effect_group(list(go), x[['var.ini']])
+      ef <- effect_group(list(go),
+                         x[['var.ini']],
+                         ntraits = ncol(model.response(mf)))
       return(ef)
     }
     generic.groups <- lapply(generic, make_group)
@@ -628,7 +635,7 @@ build.mf <- function(call) {
     terms.list$rnd <- attr(terms(rnd), 'term.labels')
 	
 	## Join fixed and random
-	lhs <- as.character(fxd[[2]])
+	lhs <- deparse(fxd[[2]])
 	rhs <- paste(do.call(c, terms.list), collapse = '+')  
 	fml <- as.formula(paste(lhs, rhs, sep = '~'), env = parent.frame(2))
 	
