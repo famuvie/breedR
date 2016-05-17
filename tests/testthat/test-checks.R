@@ -137,10 +137,9 @@ test_that("Correctly-specified competition models runs without error",{
 
   ## Single-trait
   comp_check_input <- lapply(comp_minimalspec, c, response = list(dat$y))
+
   comp_checks <- 
-    lapply(comp_check_input, function(x) try(do.call('check_genetic', x)))
-  
-  expect_false(any(sapply(comp_checks, inherits, 'try-error')))
+    lapply(comp_check_input, function(x) do.call('check_genetic', x))
   
   all.names <- c('model', 'pedigree', 'id', 'coordinates', 'pec',
                  'competition_decay', 'var.ini', 'autofill')
@@ -167,10 +166,8 @@ test_that("Correctly-specified competition models runs without error",{
   comp_minimalspec[[2]]$var.ini <- comp_minimalspec[[3]]$var.ini <- var.ini.mat
   comp_check_input <- lapply(comp_minimalspec, c,
                              response = list(dat[, c('y', 'z')]))
-  comp_checks <- 
-    lapply(comp_check_input, function(x) try(do.call('check_genetic', x)))
-  
-  expect_false(any(sapply(comp_checks, inherits, 'try-error')))
+  comp_checks <-
+    lapply(comp_check_input, function(x) do.call('check_genetic', x))
   
   all.names <- c('model', 'pedigree', 'id', 'coordinates', 'pec',
                  'competition_decay', 'var.ini', 'autofill')
