@@ -195,10 +195,6 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   ## renderpf90 all the effects
   effects.pf90 <- renderpf90.breedr_modelframe(effects, ntraits) 
   
-  # Number of traits
-  # (size of the response vector or matrix)
-  ntraits <- ncol(as.matrix(model.response(mf)))
-  
   # Weights
   weights <- ''     # No weights for the moment --- TODO
   
@@ -234,11 +230,6 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
     # Determine the right position in the effects list
     group.head.abs <- sum(sapply(effect.lst, length)[1:(x-1)]) + group.head
     
-    ## Refactored effects
-    fn <- ifelse('file_name' %in% names(effects.pf90[[x]]),
-                 effects.pf90[[x]]$file_name,
-                 effects.pf90[[x]]$file)
-      
     return(list(pos = group.head.abs + 1:group.size - 1,
                 type = effects.pf90[[x]]$model, 
                 file = effects.pf90[[x]]$file_name, 
