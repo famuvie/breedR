@@ -199,15 +199,12 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   weights <- ''     # No weights for the moment --- TODO
   
   # Builds the lines in the EFFECTS section
-  na2empty <- function(x) {
-    x <- as.character(x)
-    x[is.na(x)] <- ''
-    return(x)
+  
+  setup_effectline <- function(x) {
+    with(x, paste(pos, levels, type, nest))
   }
   
-  effect.lst <-
-    sapply(effects.pf90,
-           function(x) with(x, paste(pos, levels, type, na2empty(nest))))
+  effect.lst <- lapply(effects.pf90, setup_effectline)
 
   # Phenotype
   Y <- mf[, attr(attr(mf, 'terms'), 'response')]
@@ -224,7 +221,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   }
   
   parse.rangroup <- function(x) {
-    group.size <- nrow(as.matrix(effects.pf90[[x]]$var))
+    group.size <- nrow(as.matrix(effects.pf90[[x]]$var))/ntraits
     ## The group 'head' is the first effect with a number of levels > 0
     group.head <- head(which(effects.pf90[[x]]$levels != 0), 1)
     # Determine the right position in the effects list
@@ -239,7 +236,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   par <- list(datafile = 'data',
               ntraits  = ntraits,
               neffects = sum(sapply(effect.lst, length)),
-              observations = 1:ntraits,
+              observations = paste(seq_len(ntraits), collapse = " "),
               weights  = weights,
               effects  = effect.lst,
               residvar = res.var.ini,

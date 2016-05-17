@@ -31,3 +31,22 @@ test_that('renderpf90.matrix() renders different matrix types', {
 
 })
 
+
+test_that('renderpf90.breedr_modelframe() renders a single-trait breedr_modelframe correctly', {
+
+  # TODO...  
+  # testdat <- transform(
+  #   expand.grid(x = 1:4, y = 1:4, KEEP.OUT.ATTRS = FALSE),
+  #   z = rnorm(16),
+  #   mu = 1)
+  # 
+  # bc <- call('remlf90', fixed = phe_X~1, data = quote(as.data.frame(m1)))
+  # str(build.mf(bc))
+  # 
+  # 
+  # breedrmf <- build.effects(mf = build.mf(bc),
+  #                           genetic = NULL,
+  #                           spatial = NULL,
+  #                           generic = NULL)
+  # renderpf90.breedr_modelframe(breedrmf, ntraits = 1)
+})
