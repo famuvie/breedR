@@ -285,6 +285,21 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
 
 write.progsf90 <- function (pf90, dir) {
   
+  write_matrix <- function(x) {
+    apply(as.matrix(x), 1, paste, collapse = " ")
+  }
+  
+  write_rangroup <- function(x) {
+    c('RANDOM_GROUP',
+      paste(x$pos, collapse = ' '),
+      'RANDOM_TYPE',
+      x$type,
+      'FILE',
+      x$file,
+      '(CO)VARIANCES',
+      write_matrix(x$cov))
+  }
+  
   # Parameter file
   parameter.file <- 
     with(pf90$parameter, 
@@ -295,19 +310,8 @@ write.progsf90 <- function (pf90, dir) {
            'WEIGHT(S)', weights,
            'EFFECTS: POSITIONS_IN_DATAFILE NUMBER_OF_LEVELS TYPE_OF_EFFECT [EFFECT NESTED]',
            paste(unlist(effects)),
-           'RANDOM_RESIDUAL VALUES', residvar,
-           c(sapply(rangroup, 
-                  function(x) c('RANDOM_GROUP',
-                                paste(x$pos, collapse = ' '),
-                                'RANDOM_TYPE',
-                                x$type,
-                                'FILE',
-                                x$file,
-                                '(CO)VARIANCES',
-                                apply(as.matrix(x$cov), 1,
-                                      paste,
-                                      collapse = ' '))),
-             recursive = TRUE),
+           'RANDOM_RESIDUAL VALUES', write_matrix(residvar),
+           c(sapply(rangroup, write_rangroup), recursive = TRUE),
            paste('OPTION', options)))
   
   writeLines(as.character(parameter.file),
