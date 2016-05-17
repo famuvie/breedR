@@ -580,7 +580,14 @@ test_that('validate_variance() returns TRUE for correct variance specifications'
   expect_true(validate_variance(1.5))
   expect_true(validate_variance(1000))
   expect_true(validate_variance(matrix(c(1,-.5,-.5,1), 2, 2)))
+  
+  ## sparse matrices
   expect_true(validate_variance(Matrix::bdiag(matrix(c(1,-.5,-.5,1), 2, 2))))
+  
+  ## named (possibly differently) matrices
+  testM <- structure(matrix(c(1,-.5,-.5,1),2,2),
+                     dimnames = list(1:2, 3:4))
+  expect_true(validate_variance(testM))
 })
 
 test_that('validate_variance() stops for inconsistent values of variance', {

@@ -538,18 +538,18 @@ normalise_coordinates <- function (x, where = '') {
 validate_variance <- function (x, dimension = dim(as.matrix(x)), where = '') {
 
   stopifnot(
-    is.numeric(x),
+    is.numeric(x <- as.matrix(x)),
     is.numeric(dimension),
     length(dimension) == 2
   )
   
-  x <- as.matrix(x)
   if (nrow(x)!=ncol(x))
     stop(paste('x must be a square matrix in the', where))
   if (length(x) != prod(dimension))
     stop(paste('x must be a', paste(dimension, collapse = 'x'),
                'matrix in the', where))
-  if (!isSymmetric(x) || !all(eigen(x)$values >0 ))
+  ev <- eigen(x, symmetric = TRUE, only.values = TRUE)$values
+  if (!isSymmetric(x, check.attributes = FALSE) || !all( ev > 0 ))
     stop(paste('x must be a SPD matrix in the', where))
   
   return(TRUE)
