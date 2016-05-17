@@ -138,14 +138,11 @@ renderpf90.matrix <- function(x) {
 #' @export
 renderpf90.breedr_modelframe <- function(x, ntraits) {
   
-  ## Until the refactoring is completed, not all effects in the list
-  ## will be breedr_effects or effect_groups
-  ## Those which are not remain untouched
-  
   xpf90 <- lapply(x, renderpf90)
   
-  ## The dimension of the response will be translated here from progsf90
-  ## This determines the initial position of the effects in the data file
+  ## The dimension of the response (i.e. ntraits) will be translated here from
+  ## progsf90 This determines the initial position of the effects in the data
+  ## file, and the dimension of 'pos' and 'nest'.
 
   ## Make sure file_name are unique
   aux.idx <- which(sapply(x, inherits, 'effect_group'))
@@ -164,8 +161,10 @@ renderpf90.breedr_modelframe <- function(x, ntraits) {
                        names = names(dat.widths))
   
   for (i in seq_along(xpf90)) {
-    xpf90[[i]]$pos <- offsets[[i]] + xpf90[[i]]$pos
-    xpf90[[i]]$nest <- offsets[[i]] + xpf90[[i]]$nest
+    xpf90[[i]]$pos <- rep(offsets[[i]] + xpf90[[i]]$pos,
+                          ntraits)
+    xpf90[[i]]$nest <- rep(offsets[[i]] + xpf90[[i]]$nest,
+                           ntraits)
   }
   
 
