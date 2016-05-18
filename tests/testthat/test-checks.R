@@ -642,3 +642,65 @@ test_that('default_initial_variance() works as expected', {
   
 })
 
+test_that('The variance checker check.var_ini() works as expected', {
+
+  test_response <- 1:4
+  div_fun <- breedR.getOption('default.initial.variance')
+  default_ini <-
+    eval(div_fun)(test_response, dim = 1, cor.trait = NULL, digits = 2)
+
+  test_list <- list(
+    minimal = list(
+      input = list(x = NULL, random = NULL, response = test_response),
+      expect_error = NA,
+      expect_output = structure(
+        list(residuals = default_ini),
+        var.ini.default = TRUE)
+    ),
+    default = list(
+      input = list(x = NULL, random = ~ bl + fam, response = test_response),
+      expect_error = NA,
+      expect_output = structure(
+        list(bl = default_ini,
+             fam = default_ini,
+             residuals = default_ini),
+        var.ini.default = TRUE)
+    ),
+    full = list(
+      input = list(x = list(bl = 1, fam = 2, residuals = 3),
+                   random = ~ bl + fam, response = test_response),
+      expect_error = NA,
+      expect_output = structure(
+        list(bl = 1, fam = 2, residuals = 3),
+        var.ini.default = FALSE)
+    ),
+    missing_ranef = list(
+      input = list(x = list(bl = 1, residuals = 3),
+                   random = ~ bl + fam, response = test_response),
+      expect_error = NULL,
+      expect_output = NA
+    )
+  )
+  
+  expect_result <- function(x) {
+    eval(bquote(
+      expect_error(
+        res <- do.call('check_var.ini', .(x$input)),
+        .(x$expect_error))
+    ))
+    
+    if (anyNA(x$expect_error)) {
+      eval(bquote(
+        expect_equal(res, .(x$expect_output))
+      ))
+    }
+  }
+  
+  for (x in test_list) {
+    expect_result(x)
+  }
+
+
+  ## two traits
+  
+})
