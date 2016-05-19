@@ -45,10 +45,7 @@ effect_group <- function(x, cov.ini, ntraits) {
   ## x is a list and cov.ini a SPD matrix
   stopifnot(is.list(x))
   cov.ini <- as.matrix(cov.ini)
-  stopifnot(is.numeric(cov.ini))
-  stopifnot(isSymmetric.matrix(cov.ini, check.attributes = FALSE))
-  ev <- eigen(cov.ini, symmetric = TRUE, only.values = TRUE)$values
-  stopifnot(all(ev > 0))
+  validate_variance(cov.ini)
   
   ## all elements are breedr_effects
   if (!all(sapply(x, inherits, 'breedr_effect')))
