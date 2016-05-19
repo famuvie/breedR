@@ -159,7 +159,8 @@ breedR_online <- function() {
   tf <- tempfile()
   !inherits(
     suppressWarnings(
-      try(download.file('http://famuvie.github.io/breedR/', tf, quiet = TRUE))
+      try(download.file('http://famuvie.github.io/breedR/', tf, quiet = TRUE),
+          silent = TRUE)
     ), 
     'try-error'
   )

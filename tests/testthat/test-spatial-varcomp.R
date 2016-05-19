@@ -1,6 +1,3 @@
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 ### Scaling of spatial variance components ###
 context("Scaling of the spatial variance component")

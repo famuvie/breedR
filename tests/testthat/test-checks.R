@@ -1,6 +1,3 @@
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 ### Tests of functions for checking model components ###
 
@@ -12,7 +9,7 @@ dat <- data.frame(id   = 1:4,
                   dam  = c(12, NA, 1, 12),
                   y    = rnorm(4),
                   z    = rnorm(4, sd = 2))
-ped <- build_pedigree(1:3, data = dat)
+ped <- suppressWarnings(build_pedigree(1:3, data = dat))
 id <- dat$id
 var.ini <- 1.5
 

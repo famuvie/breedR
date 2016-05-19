@@ -1,7 +1,4 @@
 #### pedigree building and checking ####
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 context("Pedigree")
 
@@ -15,15 +12,18 @@ test_that('get_pedigree() returns NULL when there is no genetic effect', {
 test.dat <- data.frame(matrix(sample(100, 15), 5, 3,
                               dimnames = list(NULL, c('self', 'sire', 'dam'))),
                        y = rnorm(5))
-ped.fix <- build_pedigree(1:3, data = test.dat)
+ped.fix <- suppressWarnings(build_pedigree(1:3, data = test.dat))
 test.res <- try(
   suppressMessages(
-    remlf90(y~1,
-            genetic = list(model = 'add_animal',
-                           pedigree = test.dat[, 1:3],
-                           id = 'self'),
-            data = test.dat)
-  )
+    suppressWarnings(
+      remlf90(y~1,
+              genetic = list(model = 'add_animal',
+                             pedigree = test.dat[, 1:3],
+                             id = 'self'),
+              data = test.dat)
+    )
+  ),
+  silent = TRUE
 )
 
 test_that('remlf90() builds and recodes the pedigree', {
@@ -58,7 +58,7 @@ test_that('The shuffled pedigree fails all checks', {
 })
 
 # Reorder and recode 
-ped_fix <- build_pedigree(1:3, data = ped_shuffled)
+ped_fix <- suppressWarnings(build_pedigree(1:3, data = ped_shuffled))
 test_that('build_pedigree() fixes everything', {
   expect_that(all(check_pedigree(ped_fix)), is_true())
 })
@@ -90,7 +90,10 @@ map <- sample(10*mcode, size = mcode)
 m1_shuffled <- m1
 m1_shuffled$Data[, 1:3] <- sapply(as.data.frame(ped), function(x) map[x])
 
-ped_fix <- build_pedigree(1:3, data = as.data.frame(get_pedigree(m1_shuffled)))
+ped_fix <- suppressWarnings(
+  build_pedigree(1:3, data = as.data.frame(get_pedigree(m1_shuffled)))
+)
+
 
 res_shuffled <- try(
   suppressMessages(

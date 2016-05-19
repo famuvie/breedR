@@ -1,6 +1,3 @@
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 data(globulus)
 ped <- build_pedigree(1:3, data = globulus)
@@ -16,8 +13,8 @@ fit.model <- function(vi, vigen, random, dat = globulus, ...) {
                              pedigree = ped,
                              id = 'self'), 
               data    = dat)
-    )
-  )
+    ),
+  silent = TRUE)
 }
 
 # Test data

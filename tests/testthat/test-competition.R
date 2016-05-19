@@ -1,6 +1,3 @@
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 
 #### Context: competition infrastructure ####
@@ -13,7 +10,7 @@ dat <- data.frame(id   = 1:6,
                   x    = c(1,2,-1,0,0,1),
                   y    = c(-1,0,0,1,-1,1))
 ## Corresponding pedigree with additional offspring
-ped <- build_pedigree(1:3, data = rbind(dat, c(7, 1, 2)))
+ped <- suppressWarnings(build_pedigree(1:3, data = rbind(dat, c(7, 1, 2))))
 var.ini.mat <- matrix(c(1, -.5, -.5, 1), 2, 2)
 
 
