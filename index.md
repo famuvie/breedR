@@ -14,15 +14,14 @@ This will install the latest stable version of breedR. For the latest developmen
 {% highlight r %}
 expr <- expression(
           r <- getOption("repos"),
+          if (is.null(r)) r["CRAN"] <- "https://cloud.r-project.org/",
           r["breedR"] <- "http://famuvie.github.io/breedR",
           options(repos = r)
         )
 eval(expr)
 rprofile <- file.path(Sys.getenv('HOME'), '.Rprofile')
-if (file.exists(rprofile)) {
-  p <- readLines(rprofile)
-} else p <- c()
-writeLines(c(p, sapply(expr, deparse)), rprofile)
+cat(sapply(expr, deparse), file = rprofile, sep = "\n", append = TRUE)
+
 
 {% endhighlight r %}
 
