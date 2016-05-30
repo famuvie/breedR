@@ -15,7 +15,7 @@ This will install the latest stable version of breedR. For the latest developmen
 expr <- expression(
           r <- getOption("repos"),
           if (is.null(r)) r["CRAN"] <- "https://cloud.r-project.org/",
-          r["breedR"] <- "http://famuvie.github.io/breedR",
+          r["breedR"] <- "https://famuvie.github.io/breedR",
           options(repos = r)
         )
 eval(expr)
