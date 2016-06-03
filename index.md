@@ -34,7 +34,7 @@ cat(sapply(expr, deparse), file = rprofile, sep = "\n", append = TRUE)
 
 ### Getting started
 - Check the [breedR-wiki](https://github.com/famuvie/breedR/wiki)
-- ... particularly, the [Overview](https://github.com/famuvie/breedR/wiki/Overview) ([pdf](https://github.com/famuvie/breedR/wiki/Overview.pdf))
+- ... particularly, the [Tutorial](https://github.com/famuvie/breedR/wiki/Overview) ([pdf](https://github.com/famuvie/breedR/wiki/Overview.pdf))
 
 {% highlight r %}
 library(breedR)             # Load the package
@@ -57,7 +57,8 @@ demo('globulus')
 
 ### Slides
 
-- [Spatial and Competition effects in tree breeding](http://prodinra.inra.fr/ft?id={CCE02CF3-1CEC-495D-B45A-711E8C5B1979})
+- [breedR Overview](http://prodinra.inra.fr/ft?id={83EC402E-BFD9-445B-BE2E-7E02CC1FD2A2}) (Trees4Future 04-2016, Brussels)
+- [Spatial and Competition effects in tree breeding](http://prodinra.inra.fr/ft?id={CCE02CF3-1CEC-495D-B45A-711E8C5B1979}) (IUFRO 05-2016, Arcachon)
 
 ### Citing
 - If you use this package please cite it
