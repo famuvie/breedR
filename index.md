@@ -55,6 +55,10 @@ demo('globulus')
 - [International Official Training Workshop](workshop) (June 2015, Jaca, Spain)
 
 
+### Slides
+
+- [Spatial and Competition effects in tree breeding](http://prodinra.inra.fr/ft?id={CCE02CF3-1CEC-495D-B45A-711E8C5B1979})
+
 ### Citing
 - If you use this package please cite it
 - `citation('breedR')`
