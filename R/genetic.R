@@ -154,8 +154,12 @@ additive_genetic_competition <- function(pedigree,
   
   ## Checks
   stopifnot(is.numeric(id))
-  stopifnot( (n <- length(id)) < (p <- nrow(as.data.frame(pedigree))))
   stopifnot(length(id) == nrow(coordinates))
+  # Not necessarily: might be multiple observations per genotype
+  # stopifnot( (n <- length(id)) < (p <- nrow(as.data.frame(pedigree))))
+  
+  n <- length(id)    # n observations
+  p <- nrow(as.data.frame(pedigree))   # n genotypes
   
   ## additive_genetic_competition inherits from additive_genetic
   ## and from competition simultaneously.
