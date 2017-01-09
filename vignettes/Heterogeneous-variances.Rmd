@@ -1,0 +1,94 @@
+---
+title: "Heterogeneous variances and weighting"
+author: "Facundo Muñoz"
+date: "`r paste(Sys.Date(), 'breedR version:', packageVersion('breedR'))`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 1
+  md_document:
+    variant: markdown_github
+    toc: true
+    toc_depth: 1
+vignette: >
+  %\VignetteIndexEntry{Heterogeneous variances and weighting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, echo = FALSE, include=FALSE}
+library(breedR)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+By default, the Linear Mixed Models fitted with breedR assume
+*homoscedasticity*. Meaning that given all the fixed and random effects, the
+unexplained variation follow a Normal distribution with residual variance
+$\sigma^2$.
+
+Mathematically, that $\varepsilon \sim \mathcal N (0, \mathbf I \sigma^2)$ in the model
+equation $$ y = X \beta + Z u + \varepsilon $$
+
+Sometimes this is obviously wrong, and we need models where some observations
+are observed with more or less residual variability than others
+
+Here are a few common situations where heterogeneous variances is needed:
+
+- The observations are actually derived or calculated from real measurements, such
+as an average. Thus, the variance depends on the number of averaged measurements
+(e.g. Daughter Yield Deviation measures).
+
+- The observations are spread in time, and you want to model the residual variance
+as a function of time (e.g. longitudinal models).
+
+
+# Using **weights**
+
+If the relative variation in the residual variances is know or can be estimated,
+it can be specified as a vector of *weights* $w$, such that
+$$\varepsilon \sim \mathcal N (0, (w^{-1/2})'\mathbf I w^{-1/2} \sigma^2).$$
+In other words, the residual variance for the observation $i$ is $\sigma^2/w_i$.
+
+Here is a simulation example of how to specify weights.
+
+```{r sim-data}
+set.seed(123)
+
+n <- 1e3   # n obs
+sigma2 <- 4  # true residual variance (for a weight of 1)
+w = runif(n, min = .5, max = 2)  # vector of weights
+
+dat <- 
+  transform(
+    data.frame(
+      e = rnorm(n, sd = sqrt(sigma2))
+    ),
+    y = 10 + e/sqrt(w)  # simulated phenotype
+  )
+```
+
+```{r wheights-example}
+res <- remlf90(
+  y ~ 1,
+  data = dat,
+  weights = w  # specification of weights
+)
+```
+
+Note that the estimated residual variance is close to the true value. On the
+other hand, the residual prediction-error are expected to have non-constant
+variance.
+
+```{r weights-results}
+summary(res)
+
+ggplot(transform(dat, est_e = residuals(res)), aes(e, est_e)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "darkgray")
+```
+
+
+# Estimating residual variance heterogeneity
+
+This is not currently available in breedR.

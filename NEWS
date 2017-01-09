@@ -1,3 +1,8 @@
+* Interface for using **weights** for residual variance
+
+* Vignette: Heterogeneous variances
+
+
 breedR 0.11
 ===========
 
