@@ -29,6 +29,7 @@
 #'   \href{http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options}{AIREMLF90}.
 #'    Option \code{sol se} is passed always and cannot be removed. No checks are
 #'   performed, handle with care.
+#' @param weights numeric. A vector of weights for the residual variance.
 #' @param debug logical. If \code{TRUE}, the input files for blupf90 programs 
 #'   and their output are shown, but results are not parsed.
 #'   
@@ -300,6 +301,7 @@ remlf90 <- function(fixed,
                     method = c('ai', 'em'),
                     breedR.bin = breedR.getOption("breedR.bin"),
                     progsf90.options = NULL,
+                    weights = NULL,
                     debug = FALSE) {
   
   ## Assumptions:
@@ -309,7 +311,6 @@ remlf90 <- function(fixed,
   ## (not generalized) Linear Mixed Model
 
   ## TODO: 
-  # Allow for summarized data (parameter weights)
   # Allow for multiple responses
   # Allow for generalized mixed models
 
@@ -439,8 +440,9 @@ remlf90 <- function(fixed,
   # dataset. One in data, one in mf (only needed variables)
   # and yet one more in pf90. This is a potential problem with large datasets.
   pf90 <- progsf90(mf,
+                   weights = weights,
                    effects,
-                   opt = union('sol se', progsf90.options), 
+                   opt = union('sol se', progsf90.options),
                    res.var.ini = var.ini$residuals)
   
   
