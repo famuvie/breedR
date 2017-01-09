@@ -168,7 +168,7 @@ context('Compile progsf90 object')
 
 test_that('Compile a full model frame with all componenents', {
   expect_error(
-    progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10), 
+    progsf90(mf, w = NULL, eff, opt = c("sol se"), res.var.ini = 10), 
     NA
   )
 })
@@ -193,7 +193,7 @@ test_that('If phenotype excludes 0, use default missing code', {
   mf$phe_X[1] <- NA
   
   expect_error(
-    pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10),
+    pf90 <- progsf90(mf, w = NULL, eff, opt = c("sol se"), res.var.ini = 10),
     NA
   )
   
@@ -209,7 +209,7 @@ test_that('If phenotype includes 0, use alternative missing code', {
   mf$phe_X[1] <- NA
 
   expect_error(
-    pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10), 
+    pf90 <- progsf90(mf, w = NULL, eff, opt = c("sol se"), res.var.ini = 10), 
     NA
   )
   
@@ -235,7 +235,7 @@ test_that('progsf90() forbids missing values in fixed effects', {
   )
   
   expect_error(
-    pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10),
+    pf90 <- progsf90(mf, w = NULL, eff, opt = c("sol se"), res.var.ini = 10),
     'Missing values in covariates are not allowed'
   )
 })
@@ -248,7 +248,7 @@ test_that('progsf90() admits missing values in random effects', {
                        spatial = fc$spatial,
                        generic = fc$generic,
                        var.ini = sapply(c(ranef, 'residuals'), function(x) 1))
-  pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10)
+  pf90 <- progsf90(mf, w = NULL, eff, opt = c("sol se"), res.var.ini = 10)
   
   # the incidence matrix for the first individual is zero
   expect_true(identical(sum(model.matrix(eff$mum$effects[[1]])[1,]), 0))
@@ -263,7 +263,7 @@ test_that('progsf90() admits missing values in random effects', {
                        spatial = fc$spatial,
                        generic = fc$generic,
                        var.ini = sapply(c(ranef, 'residuals'), function(x) 1))
-  pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10)
+  pf90 <- progsf90(mf, w = NULL, eff, opt = c("sol se"), res.var.ini = 10)
 
   # the incidence matrix for the first individual is zero
   expect_true(identical(sum(model.matrix(eff$spatial$effects[[1]])[1,]), 0))
@@ -281,7 +281,7 @@ test_that('progsf90() admits missing values in coordinates', {
                        spatial = fc$spatial,
                        generic = fc$generic,
                        var.ini = sapply(c(ranef, 'residuals'), function(x) 1))
-  pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10)
+  pf90 <- progsf90(mf, w = NULL, eff, opt = c("sol se"), res.var.ini = 10)
   
   # the incidence matrix for the first individual is zero
   expect_true(identical(sum(model.matrix(eff$spatial$effects$splines)[1,]), 0))
@@ -298,7 +298,7 @@ test_that('progsf90() admits missing values in coordinates', {
                        spatial = fc$spatial,
                        generic = fc$generic,
                        var.ini = sapply(c(ranef, 'residuals'), function(x) 1))
-  pf90 <- progsf90(mf, eff, opt = c("sol se"), res.var.ini = 10)
+  pf90 <- progsf90(mf, w = NULL, eff, opt = c("sol se"), res.var.ini = 10)
   
   # the incidence matrix for the first individual is zero
   expect_true(identical(sum(model.matrix(eff$spatial$effects$ar)[1,]), 0))
