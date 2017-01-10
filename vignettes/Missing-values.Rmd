@@ -24,7 +24,7 @@ The handling of missing values (i.e. `NA`) depends on *where* they are.
 It is perfectly valid to have missing vaules in the dependent variable. There is
 no need of removing those individuals from the dataset. Furthermore, including
 them will yield
-[predictions](https://github.com/famuvie/breedR/wiki/Overview#prediction for
+[predictions](https://github.com/famuvie/breedR/wiki/Overview#prediction) for
 their phenotype, based on the predictive variables.
 
 ```{r missing-response, message=FALSE}
