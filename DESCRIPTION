@@ -5,12 +5,12 @@ Version: 0.11-5
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
     role=c("aut", "cre"),
-    email="facundo.munoz@orleans.inra.fr"),
+    email="facundo.munoz@inra.fr"),
     person("Leopoldo", "Sanchez", role="aut"),
     person("Ignacy", "Misztal", role="ctb"),
     person("Pablo", "Cappa", role="ctb"))
 Author: Facundo Muñoz with libraries by Ignacy Misztal
-Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
+Maintainer: Facundo Muñoz <facundo.munoz@inra.fr>
 Description: Statistical tools to build predictive models
     for the breeders community. It aims to assess the genetic value of
     individuals under a number of situations, including spatial
