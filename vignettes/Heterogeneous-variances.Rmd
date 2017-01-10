@@ -91,4 +91,29 @@ ggplot(transform(dat, est_e = residuals(res)), aes(e, est_e)) +
 
 # Estimating residual variance heterogeneity
 
-This is not currently available in breedR.
+This is currently not available in breedR.
+
+Different group-wise residual variances (e.g. multi-site) can be easily induced
+by using group-specific random effects.
+
+For the general case, here are some notes to allow for some manual hacking if
+needed.
+
+In general, we need to estimate a residual variance parameter as a function of
+some other variable $x$.
+We then write the residual variance as a linear combination of a few base functions:
+$$\sigma^2(x) = \sum_{k=0}^K \psi_k(x)\, r_k = \mathbf{\Psi r},$$
+where the parameters $\sigma_k$ are to be estimated.
+
+This covers the case both for group-wise residual variances (such as multi-site,
+using a categorical variable $x$) or a continuously varying residual variance.
+
+For the first case, the variable $x$ is categorical, taking a finite number of
+values $K$, and we define $\psi_k$ as the corresponding indicator functions.
+
+For the continuous case, the variable $x$ is continuous (e.g. age, temperature)
+and the base functions can be Legendre polynomials, splines, etc. up to some 
+arbitrary order $K$.
+
+We need to manually build the matrix $\mathbf\Psi$, and exploit the PROGSF90
+options `hetres_pos` and `hetres_pol` (see [documentation](http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml)).
