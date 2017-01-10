@@ -7,7 +7,7 @@
 remlf90(fixed, random = NULL, genetic = NULL, spatial = NULL,
   generic = NULL, data, var.ini = NULL, method = c("ai", "em"),
   breedR.bin = breedR.getOption("breedR.bin"), progsf90.options = NULL,
-  debug = FALSE)
+  weights = NULL, debug = FALSE)
 }
 \arguments{
 \item{fixed}{an object of class \link{formula} (or one that can be coerced to
@@ -46,6 +46,8 @@ and for
 \href{http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options}{AIREMLF90}.
  Option \code{sol se} is passed always and cannot be removed. No checks are
 performed, handle with care.}
+
+\item{weights}{numeric. A vector of weights for the residual variance.}
 
 \item{debug}{logical. If \code{TRUE}, the input files for blupf90 programs 
 and their output are shown, but results are not parsed.}
