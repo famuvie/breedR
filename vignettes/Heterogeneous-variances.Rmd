@@ -33,7 +33,7 @@ equation $$ y = X \beta + Z u + \varepsilon $$
 Sometimes this is obviously wrong, and we need models where some observations
 are observed with more or less residual variability than others
 
-Here are a few common situations where heterogeneous variances is needed:
+Here are a few common situations where heterogeneous variances are needed:
 
 - The observations are actually derived or calculated from real measurements, such
 as an average. Thus, the variance depends on the number of averaged measurements
@@ -103,7 +103,7 @@ In general, we need to estimate a residual variance parameter as a function of
 some other variable $x$.
 We then write the residual variance as a linear combination of a few base functions:
 $$\sigma^2(x) = \sum_{k=0}^K \psi_k(x)\, r_k = \mathbf{\Psi r},$$
-where the parameters $\sigma_k$ are to be estimated.
+where the parameters $r_k$ are to be estimated.
 
 This covers the case both for group-wise residual variances (such as multi-site,
 using a categorical variable $x$) or a continuously varying residual variance.
@@ -116,4 +116,4 @@ and the base functions can be Legendre polynomials, splines, etc. up to some
 arbitrary order $K$.
 
 We need to manually build the matrix $\mathbf\Psi$, and exploit the PROGSF90
-options `hetres_pos` and `hetres_pol` (see [documentation](http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml)).
+options `hetres_pos` and `hetres_pol` available in AI-REML (see [documentation](http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml)).
