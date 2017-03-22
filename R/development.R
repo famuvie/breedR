@@ -451,7 +451,7 @@ breedR_release <- function(
   
   if (src.update) {
     if (!silent) message('Building source pacakge ..')
-    src.fn <- devtools::build(build_args = "--compact-vignettes=\"gs+qpdf\"")
+    src.fn <- devtools::build(args = "--compact-vignettes=\"gs+qpdf\"")
     
     ## deploy
     drat::insertPackage(src.fn, repodir)
