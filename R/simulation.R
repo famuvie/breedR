@@ -406,3 +406,54 @@ breedR.sample.pedigree <- function(Nobs, Nparents, check.factorial = TRUE) {
   
   return(fullped)
 }
+
+
+#' @rdname simulation
+#' @param dim numeric. Dimension of the effect (e.g. n. of traits)
+#' @param var numeric matrix. (Co)variance matrix
+#' @param Nlevels numeric. Number of individuals values to sample
+#' @param labels character vector of labels for each level.
+#' @param N numeric. Number of observations to sample
+#' @param vname string. A name for the resulting variables
+#' @details \code{breedR.sample.ranef} simulates a random effect with a given
+#'   variance.
+breedR.sample.ranef <- 
+  function(dim, var, Nlevels, labels = NULL, N = Nlevels, vname = 'X') {
+  if(!is.null(dim(var))) stopifnot(identical(dim(var), rep(as.integer(dim), 2)))
+  if(!is.null(labels)) stopifnot(all.equal(length(labels), Nlevels))
+  
+  ## Simulate Nlevels correlated vectors of dimension dim
+  U <- chol(var)
+  values <- matrix(rnorm(dim*Nlevels), ncol = dim) %*% U
+  
+  ## Sample N observations of the 'factor'
+  if (N == Nlevels) {
+    idx <- seq_len(Nlevels)
+  } else {
+    ## either N > Nlevels or N < Nlevels
+    idx <- sample(seq_len(Nlevels), N, replace = TRUE)
+  }
+  ans <- data.frame(values[idx, ])
+  
+  ## variable names from variance matrix colnames
+  if (!is.null(colnames(var))) 
+    trait_names <- colnames(var)
+  else trait_names <- seq_len(dim)
+  varnames <- paste(vname, trait_names, sep = "_")
+  
+  if (is.null(labels)) {
+    ## variable names from variance matrix colnames
+    if (!is.null(colnames(var))) 
+      labels <- colnames(var)
+    else labels <- seq_len(dim)
+    names(ans) <- varnames
+  } else {
+    ## factor labels as an additional variable
+    ans <- cbind(factor(labels[idx]), ans)
+    names(ans) <- c(vname, varnames)
+  }
+  
+  
+  return(ans)
+}
+

@@ -5,6 +5,7 @@
 \alias{breedR.sample.BV}
 \alias{breedR.sample.pedigree}
 \alias{breedR.sample.phenotype}
+\alias{breedR.sample.ranef}
 \alias{breedR.sample.splines}
 \alias{simulation}
 \title{Simulation of phenotypes and model components}
@@ -19,6 +20,9 @@ breedR.sample.splines(coord, nkn, sigma2, N = 1)
 breedR.sample.BV(ped, Sigma, N = 1)
 
 breedR.sample.pedigree(Nobs, Nparents, check.factorial = TRUE)
+
+breedR.sample.ranef(dim, var, Nlevels, labels = NULL, N = Nlevels,
+  vname = "X")
 }
 \arguments{
 \item{fixed}{a numeric vector of regression coefficients.}
@@ -66,6 +70,18 @@ randomly mate.}
 \item{check.factorial}{logical. If TRUE (default), it checks whether all the 
 possible matings had taken place at least once. If not, it stops with an 
 error.}
+
+\item{dim}{numeric. Dimension of the effect (e.g. n. of traits)}
+
+\item{var}{numeric matrix. (Co)variance matrix}
+
+\item{Nlevels}{numeric. Number of individuals values to sample}
+
+\item{labels}{character vector of labels for each level.}
+
+\item{vname}{string. A name for the resulting variables}
+
+\item{N}{numeric. Number of observations to sample}
 }
 \description{
 These functions allow to draw samples from several models 
@@ -143,6 +159,9 @@ The design matrix for the \code{fixed} effects (if given) is a
   from random mating of independent founders. Note that if 
   \code{check.factorial} is \code{FALSE}, you can have some founders removed
   from the pedigree.
+
+\code{breedR.sample.ranef} simulates a random effect with a given
+  variance.
 }
 \examples{
 
