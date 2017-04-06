@@ -24,6 +24,18 @@ breedr_effect <- function(incidence) {
   return(ans)
 }
 
+
+# @describeIn breedr_effect Dimension of a \code{breedr_effect}: 0 for a fixed 
+#   effect, 1 for a random effect
+#' @rdname breedr_effect
+#' @export
+dim.breedr_effect <- function(x) {
+  siz <- ifelse(inherits(x, 'random'), 1, 0)
+  return(c(size = siz, ntraits = NA))
+}
+
+
+
 #' Constructor for a group of effects
 #' 
 #' Builds an \code{effect_group} from a list of \code{breer_effect} elements.
@@ -63,10 +75,12 @@ effect_group <- function(x, cov.ini, ntraits) {
   return(ans)
 }
 
-#' Size of a group of effects
-#' 
-#' @param x object of class \code{effect_group}
-group_size <- function(x) {
-  stopifnot(inherits(x, 'effect_group'))
-  length(x$effects)
+# @describeIn effect_group Returns the dimension of an \code{effect_group}
+#   factored by its size and number of traits
+#' @rdname effect_group
+#' @export
+dim.effect_group <- function(x) {
+  siz <- length(x$effects)
+  ntr <- dim(as.matrix(x$cov.ini))[1] / siz
+  return(c(size = siz, ntraits = ntr))
 }

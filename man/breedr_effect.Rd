@@ -2,9 +2,12 @@
 % Please edit documentation in R/breedr_effect.R
 \name{breedr_effect}
 \alias{breedr_effect}
+\alias{dim.breedr_effect}
 \title{Constructor for a generic effect}
 \usage{
 breedr_effect(incidence)
+
+\method{dim}{breedr_effect}(x)
 }
 \arguments{
 \item{incidence}{matrix-like object}

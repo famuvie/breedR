@@ -420,7 +420,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   result <- split(sol.file[, c('value', 's.e.')], sol.file$effect)
   
   # Different results can be associated to a single (group) effect
-  effect.size <- vapply(effects, effect_size, 1)
+  effect.size <- vapply(effects, dim, numeric(2))["size", ]
 
   # count fixed effects as of size 1
   effect.size[effect.size == 0] <- 1
