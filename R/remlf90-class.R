@@ -566,9 +566,13 @@ remlf90 <- function(fixed,
 
 #' @export
 coef.remlf90 <- function(object, ...) { 
-  unlist(c(lapply(fixef(object),
-                  function(x) x$value),
-           ranef(object)))
+  ans <- 
+    rbind(
+      splat(rbind)(lapply(object$fixed, splat(rbind))),
+      splat(rbind)(lapply(object$ranef, splat(rbind)))
+    )
+
+  return(structure(ans[, "value"], names = rownames(ans)))
 }
 
 #' @export
@@ -584,8 +588,7 @@ fitted.remlf90 <- function (object, ...) {
   
   mml <- model.matrix(object)
   
-  vall <- c(lapply(fixef(object), function(x) x$value),
-            ranef(object))
+  vall <- c(fixef(object), ranef(object))
   
   ## Match order
   stopifnot(setequal(names(mml), names(vall)))
@@ -649,7 +652,9 @@ fitted.remlf90 <- function (object, ...) {
 #' @export fixef
 #' @export
 fixef.remlf90 <- function (object, ...) {
-      object$fixed
+  ans <- get_estimates(object$fixed)
+  class(ans) <- 'breedR_estimates'
+  return(ans)
 }
 
 
@@ -828,10 +833,10 @@ plot.ranef.breedR <- function(x, y, ...) {
   } else message('No suitable random effects to plot')
 }
 
-#' @method print ranef.breedR
+#' @method print breedR_estimates
 # @describeIn ranef
 #' @export
-print.ranef.breedR <- function(x, ...) {
+print.breedR_estimates <- function(x, ...) {
   attr2df <- function(x) {
     data.frame(value = x, `s.e.` = attr(x, 'se'))
   }
@@ -865,9 +870,9 @@ print.ranef.breedR <- function(x, ...) {
 #' @param object a fitted models with random effects of class 
 #'   \code{\link{remlf90}}.
 #' @param ... not used
-#' @return An object of class \code{ranef.breedR} composed of a list of vectors,
-#'   one for each random effect. The length of the vectors are the number of
-#'   levels of the corresponding random effect.
+#' @return An object of class \code{ranef.breedR} composed of a list of vectors 
+#'   or matrices (multitrait case), one for each random effect. The length of
+#'   the vectors are the number of levels of the corresponding random effect.
 #'   
 #'   Each random effect has an attribute called \code{"se"} which is a vector 
 #'   with the standard errors.
@@ -890,48 +895,35 @@ print.ranef.breedR <- function(x, ...) {
 #' @export ranef
 #' @export
 ranef.remlf90 <- function (object, ...) {
-  
-  ## List of random effects
-  ranef <- object$ranef
-  
+
   ## ranef() will provide the model's random effects
   ## and further methods will let the user compute their 'projection'
   ## onto observed individuals (fit) or predict over unobserved individuals (pred)
-  ans <- list()
-
-  ## Genetic component
+  
+  ans <- get_estimates(object$ranef)
+  
+  ## Additional attributes
+  
+  ## Genetic component: names of individuals
   if( object$components$pedigree ){
     
     # Indices (in ranef) of genetic-related effects (direct and/or competition)
-    gen.idx <- grep('genetic', names(ranef))
+    gen.idx <- grep('genetic', names(ans))
     nm <- get_pedigree(object)@label
-    gl <- lapply(ranef[gen.idx], function(x) structure(x$value,
-                                                       se = x$s.e.,
-                                                       names = nm))
-    ranef <- ranef[-gen.idx]
-    ans <- c(ans, gl)
-  }
-  
-  ## Spatial component
-  if ( object$components$spatial ) {
     
-    ans$spatial <- with(ranef$spatial,
-                        structure(value, se = s.e.))
-    ranef$spatial <- NULL
+    for (k in gen.idx) attr(ans[[k]], 'names') <- nm
+    
   }
-  
   
   ## Other random effects with no particular treatment
-  other.ranef <- lapply(ranef,
-                        function(x) structure(x$value,
-                                              se = x$s.e.))
-  for(x in names(other.ranef)) {
-    attr(other.ranef[[x]], 'names') <- 
+  idx <- grep('genetic|spatial', names(ans), invert = TRUE)
+  
+  for(x in names(ans[idx])) {
+    attr(ans[[x]], 'names') <- 
       colnames(attr(model.matrix(object)$random[[x]], 'contrasts'))
   }
   
-  ans <- c(ans, other.ranef)
-  class(ans) <- 'ranef.breedR'
+  class(ans) <- c('ranef.breedR', 'breedR_estimates')
   return(ans)
 }
 

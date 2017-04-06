@@ -121,7 +121,7 @@ check.result <- function(m, datlabel, debug.plot = FALSE) {
   })
   
   if( !inherits(m$res, 'try-error') ){
-    fit.s <- fixef(m$res)$Intercept$value +
+    fit.s <- fixef(m$res)$Intercept +
       model.matrix(m$res)$spatial %*% ranef(m$res)$spatial
     if(debug.plot) {
       print(qplot(as.vector(m$dat$true.s), fit.s) +
@@ -135,10 +135,10 @@ check.result <- function(m, datlabel, debug.plot = FALSE) {
     })
     
     # Estimate of the linear coefficient
-    beta.e <- beta - fixef(m$res)$z$value
+    beta.e <- beta - fixef(m$res)$z
     test_that(paste("The linear coefficient is estimated within 3 se for dataset",
               datlabel, "and method", m$method), {
-      expect_that(abs(beta.e), is_less_than(3*fixef(m$res)$z$s.e.))
+      expect_that(abs(beta.e), is_less_than(3*attr(fixef(m$res)$z, "se")))
     })
   }
 }
@@ -221,8 +221,8 @@ test_that("the user can specify a full or partial grid of combinations", {
 
 
 
+#### Context: Extraction of results from spatial AR model ####
 context("Extraction of results from spatial AR model")
-########################
 
 data(m1)
 dat <- as.data.frame(m1)
@@ -275,14 +275,16 @@ test_that("fitted() gets a vector of length N", {
   expect_equal(length(fitted(res)), n.obs)
 })
 
-test_that("fixef() gets a named list of data.frames with estimated values and s.e.", {
+test_that("fixef() gets a named list of numeric vectors with estimated values and s.e.", {
   x <- fixef(res)
-  expect_is(x, 'list')
+  expect_is(x, 'breedR_estimates')
   expect_named(x)
   expect_equal(length(x), n.fixed)
   for (f in x) {
-    expect_is(f, 'data.frame')
-    expect_named(f, c('value', 's.e.'))
+    expect_is(f, 'numeric')
+    expect_false(is.null(fse <- attr(f, 'se')))
+    expect_is(fse, 'numeric')
+    expect_equal(length(fse), length(f))
   }
 })
 

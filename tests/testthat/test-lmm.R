@@ -67,7 +67,7 @@ run_expectations <- function(m, data = dat, method) {
                 equals(lm.beta, check.attributes = FALSE))
     
     # equal standard errors (with more tolerance)
-    pf90.se <- drop(unlist(sapply(fixef(res[[1]]), function(x) x$'s.e.')))
+    pf90.se <- drop(sapply(fixef(res[[1]]), attr, "se"))
     lm.se   <- coef(summary(res[[2]]))[, 'Std. Error']
     expect_that(pf90.se,
                 equals(lm.se, check.attributes = FALSE, tolerance = 1e-05))
@@ -203,7 +203,7 @@ run_lmmexpectations <- function(m, data = dat, method, tol = 1e-03) {
   lmm.fitted   <- fitted(res[[2]])
   expect_that(pf90.fitted, 
               equals(lmm.fitted, check.attributes = FALSE, tolerance = tol))
-  qplot(pf90.fitted, lmm.fitted) + geom_abline(intercept = 0, slope = 1)
+  # qplot(pf90.fitted, lmm.fitted) + geom_abline(intercept = 0, slope = 1)
 }
 
 # Run character conversion test for each method

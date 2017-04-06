@@ -1,6 +1,6 @@
 
+#### Context: Blocks infrastructure ####
 context("Blocks infrastructure")
-########################
 
 test_that("breedr_blocks() constructor gives a list with 5 elements of correct sizes", {
   x.loc <- 1:100
@@ -27,8 +27,8 @@ test_that("breedr_blocks() constructor gives a list with 5 elements of correct s
 })
 
 
+#### Context: Extraction of results from spatial blocks model ####
 context("Extraction of results from spatial blocks model")
-########################
 
 data(globulus)
 dat <- globulus
@@ -82,14 +82,16 @@ test_that("fitted() gets a vector of length N", {
   expect_equal(length(fitted(res)), n.obs)
 })
 
-test_that("fixef() gets a named list of data.frames with estimated values and s.e.", {
+test_that("fixef() gets a named list of numeric vectors with estimated values and s.e.", {
   x <- fixef(res)
-  expect_is(x, 'list')
+  expect_is(x, 'breedR_estimates')
   expect_named(x)
   expect_equal(length(x), n.fixed)
   for (f in x) {
-    expect_is(f, 'data.frame')
-    expect_named(f, c('value', 's.e.'))
+    expect_is(f, 'numeric')
+    expect_false(is.null(fse <- attr(f, 'se')))
+    expect_is(fse, 'numeric')
+    expect_equal(length(fse), length(f))
   }
 })
 
