@@ -339,18 +339,6 @@ write.progsf90 <- function (pf90, dir) {
 # Parse results from a progsf90 'solutions' file
 parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
 
-  ## Parse a matrix from a text output
-  parse.txtmat <- function(v, names) {
-    # get the numeric values from the strings, spliting by spaces
-    ans <- sapply(v, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
-    # ensure matrix even if only a number
-    ans <- as.matrix(ans)
-    # if no sub-names passed, remove all naming
-    if( is.null(names) ) names(ans) <- dimnames(ans) <- NULL
-    # otherwise, put the given names in both dimensions (covariance matrix)
-    else dimnames(ans) <- list(names, names)
-    ans
-  }
   
   ## Parse the AI matrix from AIREML output
   parse_invAI <- function(x) {
@@ -358,7 +346,8 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     idx <- grep('inverse of AI matrix', x)
     stopifnot(length(idx) == 2)
     mat.txt <- x[(idx[1]+1):(idx[2]-1)]
-    invAI <- parse.txtmat(mat.txt, rownames(varcomp))
+    
+    invAI <- parse.txtmat(mat.txt)
     return(invAI)
   }
 
@@ -732,4 +721,63 @@ pf90_default_heritability <- function (rglist, quiet = FALSE) {
   }
   
   return(option.str)
+}
+
+
+#' Parse a matrix from a text output robustly
+#' 
+#' Each row of the matrix is a string. If rows are too long, they can continue
+#' in another line. Hence, the number of lines might be a multiple of the number
+#' of columns
+#' 
+#' @param x A character vector with space-separated numbers
+#' @param names A character vector with row and column names for the output matrix.
+#' @param square logical. Whether to assume that the matrix is square.
+#' 
+#' If the matrix is not necessarily
+parse.txtmat <- function(v, names = NULL, square = TRUE) {
+  ## numeric values from the strings, spliting by spaces
+  ans <- unname(
+    lapply(v, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
+  )
+  
+  ## concatenate rows in groups of p
+  fix_rows <- function(x, p) {
+    grp <- split(x, rep(seq_len(length(x)/p), each = p))
+    return(unname(lapply(grp, unlist)))
+  }
+
+  row_lengths <- sapply(ans, length)
+  nonzero_drl <- diff(row_lengths) != 0L
+
+  ## Handle potential line wrapping
+  if( any(nonzero_drl) ) {
+    ## row-lengths not constant: e.g. drl = 10 10 2 10 10 2 ...
+    ## concatenate lines by period
+    period <- head(which(nonzero_drl), 1) + 1
+    ans <- fix_rows(ans, period)
+    
+    ## row lengths should be constant by now
+    row_lengths <- sapply(ans, length)
+    nonzero_drl <- diff(row_lengths) != 0L
+    stopifnot(!any(nonzero_drl))
+  }
+  
+  if ( square && (m <- length(ans)) != (n <- row_lengths[1]) ) {
+    ## square matrix not square
+    ## check rows are multiple of cols
+    if (m %% n != 0) stop("Could not figure out square matrix dimensions.")
+    period <- m %/% n
+    ans <- fix_rows(ans, period)
+  }
+  
+  ## ensure matrix even if only a number
+  ans <- as.matrix(simplify2array(ans))
+  
+  ## if no sub-names passed, remove all naming
+  if( is.null(names) ) names(ans) <- dimnames(ans) <- NULL
+  # otherwise, put the given names in both dimensions (covariance matrix)
+  else dimnames(ans) <- list(names, names)
+  
+  return(ans)
 }

@@ -93,7 +93,8 @@ test_that('AI-remlf90() returns heritability and inverse AI matrix', {
   expect_output(print(summary(res)), "Heritability")
   
   # reported SE are consistent with AI matrix
-  expect_equal(res$var[, 'S.E.'], sqrt(diag(res$reml$invAI)), tol = 1e-04)
+  expect_equal(res$var[, 'S.E.'], sqrt(diag(res$reml$invAI)),
+               tol = 1e-04, check.attributes = FALSE)
   
 })
 
