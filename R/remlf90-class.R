@@ -599,12 +599,13 @@ fitted.remlf90 <- function (object, ...) {
   }
 
   ## Multiply component-wise
-  comp.mat <- mapply(silent.matmult.drop, mml, vall,
-                     SIMPLIFY = TRUE)
+  ## dimensions: observation; trait (if ntraits > 1); effect
+  comp.mat <- mapply(silent.matmult.drop, mml, vall, SIMPLIFY = 'array')
   
   
   # Linear Predictor / Fitted Values
-  eta <- rowSums(comp.mat)
+  ndim <- length(dim(comp.mat))
+  eta <- rowSums(comp.mat, dims = ndim - 1)
 
   
   #   fixed.part <- model.matrix(object)$fixed %*%
