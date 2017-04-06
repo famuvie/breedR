@@ -147,3 +147,72 @@ splat <- function (flat) {
     do.call(flat, c(args, list(...)))
   }
 }
+
+# given a list of data.frames, extract a given column
+# from each of the data.frames into a matrix.
+# Optionally drop into a vector if dimension = 1.
+# Used in ranef.remlf90 and fixef.remlf90 to extract
+# trait-wise predictions of effects
+ldf2matrix <- function(x, vname, drop = TRUE) {
+  ans <- sapply(x, `[[`, vname)
+  if (drop) ans <- drop(ans)
+  return(ans)
+}
+
+
+# Extract values and standard errors from lists
+# of effects estimates (or predictions)
+# x is a list of effects, where each element is a trait-wise
+# list of data.frames with columns 'value' and 's.e.'
+get_estimates <- function(x) {
+  values <- lapply(x, ldf2matrix, 'value')
+  se <- lapply(x, ldf2matrix, 's.e.')
+  ans <- mapply(function(gvl, gse) structure(gvl, se = gse),
+                values, se, SIMPLIFY = FALSE)
+  return(ans)
+}
+
+# combine sub-effect names and trait names
+# trait names within sub-effect names
+# bl1 bl2 bl3 + y1 y2 = bl1.y1 bl1.y2 bl2.y1 bl2.y2 bl3.y1 bl3.y2
+# names_effect(paste0("bl", 1:3), paste0("y", 1:2))
+# "bl1.y1" "bl1.y2" "bl2.y1" "bl2.y2" "bl3.y1" "bl3.y2"
+# names_effect(paste0("bl", 1:3), NULL)
+# "bl1" "bl2" "bl3"
+# names_effect(NULL, paste0("y", 1:2))
+# "y1" "y2"
+# names_effect(NULL, NULL)
+# NULL
+names_effect <- function(inner = NULL, outer = NULL) {
+
+  ans <- inner
+  if (length(outer) > 1) {
+    if (!is.null(inner)) {
+      ans <- apply(
+        expand.grid(
+          outer, inner,
+          KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
+        )[2:1],
+        1, paste, collapse = "."
+      )
+    } else {
+      ans <- outer
+    }
+  }
+  return(ans)
+}
+
+
+## component names
+vcnames <- function(efname, efdim, trnames = trait_names) {
+  
+  dim_subtrait <- efdim/ifelse(is.null(trnames), 1, length(trnames))
+  if (dim_subtrait > 1) 
+    efname <- paste(efname, seq_len(dim_subtrait), sep = "_")
+  diag_names <- names_effect(efname, trnames)
+  
+  ## matrix components include variances and covariances
+  ans <- outer(diag_names, diag_names, paste, sep = "_")
+  diag(ans) <- diag_names
+  return(ans[upper.tri(ans, diag = TRUE)])
+}

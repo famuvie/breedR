@@ -376,7 +376,14 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     if (N > 0L) colnames(ans) <- labels
     return(ans)
   }
-                              
+
+  
+  ## Number and names of traits
+  ntraits <- as.numeric(tail(unlist(strsplit(
+    grep("Number of Traits", reml.out, value = TRUE),
+    ' +')), 1))
+  trait_names <- colnames(model.response(mf))  # NULL for 1 trait
+  
   # Parsing the results
   sol.file <- try(read.table(solfile, header=FALSE, skip=1))
   if( inherits(sol.file, 'try-error') ) {
@@ -405,9 +412,22 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   }
   colnames(sol.file) <- c('trait', 'effect', 'level', 'value', 's.e.')
   
-  # Assuming one trait only
-  result <- split(sol.file[, c('value', 's.e.')], sol.file$effect)
+  # trait < level < effect
+  split_by <- function(x, var) {
+    col.id <- match(var, names(x))
+    split(x[, -col.id], x[[col.id]])
+  }
+  result_by_effect <- split_by(sol.file[, -3], 'effect')
+  result <- lapply(result_by_effect, split_by, 'trait')
+
+  # Name the results according to effects
+  # Effects can be grouped (e.g. competition) and account for correlated
+  # effects
+  names(result) <- get_efnames(effects)
   
+  # Name traits within effects
+  result <- lapply(result, structure, names = trait_names)
+
   # Different results can be associated to a single (group) effect
   effect.size <- vapply(effects, dim, numeric(2))["size", ]
 
@@ -419,12 +439,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     unlist(sapply(seq_along(effects),
                   function(idx) rep(idx, effect.size[idx])))
     
-  # Name the results according to effects
-  # Effects can be grouped (e.g. competition) and account for correlated
-  # effects
-  
-  names(result) <- get_efnames(effects)
-  
   # Identify factors in model terms
   mt <- attr(mf, 'terms')
   isF <- sapply(attr(mt, 'dataClasses'), 
@@ -435,37 +449,18 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   isSpatial <- exists('spatial', effects)
   
   # write labels for factor levels in results
-  for( x in names(isF)[which(isF)] )
-    rownames(result[[x]]) <- levels(mf[[x]])
+  for (x in names(isF)[which(isF)] ) {
+    for (trait in seq_len(ntraits)) {
+      rownames(result[[x]][[trait]]) <- levels(mf[[x]])
+    }
+  }
   
   # Random and Fixed effects indices with respect to the 'effects' list
   effect.type <- vapply(effects, effect_type, '')
   
-#   fixed.effects.idx <- which(effect.type == 'fixed')
-#   diagonal.effects.idx <- sapply(effects,
-#                                  function(x) identical(x$model, 'diagonal'))
-#   special.effects.idx <- !(fixed.effects.idx | diagonal.effects.idx)
-#   random.effects.idx <- diagonal.effects.idx | special.effects.idx
-  
 
-  
   # Random effects coefficients
   ranef <- result[result_effect.map %in% which(effect.type == 'random')]
-
-#   # Build up the model matrix *for the fixed and random terms*
-#   # with one dummy variable per level of factors
-#   # as progsf90 takes care of everything
-#   # I need to provide each factor with an identity matrix
-#   # as its 'contrasts' attribute
-#   diagonal_contrasts <- function(x) {
-#     ctr <- diag(nlevels(x))
-#     colnames(ctr) <- levels(x)
-#     attr(x, 'contrasts') <- ctr
-#     x
-#   }
-#   mf[isF] <- lapply(mf[isF], diagonal_contrasts)
-#   mm <- model.matrix(mt, mf) 
-#   
 
   # REML info
   # TODO: 'delta convergence' only for AI-REML?
@@ -479,9 +474,16 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   # Maximum number of iterations
   # (Hardcoded in REML and AIREML)
   max.it <- 5000
+
+  ## Dimension of random effects
+  rangroup.sizes <- c(effect.size[effect.type == 'random'],
+                      resid = 1)*ntraits
+
+  ## index of variance component results
+  varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
   
   # Variance components
-  if( identical(last.round[1], max.it) ) {
+  if (identical(last.round[1], max.it)) {
     warning('The algorithm did not converge')
     varcomp <- cbind('Estimated variances' = rep(NA, sum(effect.type == 'random') + 1L))
     rownames(varcomp) <- c(names(effects)[effect.type == 'random'], 'Residual')
@@ -489,32 +491,29 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     # Variance components
     sd.label <- ifelse(TRUE, 'SE', 'S.D.')
     
-    varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
     # There should be one variance for each random effect plus one resid. var.
     stopifnot(identical(length(varcomp.idx), sum(effect.type == 'random') + 1L))
 
-    rangroup.sizes <- c(effect.size[effect.type == 'random'],
-                        resid = 1)
-
-    if( all(rangroup.sizes == 1) ){
+    if (all(rangroup.sizes == 1)){
       varcomp <- cbind('Estimated variances' = as.numeric(reml.out[varcomp.idx]))
       rownames(varcomp) <- c(names(effects)[effect.type == 'random'], 'Residual')
     } else {
       varcomp.str <- lapply(mapply(function(x, y) x + 1:y,
                                    varcomp.idx-1,
-                                   rangroup.sizes),
+                                   rangroup.sizes,
+                                   SIMPLIFY = FALSE),
                             function(x) reml.out[x])
 
       # names for the members of a group (if more than one)
       get_subnames <- function(name) {
         if (name %in% names(rangroup.sizes) &&
-            rangroup.sizes[name] > 1) {
+            rangroup.sizes[name] > ntraits) {
           sn <- names(effects[[name]]$effects)
         } else sn <- NULL
       }
       
       subnames <- sapply(names(rangroup.sizes), get_subnames)
-      varcomp <- mapply(parse.txtmat, varcomp.str, subnames)
+      varcomp <- mapply(parse.txtmat, varcomp.str, subnames, SIMPLIFY = FALSE)
       names(varcomp) <- c(names(effects)[effect.type == 'random'], 'Residual')
     }
     
@@ -524,15 +523,18 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       # There should be one variance for each random effect plus one resid. var.
       stopifnot(identical(length(varcomp.idx), sum(effect.type == 'random') + 1L))
       
-      if( all(rangroup.sizes == 1) ){
+      if (all(rangroup.sizes == 1)){
         varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
       } else {
         varsd.str <- lapply(mapply(function(x, y) x + 1:y,
                                    varsd.idx-1,
-                                   rangroup.sizes),
+                                   rangroup.sizes,
+                                   SIMPLIFY = FALSE),
                             function(x) reml.out[x])
-        varsd <- mapply(parse.txtmat, varsd.str, subnames)
+        varsd <- mapply(parse.txtmat, varsd.str, subnames, SIMPLIFY = FALSE)
         names(varsd) <- c(names(effects)[effect.type == 'random'], 'Residual')
+        varcomp <- cbind("Estimated variances" = varcomp,
+                         "S.E." = varsd)
       }
     }
   }
@@ -546,7 +548,16 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                                      split='delta convergence=')[[1]][2]),
     output = reml.out
   )
-  if (method == 'ai') reml$invAI <- parse_invAI(reml.out)
+  
+  ## AI matrix
+  if (method == 'ai') {
+
+    comp_names <- unlist(
+      mapply(vcnames, names(rangroup.sizes), rangroup.sizes,
+             MoreArgs = list(trnames = trait_names), SIMPLIFY = FALSE))
+    reml$invAI <- parse_invAI(reml.out)
+    dimnames(reml$invAI) <- list(comp_names, comp_names)
+  }
 
   # Fit info
   last.fit <- as.numeric(strsplit(strsplit(reml.out[last.round.idx-1],
@@ -557,14 +568,11 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     AIC = last.fit[2]
   )
 
-  # TODO: Add inbreeding coefficient for each tree (in the pedigree) (use pedigreemm::inbreeding())
-  #       Include the matrix A of additive relationships (as sparse. Use pedigreemm::getA)
-  #       Compute covariances estimates for multiple traits (and their standard errors)
   ans <- list(
     call = mcout,
     method = method,
     components = list(pedigree = isGenetic,
-                      spatial  = isSpatial), # TODO competition, ...
+                      spatial  = isSpatial),
     effects = effects,
     mf = mf,
     fixed = result[result_effect.map %in% which(effect.type == 'fixed')],
@@ -781,3 +789,4 @@ parse.txtmat <- function(v, names = NULL, square = TRUE) {
   
   return(ans)
 }
+
