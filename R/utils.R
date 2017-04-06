@@ -138,3 +138,12 @@ matrix.short16 <- function(M) {
                         x = x[-rm.idx])
   return(Z)
 }
+
+#' 'Splat' arguments to a function
+#' 
+#' Borrowed from \code{\link[plyr]{splat}}
+splat <- function (flat) {
+  function(args, ...) {
+    do.call(flat, c(args, list(...)))
+  }
+}
