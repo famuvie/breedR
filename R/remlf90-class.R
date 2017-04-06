@@ -1011,22 +1011,21 @@ summary.remlf90 <- function(object, ...) {
     return(breedR.qstat(object))
   } 
   
-  ans <- object
-  
   # Literal description of the model
-  effects <- paste(names(ans$components), sep=' and ')
+  effects <- paste(names(object$components), sep=' and ')
   title <- paste('Linear Mixed Model with', 
                  paste(effects, collapse = ' and '), 
                  ifelse(length(effects)==1, 'effect', 'effects'), 
                  'fit by', object$reml$version)
   
   # Formula
-  fml <- deparse(attr(object$mf, 'terms'))
+  fml.spec <- names(object$components)[unlist(object$components)]
+  fml <- paste(c(deparse(attr(object$mf, 'terms')), fml.spec),
+               collapse = ' + ')
   
   # Coefficients
-  # TODO: How to compute Standard errors (and therefore t scores and p-values)
   # TODO: How to avoid showing the unused levels
-  coef <- do.call(rbind, object$fixed)
+  coef <- splat(rbind)(lapply(object$fixed, splat(rbind)))
 #   colnames(coef) <- c('Estimate')
   
   # Model fit measures
@@ -1041,7 +1040,7 @@ summary.remlf90 <- function(object, ...) {
 #TODO                          deviance = dev[["ML"]],
 #                          REMLdev = dev[["REML"]],
                          row.names = "")
-  ans <- c(ans, 
+  ans <- c(object, 
            model.description = title, 
            formula = fml,
            model.fit = list(AICframe),
@@ -1097,8 +1096,8 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
                                   correlation = TRUE, symbolic.cor = FALSE,
                                   signif.stars = getOption("show.signif.stars"), ...) {
   
-  cat(x$model.description, '\n')
-  if(!is.null(x$call$formula))
+  # cat(x$model.description, '\n')
+  if(!is.null(x$formula))
     cat("Formula:", x$formula,"\n")
   if(!is.null(x$call$data))
     cat("   Data:", deparse(x$call$data),"\n")
@@ -1106,16 +1105,18 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
     cat(" Subset:", x$call$subset,"\n")
   print(x$model.fit, digits = digits)
 
-  cat("\nParameters of special components:\n")  
   parl <- get_param.remlf90(x)
-  for (i in seq_along(parl)) {
-    for (j in seq_along(parl[[i]])) {
-      comp.nm <- ifelse(j==1,
-                        paste0(names(parl)[i], ':'),
-                        paste(character(nchar(names(parl)[i]) + 1),
-                        collapse = ''))
-      model.nm <- paste0(names(parl[[i]])[j], ':')
-      cat(comp.nm, model.nm, parl[[i]][[j]])
+  if (!is.null(parl)){
+    cat("\nParameters of special components:\n")  
+    for (i in seq_along(parl)) {
+      for (j in seq_along(parl[[i]])) {
+        comp.nm <- ifelse(j==1,
+                          paste0(names(parl)[i], ':'),
+                          paste(character(nchar(names(parl)[i]) + 1),
+                                collapse = ''))
+        model.nm <- paste0(names(parl[[i]])[j], ':')
+        cat(comp.nm, model.nm, parl[[i]][[j]])
+      }
     }
   }
   cat("\n")
