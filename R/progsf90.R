@@ -506,13 +506,12 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
 
       # names for the members of a group (if more than one)
       get_subnames <- function(name) {
-        if (name %in% names(rangroup.sizes) &&
-            rangroup.sizes[name] > ntraits) {
-          sn <- names(effects[[name]]$effects)
-        } else sn <- NULL
+        ## effect sub-names (or NULL)
+        esn <- names(effects[[name]]$effects)
+        names_effect(esn, trait_names)
       }
       
-      subnames <- sapply(names(rangroup.sizes), get_subnames)
+      subnames <- lapply(names(rangroup.sizes), get_subnames)
       varcomp <- mapply(parse.txtmat, varcomp.str, subnames, SIMPLIFY = FALSE)
       names(varcomp) <- c(names(effects)[effect.type == 'random'], 'Residual')
     }
