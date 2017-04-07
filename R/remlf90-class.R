@@ -1041,6 +1041,30 @@ summary.remlf90 <- function(object, ...) {
 #TODO                          deviance = dev[["ML"]],
 #                          REMLdev = dev[["REML"]],
                          row.names = "")
+  
+  ## Variance components
+  ## Either a numeric matrix (1 trait)  - !is.list
+  ## or a matrix of matrices (>1 trait) - is.list && is.matrix
+  ## or a list of matrices (>1 trait, em: no SE) - !is.matrix
+  if (is.list(object$var) && is.matrix(object$var)) {
+    ## multiple-trait case: a 2-col (est; SE) matrix of covariance matrices
+    ## transform a list of 2 cov-matrices (est; SE) into a 2-col data frame
+    ## with properly named estimates
+    lmat2df <- function(x, nm) {
+        data.frame(
+          lapply(x, `[`, lower.tri(x[[1]], diag = TRUE)),
+          row.names =  vcnames(nm, nrow(x[[1]]), trnames = rownames(x[[1]])),
+          check.names = FALSE
+        )
+    }
+    varnm_df <- function(x, nm) lmat2df(object$var[nm, ], nm)
+    
+    ## list of data-frames with variance estimates and SE
+    var_ldf <- lapply(rownames(object$var), varnm_df, x = object$var)
+    
+    object$var <- splat(rbind)(var_ldf)
+  }
+  
   ans <- c(object, 
            model.description = title, 
            formula = fml,
