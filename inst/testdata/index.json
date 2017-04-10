@@ -1,0 +1,45 @@
+[
+	{
+		"file_name": "airemlf90_log_1.txt",
+		"program": "AIREMLF90",
+		"data_type": "log",
+		"n_traits": 2,
+		"n_effects": 2,
+		"n_parameters": 3,
+		"n_records": 1000,
+		"n_random_effects": 0,
+		"matrix_size": 102,
+		"matrix_rank": 102,
+		"n_rounds": 8,
+		"converged": "TRUE"		
+	},
+	{
+		"file_name": "airemlf90_log_2.txt",
+		"program": "AIREMLF90",
+		"data_type": "log",
+		"n_traits": 2,
+		"n_effects": 2,
+		"n_parameters": 6,
+		"n_records": 1000,
+		"n_random_effects": 1,
+		"matrix_size": 102,
+		"matrix_rank": 102,
+		"n_rounds": 9,
+		"converged": "TRUE"		
+	},
+	{
+		"file_name": "airemlf90_log_3.txt",
+		"program": "AIREMLF90",
+		"data_type": "log",
+		"n_traits": 2,
+		"n_effects": 3,
+		"n_parameters": 12,
+		"n_records": 1000,
+		"n_random_effects": 3,
+		"matrix_size": 6454,
+		"matrix_rank": 6454,
+		"n_rounds": 18,
+		"converged": "TRUE",
+		"notes": "parse invAI matrix difficult: matrix lines are wrapped"
+	}
+]

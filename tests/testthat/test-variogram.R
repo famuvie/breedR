@@ -31,6 +31,7 @@ truecov.iso <- function(x, par) {
 # lines(x, yc)
 
 # Simulated data
+set.seed(1234)
 truepar <- list(n = 1, s = 5, r = 20)
 coord <- expand.grid(x = 0:49, y = 0:49)
 D <- dist(coord)
@@ -52,6 +53,8 @@ res <- transform(empvar$isotropic,
 #      lines(distance, truev, col ='red')})
 
 test_that("The isotropic empirical variograms are well computed", {
+  # qplot(as.numeric(res$variogram), res$truev) +
+  #   geom_abline(intercept = 0, slope = 1)
   expect_equal(as.numeric(res$variogram), res$truev, tolerance = .2)
 })
 

@@ -123,7 +123,9 @@ test_that("airemlf90() estimates matches lm()'s using AI", {
 
 #### Context: Linear Mixed Models ####
 context("Linear Mixed Models") 
-require(lme4)
+suppressPackageStartupMessages(
+  require(lme4)
+)
 
 # Re-use lm_models terms as fixed and the available
 # factors as random

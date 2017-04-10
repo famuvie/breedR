@@ -4,7 +4,7 @@
 # In particular, check that the intercept attribute is always set to zero,
 # and it is manually introduced in the model frame when necessary
 
-context("Model Frame")
+context("Model Frame infrastructure")
 
 data <- transform(as.data.frame(m1),
                   mum2 = mum,
@@ -35,7 +35,7 @@ mlst <- unlist(lapply(fxdlst,
 
 # Function that runs checks to each model spec
 run_expectations <- function(m) {
-  fc <- call('remlf90',
+  fc <- call('remlf90',   # call only, no eval
              fixed  = m$fxd,
              random = m$rnd,
              data   = quote(as.data.frame(m1)))
@@ -134,7 +134,7 @@ x2 <- list(inc = matrix(1:8,1600,2), pre = diag(2), var.ini = 4)
 x <- list (a = x1, b = x2)
 grc_spec <- check_generic(x, response = data$phe_X)
 
-fc <- call('remlf90',
+fc <- call('remlf90',   # call only, no eval
            fixed  = m$fxd,
            random = m$rnd,
            genetic = gen_spec,

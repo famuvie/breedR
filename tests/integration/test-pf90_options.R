@@ -1,4 +1,6 @@
-require(spam)
+suppressPackageStartupMessages(
+  require(spam)
+)
 
 ### Test the interface to PROGSF90 OPTIONS ###
 
