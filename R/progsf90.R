@@ -685,20 +685,28 @@ pf90_code_missing <- function(x) {
 #' Default formula for heritability
 #' 
 #' If all random effects are independent, computes a default formula in PROGSF90
-#' notation by dividing the genetic variance by the sum of all variance components plus the residual variance.
+#' notation by dividing the genetic variance by the sum of all variance
+#' components plus the residual variance.
 #' 
-#' Assumes only one trait.
+#' @return A character vector with one option specification per trait.
 #' 
-#' @param rglist list of random groups in the parameters of a \code{\link{progsf90}} object
-#' 
+#' @param rglist list of random groups in the parameters of a
+#'   \code{\link{progsf90}} object
+#' @param traits A character vector with trait names, or NULL for single trait.
+#' @param quiet logical. Whether to display user messages.
+#'   
 #' @references 
 #'    http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
-pf90_default_heritability <- function (rglist, quiet = FALSE) {
+pf90_default_heritability <- function (rglist, traits = NULL, quiet = FALSE) {
   
   stopifnot(is.list(rglist))
   
   ## Positions of random effects in the list of random groups
   ranef.idx <- sapply(rglist, function(x) x$pos)
+  
+  ## trait indices
+  tr_idx <- seq_along(traits)
+  if (is.null(traits)) tr_idx <- 1
   
   if (length(rglist) > 0 &&                       # there is at least one group
       all(vapply(ranef.idx, length, 1) == 1) &&   # all of them of size 1
@@ -706,19 +714,24 @@ pf90_default_heritability <- function (rglist, quiet = FALSE) {
     
     ## Compose a formula term for the variance of random effect x
     ## trait # is 1. vector-friendly
-    fterm <- function(x) paste('G', x, x, '1', '1', sep = '_')
+    fterm <- function(x) paste('G', x, x, tr_idx, tr_idx, sep = '_')
     
     ## Additive-genetic variance in the numerator
     ## (Potentially more than one)
     numerator <- fterm(ranef.idx[['genetic']])
     
     ## All variance estimates plus residual variance in the denominator
-    denom <- paste(c(sapply(ranef.idx, fterm), paste('R', '1', '1', sep = '_')),
-                   collapse = '+')
+    trait_component <- cbind(
+      matrix(sapply(ranef.idx, fterm), ncol = length(ranef.idx)),
+      paste('R', tr_idx, tr_idx, sep = '_')
+    )
+    denom <- apply(trait_component, 1, paste, collapse = '+')
     
     H2fml <- paste0(numerator, "/(", denom, ")")
     
-    option.str <- paste('se_covar_function', 'Heritability', H2fml)
+    H2lbl <- "Heritability"
+    if (!is.null(traits)) H2lbl <- paste(H2lbl, traits, sep = ":")
+    option.str <- paste('se_covar_function', H2lbl, H2fml)
     
   } else {
     

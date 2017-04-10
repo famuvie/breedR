@@ -457,13 +457,13 @@ remlf90 <- function(fixed,
                    opt = union('sol se', progsf90.options), 
                    res.var.ini = var.ini$residuals)
   
-  
   if (!is.null(genetic) && method == 'ai') {
     ## Compute default heritability if possible
     ## add and additional PROGSF90 OPTION
+    trait_names <- colnames(model.response(mf))  # NULL for 1 trait
     pf90$parameter$options <- 
       c(pf90$parameter$options, 
-        pf90_default_heritability(pf90$parameter$rangroup))
+        pf90_default_heritability(pf90$parameter$rangroup, trait_names))
   }
   
   # Temporary dir

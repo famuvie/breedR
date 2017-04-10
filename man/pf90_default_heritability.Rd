@@ -4,17 +4,23 @@
 \alias{pf90_default_heritability}
 \title{Default formula for heritability}
 \usage{
-pf90_default_heritability(rglist, quiet = FALSE)
+pf90_default_heritability(rglist, traits = NULL, quiet = FALSE)
 }
 \arguments{
-\item{rglist}{list of random groups in the parameters of a \code{\link{progsf90}} object}
+\item{rglist}{list of random groups in the parameters of a
+\code{\link{progsf90}} object}
+
+\item{traits}{A character vector with trait names, or NULL for single trait.}
+
+\item{quiet}{logical. Whether to display user messages.}
+}
+\value{
+A character vector with one option specification per trait.
 }
 \description{
 If all random effects are independent, computes a default formula in PROGSF90
-notation by dividing the genetic variance by the sum of all variance components plus the residual variance.
-}
-\details{
-Assumes only one trait.
+notation by dividing the genetic variance by the sum of all variance
+components plus the residual variance.
 }
 \references{
 http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
