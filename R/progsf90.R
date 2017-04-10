@@ -366,7 +366,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                 names = c('mean', 'sample mean', 'sample sd'))
     }
     
-    pattern <- "^.*? SE for function of \\(co\\)variances (\\w+) .*$"
+    pattern <- "^.*? SE for function of \\(co\\)variances (\\S+) .*$"
     labels.idx <- grep(pattern, x)
     labels <- gsub(pattern, "\\1", x[labels.idx])
     idx <- grep('  - Function:', x)
