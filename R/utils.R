@@ -154,7 +154,10 @@ splat <- function (flat) {
 # Used in ranef.remlf90 and fixef.remlf90 to extract
 # trait-wise predictions of effects
 ldf2matrix <- function(x, vname, drop = TRUE) {
-  ans <- sapply(x, `[[`, vname)
+  ## All dataframes (ntraits) are of the same size (nlevels x (value, s.e.))
+  ## ensure a matrix, even if nlevels = 1
+  ans <- do.call(cbind, lapply(x, `[[`, vname))
+  rownames(ans) <- rownames(x[[1]])
   if (drop) ans <- drop(ans)
   return(ans)
 }
