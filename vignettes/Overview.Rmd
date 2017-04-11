@@ -1283,8 +1283,8 @@ The standard errors are given as attributes, and are displayed in tabular form
 whenever the object is printed.
 
 ```{r multitrait-fixef-ranef}
-fixef(res)       ## printed in tabular form
-str(fixef(res))  ## actually a matrix of estimates with attribute "se"
+fixef(res)       ## printed in tabular form, but...
+unclass(fixef(res))  ## actually a matrix of estimates with attribute "se"
 
 str(ranef(res))
 head(ranef(res)$genetic)
