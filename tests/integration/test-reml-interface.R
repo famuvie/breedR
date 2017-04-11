@@ -217,7 +217,6 @@ test_that("Multitrait model with all kind of effects works as expected", {
   
   fullrun <- function(method, opt = NULL) {
     try(
-      suppressMessages(
         remlf90(
           fixed   = cbind(LAS, DOS) ~ rep,
           random  = ~ bl,
@@ -233,7 +232,6 @@ test_that("Multitrait model with all kind of effects works as expected", {
           method = method,
           progsf90.options = opt
         )
-      )
     )
   }
   
@@ -255,8 +253,10 @@ test_that("Multitrait model with all kind of effects works as expected", {
   expect_identical(names(fixef(res_ai)), fixef_names)
   
   ## variance component estimates
+  ## em: a list -> names
+  ## ai: a matrix (effects x (estimate, se)) -> rownames
   expect_identical(names(res_em$var), c(ranef_names, "Residual"))
-  expect_identical(names(res_em$var), c(ranef_names, "Residual"))
+  expect_identical(rownames(res_ai$var), c(ranef_names, "Residual"))
   
   ## random effect blups
   expect_identical(names(ranef(res_em)), ranef_names)
