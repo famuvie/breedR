@@ -212,18 +212,56 @@ test_that("Simulated values reasonably recovered using one or more traits", {
 
 inc.mat <- model.matrix(~ 0 + bl, larix)
 cov.mat <- diag(nlevels(larix$bl))
-res <- remlf90(
-  fixed   = cbind(LAS, DOS) ~ rep,
-  # random  = ~ bl,
-  genetic = list(model = 'add_animal',
-                 pedigree = larix[, 1:3],
-                 id = 'self'),
-  spatial = list(model = 'AR',
-                 coordinates = larix[, c('x', 'y')],
-                 rho = c(.8, .8)),
-  # generic = list(block = list(inc.mat,
-  #                             cov.mat)),
-  data    = larix,
-  method = "ai"  ## TODO!!
-)
+
+test_that("Multitrait model with all kind of effects works as expected", {
+  
+  fullrun <- function(method, opt = NULL) {
+    try(
+      suppressMessages(
+        remlf90(
+          fixed   = cbind(LAS, DOS) ~ rep,
+          random  = ~ bl,
+          genetic = list(model = 'add_animal',
+                         pedigree = larix[, 1:3],
+                         id = 'self'),
+          spatial = list(model = 'AR',
+                         coordinates = larix[, c('x', 'y')],
+                         rho = c(.8, .8)),
+          generic = list(block = list(inc.mat,
+                                      cov.mat)),
+          data    = larix,
+          method = method,
+          progsf90.options = opt
+        )
+      )
+    )
+  }
+  
+  ## make things fast, as I am not looking at numerical results
+  res_ai <- fullrun("ai", opt = c("maxrounds 2"))
+  ## cannot use it with em as the logfile would not report final estimates
+  res_em <- fullrun("em")
+  
+  fixef_names <- "rep"
+  ranef_names <- c("bl", "genetic", "spatial", "block")
+  
+  
+  ## No errors
+  expect_false(inherits(res_em, "try-error"))
+  expect_false(inherits(res_ai, "try-error"))
+  
+  ## fixed effect estimates
+  expect_identical(names(fixef(res_em)), fixef_names)
+  expect_identical(names(fixef(res_ai)), fixef_names)
+  
+  ## variance component estimates
+  expect_identical(names(res_em$var), c(ranef_names, "Residual"))
+  expect_identical(names(res_em$var), c(ranef_names, "Residual"))
+  
+  ## random effect blups
+  expect_identical(names(ranef(res_em)), ranef_names)
+  expect_identical(names(ranef(res_ai)), ranef_names)
+  
+})
+
 

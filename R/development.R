@@ -451,7 +451,7 @@ breedR_release <- function(
   
   if (src.update) {
     if (!silent) message('Building source pacakge ..')
-    src.fn <- devtools::build(build_args = "--compact-vignettes=\"gs+qpdf\"")
+    src.fn <- devtools::build(args = "--compact-vignettes=\"gs+qpdf\"")
     
     ## deploy
     drat::insertPackage(src.fn, repodir)
@@ -520,4 +520,84 @@ breedR_build_win <- function() {
   setwd("Z:/t4f/src/breedR")
   Sys.setenv(PROGSF90_URL = "file://z:/t4f/src/breedR-web/bin")
   build(binary=T)
+}
+
+
+breedR_spellcheck <- function() {
+  ign_txt <- c('AIREMLF90', 'anisotropic', 'AR', 'AUTH', 'autofill', 'backends',
+               'bidimensional', 'bin', 'blupf90', 'breedr', 'BV', 'Cantet',
+               'Cappa', 'Chemometrics', 'condVar', 'competition', 'cygwin',
+               'dir', 'DNS', 'Dutkowski', 'edu', 'Eilers', 'em', 'Geosciences',
+               'ggplots', 'Gilmour', 'Globulus', 'gpl', 'heritability', 'http',
+               'Ignacy', 'indices', 'INLA', 'insim', 'IP', 'isotropic',
+               'kronecker', 'Larix', 'linux', 'lme4', 'López', 'martone',
+               'metagene', 'Metagene', 'microdensity', 'Misztal', 'modelframe',
+               'nce', 'permanent_environmental_competition', 'nok', 'Normalise',
+               'normalised', 'ord', 'org', 'os', 'param', 'passwordless',
+               'pf90', 'php', 'progsf90', 'PROGSF90', 'readme', 'remlf90',
+               'REMLF90', 'renderpf90', 'scp', 'sibs', 'Sinauer',
+               'splineDesign', 'Trees4Future', 'uga', 'urls', 'variograms',
+               'wiki', 'www')
+  spell_check(pkg = '.', ignore = ign_txt)
+}
+
+# Spell checking
+# (c) https://jeroenooms.github.io
+spell_check <- function(pkg = ".", ignore = character()){
+  pkg <- as.package(pkg)
+  ignore <- c(pkg$package, hunspell::en_stats, ignore)
+  
+  # Check Rd manual files
+  rd_files <- list.files(file.path(pkg$path, "man"), "\\.Rd$", full.names = TRUE)
+  rd_lines <- lapply(sort(rd_files), spell_check_rd, ignore = ignore)
+  
+  # Check 'DESCRIPTION' fields
+  pkg_fields <- c("title", "description")
+  pkg_lines <- lapply(pkg_fields, function(x){
+    spell_check_file(textConnection(pkg[[x]]), ignore = ignore)
+  })
+  
+  # Combine
+  all_sources <- c(rd_files, pkg_fields)
+  all_lines <- c(rd_lines, pkg_lines)
+  words_by_file <- lapply(all_lines, names)
+  bad_words <- sort(unique(unlist(words_by_file)))
+  
+  # Find all occurences for each word
+  out <- lapply(bad_words, function(word) {
+    index <- which(vapply(words_by_file, `%in%`, x = word, logical(1)))
+    reports <- vapply(index, function(i){
+      paste0(basename(all_sources[i]), ":", all_lines[[i]][word])
+    }, character(1))
+  })
+  structure(out, names = bad_words, class = "spellcheck")
+}
+
+print.spellcheck <- function(x, ...){
+  words <- names(x)
+  fmt <- paste0("%-", max(nchar(words)) + 3, "s")
+  pretty_names <- sprintf(fmt, words)
+  cat(sprintf(fmt, "  WORD"), "  FOUND IN\n", sep = "")
+  for(i in seq_along(x)){
+    cat(pretty_names[i])
+    cat(paste(x[[i]], collapse = ", "))
+    cat("\n")
+  }
+}
+
+spell_check_text <- function(text, ignore){
+  bad_words <- hunspell::hunspell(text, ignore = ignore)
+  vapply(sort(unique(unlist(bad_words))), function(word) {
+    line_numbers <- which(vapply(bad_words, `%in%`, x = word, logical(1)))
+    paste(line_numbers, collapse = ",")
+  }, character(1))
+}
+
+spell_check_file <- function(file, ignore){
+  spell_check_text(readLines(file), ignore = ignore)
+}
+
+spell_check_rd <- function(rdfile, ignore){
+  text <- tools::RdTextFilter(rdfile)
+  spell_check_text(text, ignore = ignore)
 }

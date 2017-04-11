@@ -6,7 +6,7 @@
 #' Each one of the 8 replicate is composed of 5 incomplete blocks, which gives a
 #' nested variable with 40 levels.
 #' 
-#' @format A dataframe with 11897 observations of the followig variables
+#' @format A dataframe with 11897 observations of the following variables
 #' \itemize{
 #'   \item{\code{self}}{   id of the tree}
 #'   \item{\code{dad}}{    id of sire}
@@ -111,7 +111,7 @@ NULL
 
 #' Eucalyptus Globulus dataset
 #' 
-#' Open-polinated field test with one generation of 1021 individuals.
+#' Open-pollinated field test with one generation of 1021 individuals.
 #' 
 #' The individuals are split into 14 genetic groups and arranged in blocks.
 #' The plantation is gridded with a separation of 3 m.

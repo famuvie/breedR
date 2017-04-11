@@ -27,7 +27,7 @@ breedR.remote_load(retry = 5)
 submitted,  the job-number or job-name. For \code{breedR.qstat}, \code{id} 
 is optional and if omitted all the jobs will be listed.}
 
-\item{remove}{Logical. If FALSE, leave the job on the server after retrival, 
+\item{remove}{Logical. If FALSE, leave the job on the server after retrieval, 
 otherwise remove it (default).}
 
 \item{retry}{numeric. In case of connection failure, number of times to retry
@@ -59,7 +59,7 @@ Control and view a remote breedR-queue of submitted jobs
   information usually stored in the result object does not go through the 
   remote server, hence have to be appended to the results that are retrieved 
   from the server. Hence doing \code{r <- remlf90(..., breedR.bin="submit")} 
-  and then later retrive it using \code{r <- breedR.qget(1)}, say, then 
+  and then later retrieve it using \code{r <- breedR.qget(1)}, say, then 
   \code{r} does not contain all the required information.
 }
 \section{Remote computing under Windows}{

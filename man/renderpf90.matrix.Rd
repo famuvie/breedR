@@ -10,7 +10,7 @@
 \item{x}{object of class breedr_modelframe, effect_group or breedr_effect.}
 }
 \value{
-A matrix with a number of colums equal to twice the maximum number of
+A matrix with a number of columns equal to twice the maximum number of
   non-zero elements in one row. The first half of the columns are the 
   non-zero values (except for filling-in) while the second half are the 
   column indices.

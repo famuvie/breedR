@@ -1,17 +1,16 @@
 Package: breedR
 Type: Package
 Title: Statistical Methods for Forest Genetic Resources Analysts
-Version: 0.11-2
-Date: 2015-12-01
+Version: 0.11-5
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
     role=c("aut", "cre"),
-    email="facundo.munoz@orleans.inra.fr"),
+    email="facundo.munoz@inra.fr"),
     person("Leopoldo", "Sanchez", role="aut"),
     person("Ignacy", "Misztal", role="ctb"),
     person("Pablo", "Cappa", role="ctb"))
 Author: Facundo Muñoz with libraries by Ignacy Misztal
-Maintainer: Facundo Muñoz <facundo.munoz@orleans.inra.fr>
+Maintainer: Facundo Muñoz <facundo.munoz@inra.fr>
 Description: Statistical tools to build predictive models
     for the breeders community. It aims to assess the genetic value of
     individuals under a number of situations, including spatial
@@ -21,7 +20,7 @@ Description: Statistical tools to build predictive models
     or other situations as well.
 License: GPL-3 | file LICENSE
 Depends:
-    R (>= 2.15),
+    R (>= 3.1.2),
     sp
 Imports:
     ggplot2,

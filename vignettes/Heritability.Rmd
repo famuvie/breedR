@@ -190,9 +190,12 @@ feasible under the same conditions, and is always preferable.
 
 # Case 3: Using Bootstrap estimation
 
-Bootstrap estimation is computationally expensive, since it needs to fit the same model many times, and more statistically involved.
-But is the best option if you can afford it:
+Bootstrap estimation is computationally expensive, since it needs to fit the
+same model many times, and more statistically involved. But is the best option
+if you can afford it:
+
 - available under all circumstances (even with EM-REML)
+
 - makes no assumptions about the sampling distribution of the variance components
 
 Moreover, it is the only option available to compute heritability in genetic `competition` or spatial `splines` models, which require `method = 'em'` and therefore there is no access to the Average-Information matrix.

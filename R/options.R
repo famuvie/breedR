@@ -33,7 +33,7 @@
 #'  \code{cygwin.home}: the user's home in the Cygwin installation [Remote 
 #'  computing for Windows only]
 #'  
-#'  \code{ssh.auth.sock}: the ssh bind-adress (value of $SSH_AUTH_SOCK in the 
+#'  \code{ssh.auth.sock}: the ssh bind-address (value of $SSH_AUTH_SOCK in the 
 #'  Cygwin-shell). [Remote computing for Windows only]
 #'  
 #'  \code{remote.host}: (IP or DNS) address of a Linux server for remote 

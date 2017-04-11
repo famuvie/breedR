@@ -38,7 +38,9 @@ insim.002)}
 
 \item{x}{a metagene object}
 
-\item{type}{character. If 'default', the empirical density of the breeding and phenotypical values will be represented by generation. If 'spatial', the map of the spatial component will be plotted.}
+\item{type}{character. If 'default', the empirical density of the breeding
+and phenotypic values will be represented by generation. If 'spatial', the
+map of the spatial component will be plotted.}
 
 \item{exclude.founders}{logical: should the data.frame contain the genetic
 values of the founders?}

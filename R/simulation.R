@@ -18,15 +18,15 @@
 #' @param residual.variance is a positive number giving the value of the 
 #'   residual variance.
 #' @param N number of simulated individuals. If \code{spatial} is specified, 
-#'   \code{N} is overrided by the product of \code{spatial$grid.size}. Otherwise
+#'   \code{N} is overridden by the product of \code{spatial$grid.size}. Otherwise
 #'   it is required. If \code{genetic} is specified, \code{N} is the size of the
 #'   offspring only.
 #'   
 #' @details The design matrix for the \code{fixed} effects (if given) is a 
 #'   column of ones and a matrix of random uniform values in \code{(0, 1)}. 
-#'   Therfore, the first element in \code{fixed} gives the overall intercept.
+#'   Therefore, the first element in \code{fixed} gives the overall intercept.
 #'   
-#'   \code{genetic} is a list with the followng elements:
+#'   \code{genetic} is a list with the following elements:
 #'   
 #'   \itemize{
 #'   
@@ -50,7 +50,7 @@
 #'   
 #'   \item \code{relations} character. If present and equals \code{half-sibs} it
 #'   will generate a pedigree with unknown sires, so that relationships in the 
-#'   offsprings are either unrelated or half-sibs are possible. Otherwise, both 
+#'   offspring are either unrelated or half-sibs are possible. Otherwise, both 
 #'   parents are known and full-sibs are also possible.
 #'   
 #'   }
@@ -193,7 +193,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
     if( exists('map', attributes(ped)) ) {
       if ( !cf ) {
         rm.idx <- which(is.na(attr(ped, 'map')))
-        components <- components[-rm.idx, ]
+        components <- components[-rm.idx,,drop=FALSE]
         phenotype  <- phenotype[-rm.idx]
         Nfull <- nrow(components)
       } else {

@@ -165,11 +165,12 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
 #' of the progsf90 programs.
 #' 
 #' @param mf model.frame for fixed and diagonal random effects
+#' @param weights a vector of weights for the residual variance
 #' @param effects breedr_modelframe
 #' @param opt character. Options to be passed to Misztal's programs
 #' @param res.var.ini positive number. Initial value for the residual variance.
 #' @family progsf90
-progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
+progsf90 <- function (mf, weights, effects, opt = c("sol se"), res.var.ini = 10) {
   
   ## Build models for random effects (in 'random')
   mt <- attr(mf, 'terms')
@@ -192,12 +193,13 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   # (size of the response vector or matrix)
   ntraits <- ncol(as.matrix(model.response(mf)))
   
+  # Weights position
+  w_pos <- ifelse(is.null(weights), '', ntraits + 1)
+
   ## renderpf90 all the effects
-  effects.pf90 <- renderpf90.breedr_modelframe(effects, ntraits) 
-  
-  # Weights
-  weights <- ''     # No weights for the moment --- TODO
-  
+  ## positions in data file starting after offset for traits and weights
+  effects.pf90 <- renderpf90.breedr_modelframe(effects, ntraits, w_pos>0)
+
   # Builds the lines in the EFFECTS section
   
   setup_effectline <- function(x) {
@@ -237,7 +239,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
               ntraits  = ntraits,
               neffects = sum(sapply(effect.lst, length)),
               observations = paste(seq_len(ntraits), collapse = " "),
-              weights  = weights,
+              weights  = w_pos,
               effects  = effect.lst,
               residvar = res.var.ini,
               rangroup = lapply(rangroup.idx, parse.rangroup),
@@ -258,6 +260,7 @@ progsf90 <- function (mf, effects, opt = c("sol se"), res.var.ini = 10) {
   }
   dat <- do.call(cbind, 
                  c(list(phenotype = Y),
+                   list(w = weights),
                    dat.l))
   
   # Forbid missing values in dependent variables
@@ -684,16 +687,18 @@ pf90_code_missing <- function(x) {
 
 #' Default formula for heritability
 #' 
-#' If all random effects are independent, computes a default formula in PROGSF90
-#' notation by dividing the genetic variance by the sum of all variance
-#' components plus the residual variance.
+#' If all random effects are independent, and there is an additive-genetic
+#' effect, computes a default formula in PROGSF90 notation by dividing the
+#' genetic variance by the sum of all variance components plus the residual
+#' variance.
 #' 
 #' @return A character vector with one option specification per trait.
 #' 
 #' @param rglist list of random groups in the parameters of a
 #'   \code{\link{progsf90}} object
 #' @param traits A character vector with trait names, or NULL for single trait.
-#' @param quiet logical. Whether to display user messages.
+#' @param quiet logical. If FALSE, the function issues a message when it fails
+#'   to build a formula.
 #'   
 #' @references 
 #'    http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options

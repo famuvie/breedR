@@ -169,7 +169,9 @@ print.summary.metagene <- function(x, ...) {
 #' Plot method for metagene objects
 #' 
 #' 
-#' @param type character. If 'default', the empirical density of the breeding and phenotypical values will be represented by generation. If 'spatial', the map of the spatial component will be plotted.
+#' @param type character. If 'default', the empirical density of the breeding
+#'   and phenotypic values will be represented by generation. If 'spatial', the
+#'   map of the spatial component will be plotted.
 #' @method plot metagene
 #' @import ggplot2
 #' @describeIn read.metagene plots either genetic and phenotypic values, or the
@@ -267,7 +269,7 @@ as.data.frame.metagene <- function(x, ..., exclude.founders = TRUE) {
 #' 
 #' @name Extract.metagene
 #' @param x a metagene object.
-#' @param name character. A varaible name.
+#' @param name character. A variable name.
 #' @param value a vector.
 #' @param ... a vector of integer indices or names of columns in the dataset.
 #' @family metagene

@@ -4,10 +4,12 @@
 \alias{progsf90}
 \title{progsf90 class}
 \usage{
-progsf90(mf, effects, opt = c("sol se"), res.var.ini = 10)
+progsf90(mf, weights, effects, opt = c("sol se"), res.var.ini = 10)
 }
 \arguments{
 \item{mf}{model.frame for fixed and diagonal random effects}
+
+\item{weights}{a vector of weights for the residual variance}
 
 \item{effects}{breedr_modelframe}
 

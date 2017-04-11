@@ -29,6 +29,7 @@
 #'   \href{http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options}{AIREMLF90}.
 #'    Option \code{sol se} is passed always and cannot be removed. No checks are
 #'   performed, handle with care.
+#' @param weights numeric. A vector of weights for the residual variance.
 #' @param debug logical. If \code{TRUE}, the input files for blupf90 programs 
 #'   and their output are shown, but results are not parsed.
 #'   
@@ -59,7 +60,7 @@
 #'   \code{pedigree} (see \code{\link{build_pedigree}}) or a \emph{data.frame} 
 #'   with exactly three columns identifying the individual, his father and his 
 #'   mother respectively \item \code{id} either a vector of codes or the name of
-#'   the variable with the individual identifyer in the \code{data}}
+#'   the variable with the individual identifier in the \code{data}}
 #'   
 #'   Optional common components are:
 #'   
@@ -75,13 +76,13 @@
 #'   list or data.frame with two columns for the rows and columns of the 
 #'   observations, respectively. This element is necessary even if duplicated in
 #'   a \code{spatial} component. \item \code{competition_decay} a positive 
-#'   number. The intensity of competition is weighted by the distance acording 
+#'   number. The intensity of competition is weighted by the distance according 
 #'   to \eqn{1/d^\alpha}. This element specifies the exponent \eqn{\alpha} to be
 #'   used. Typically \eqn{1} or \eqn{2}. }
 #'   
 #'   \item optional elements \itemize{ \item \code{pec} Permanent Environmental 
 #'   Competition effect. If present, this must be a named list with elements 
-#'   \code{present} wich is either \code{TRUE} or \code{FALSE} and (optionally) 
+#'   \code{present} which is either \code{TRUE} or \code{FALSE} and (optionally) 
 #'   \code{var.ini} specifying the initial variance for this effect. } }
 #'   
 #'   The Permanent Environmental Competition (\code{pec}) effect is actually 
@@ -300,6 +301,7 @@ remlf90 <- function(fixed,
                     method = c('ai', 'em'),
                     breedR.bin = breedR.getOption("breedR.bin"),
                     progsf90.options = NULL,
+                    weights = NULL,
                     debug = FALSE) {
   
   ## Assumptions:
@@ -309,7 +311,6 @@ remlf90 <- function(fixed,
   ## (not generalized) Linear Mixed Model
 
   ## TODO: 
-  # Allow for summarized data (parameter weights)
   # Allow for multiple responses
   # Allow for generalized mixed models
 
@@ -453,8 +454,9 @@ remlf90 <- function(fixed,
   # dataset. One in data, one in mf (only needed variables)
   # and yet one more in pf90. This is a potential problem with large datasets.
   pf90 <- progsf90(mf,
+                   weights = weights,
                    effects,
-                   opt = union('sol se', progsf90.options), 
+                   opt = union('sol se', progsf90.options),
                    res.var.ini = var.ini$residuals)
   
   if (!is.null(genetic) && method == 'ai') {

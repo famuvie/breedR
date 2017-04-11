@@ -20,7 +20,7 @@ This function performs sanity checks on a pedigree.
 Rules are: the pedigree must be full (i.e. all the codes in the pedigree must
 appear once in the first column); the codes of the offspring must follow 
 their parent's codes; the identity codes must be sorted in ascending order
-and this order must be consecutive begining from 1.
+and this order must be consecutive beginning from 1.
 
 If any check fails, the pedigree must be recoded/reordered to be used in 
 analysis. \code{build_pedigree(1:3, data = ped)} should fix it.

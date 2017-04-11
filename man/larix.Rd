@@ -4,7 +4,7 @@
 \name{larix}
 \alias{larix}
 \title{Longitudinal Larix dataset}
-\format{A dataframe with 11897 observations of the followig variables
+\format{A dataframe with 11897 observations of the following variables
 \itemize{
   \item{\code{self}}{   id of the tree}
   \item{\code{dad}}{    id of sire}

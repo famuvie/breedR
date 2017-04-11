@@ -73,7 +73,7 @@ renderpf90.diagonal <- function(x) {
 #' For each row, it keeps the non-zero elements and their respective column 
 #' index. The gaps are filled with zeros.
 #' 
-#' @return A matrix with a number of colums equal to twice the maximum number of
+#' @return A matrix with a number of columns equal to twice the maximum number of
 #'   non-zero elements in one row. The first half of the columns are the 
 #'   non-zero values (except for filling-in) while the second half are the 
 #'   column indices.
@@ -135,8 +135,9 @@ renderpf90.matrix <- function(x) {
 
 #' @describeIn renderpf90 Render a full \code{breedr_modelframe}
 #' @param ntraits integer. Number of traits in the model.
+#' @param weights logical. Whether there is an additional column of weights.
 #' @export
-renderpf90.breedr_modelframe <- function(x, ntraits) {
+renderpf90.breedr_modelframe <- function(x, ntraits, weights) {
   
   xpf90 <- lapply(x, renderpf90)
   
@@ -156,7 +157,7 @@ renderpf90.breedr_modelframe <- function(x, ntraits) {
   ## Positions of the 'virtual' effects in the data file
   ## (to appear in the EFFECTS section in progsf90)
   dat.widths <- sapply(xpf90, function(x) ncol(x$data))
-  end.columns <- cumsum(c(response = ntraits, dat.widths)) 
+  end.columns <- cumsum(c(response = ntraits + weights, dat.widths)) 
   offsets <- structure(head(end.columns, -1),
                        names = names(dat.widths))
   
@@ -240,7 +241,7 @@ renderpf90.effect_group <- function(x) {
 
 #' @details For the \code{generic} class, all matrices are converted to plain 
 #'   matrix-class, for exporting to files. The progsf90 model is either
-#'   \code{user_file} or \code{user_file_i} depending on the type of sructure
+#'   \code{user_file} or \code{user_file_i} depending on the type of structure
 #'   matrix; i.e. respectively precision or covariance.
 #' @describeIn renderpf90 Compute the parameters of a progsf90 representation of
 #'   a generic effect.

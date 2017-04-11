@@ -3,9 +3,11 @@
 #' This function presents several ggplots of the same type side by side
 #' under the same scale, while keeping annotations.
 #' 
+#' The names of the objects in the list will be used for facet labels.
+#' 
 #' @param plots List of ggplots with meaningful names
 #' 
-#' The names of the objects in the list will be used for facet labels.
+#' @usage compare.plots(plots)
 #' @import ggplot2
 #' @export compare.plots
 compare.plots <- function(plots) {

@@ -1,4 +1,6 @@
-require(spam)
+suppressPackageStartupMessages(
+ require(spam)
+)  
 
 #### Context: Models with several effects working together ####
 context("Models with several effects working together") 

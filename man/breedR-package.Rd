@@ -4,7 +4,7 @@
 \name{breedR-package}
 \alias{breedR}
 \alias{breedR-package}
-\title{Frequentist and Bayesian methods for breeders, quantitative genetists and
+\title{Frequentist and Bayesian methods for breeders, quantitative geneticists and 
 forest genetic resources analysts.}
 \description{
 This package provides statistical tools to build predictive models for the
