@@ -19,6 +19,7 @@ setOldClass(c("permanent_environmental_competition",
 #' @param value 2-column matrix or data frame with coordinates
 #' @param ... not used.
 #' @name coordinates_breedR
+#' @import sp
 NULL
 
 #' @importFrom methods setOldClass setMethod
