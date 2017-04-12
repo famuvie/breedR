@@ -1,5 +1,5 @@
 ## test data directory
-testdata <- system.file(file.path("inst", "testdata"), package = "breedR")
+testdata <- system.file("testdata", package = "breedR")
 
 load_res <- function(key, dir = testdata) {
   fn <- paste0("res_", key, ".rds")

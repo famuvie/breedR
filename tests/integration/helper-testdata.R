@@ -2,7 +2,7 @@
 message("Generating test data ...")
 
 ## target directory
-testdata <- system.file(file.path("inst", "testdata"), package = "breedR")
+testdata <- system.file("testdata", package = "breedR")
 
 
 #### fitted models ####
