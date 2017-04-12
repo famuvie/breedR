@@ -48,6 +48,6 @@ function stops. It is better to remove this trait from the analysis.
    ## Initial covariance matrix for a bidimensional random effect
    ## acting independently over three traits
    x <- cbind(rnorm(100, sd = 1), rnorm(100, sd = 2), rnorm(100, sd = 3))
-   default_initial_variance(x, dim = 2, cor.effect = 0.5)
+   breedR:::default_initial_variance(x, dim = 2, cor.effect = 0.5)
 }
 
