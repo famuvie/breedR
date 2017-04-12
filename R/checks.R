@@ -20,7 +20,7 @@ check_var.ini <- function (x, random, response) {
   
   ## terms in the random component + 'residual'
   random.terms <- switch( is.null(random) + 1,
-                          c(attr(terms(random), 'term.labels'), 'residuals'),
+                          c(attr(stats::terms(random), 'term.labels'), 'residuals'),
                           'residuals')
   
   if (!is.null(x)) {

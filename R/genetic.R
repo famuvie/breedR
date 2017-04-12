@@ -76,6 +76,7 @@ additive_genetic <- function(pedigree, incidence) {
 #' @param idx integer vector of observed individuals (in the original
 #'   codification)
 #' @inheritParams additive_genetic
+#' @importFrom methods as
 #'   
 #' @return A list with elements \code{pedigree}, \code{incidence.matrix}, 
 #'   \code{structure.matrix} and \code{structure.type}, which is a string 

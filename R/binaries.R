@@ -30,7 +30,7 @@ check_progsf90 <- function(path = breedR.getOption('breedR.bin'),
   if (!check && !quiet) {
     message('Binary dependencies missing.',
             '\nWould you like to install them?\t')
-    if (menu(c("Yes", "No")) == 1) {
+    if (utils::menu(c("Yes", "No")) == 1) {
       install_progsf90(dest = path, platform = platform)
       check <- check_progsf90(path, platform, quiet)
     }
@@ -100,7 +100,7 @@ retrieve_bin <- function(f, url, dest) {
     
   } else {
     out <- tryCatch(
-      download.file(
+      utils::download.file(
         url = file.path(url, f),
         destfile = destf,
         mode = 'wb',
@@ -154,13 +154,15 @@ progsf90_files <- function(os = breedR.os.type(),
 }
 
 
-## Check whether there is internet connection
+# Check whether there is internet connection
 breedR_online <- function() {
   tf <- tempfile()
   !inherits(
     suppressWarnings(
-      try(download.file('http://famuvie.github.io/breedR/', tf, quiet = TRUE),
-          silent = TRUE)
+      try(utils::download.file(
+        'http://famuvie.github.io/breedR/', tf, quiet = TRUE
+      ),
+      silent = TRUE)
     ), 
     'try-error'
   )

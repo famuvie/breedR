@@ -24,12 +24,16 @@ Depends:
     sp
 Imports:
     ggplot2,
+    graphics,
+    grDevices,
     Matrix (>= 1.2.0),
     methods,
     nlme,
     pedigree,
     pedigreemm,
-    splines
+    splines,
+    stats,
+    utils
 Suggests:
     doParallel,
     GGally,

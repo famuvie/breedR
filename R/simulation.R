@@ -117,7 +117,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
   # Fixed
   if( !is.null(fixed) ) {
     X <- cbind(1,
-               matrix(runif(Nfull*(length(fixed) - 1)),
+               matrix(stats::runif(Nfull*(length(fixed) - 1)),
                       nrow = Nfull))
     phenotype <- phenotype + X %*% fixed
 
@@ -133,7 +133,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
   if( !is.null(random) ) {
     make.random.single <- function(x, N) {
       lev <- sample(x$nlevels, N, replace = TRUE)
-      val <- rnorm(x$nlevels, sd = sqrt(x$sigma2))
+      val <- stats::rnorm(x$nlevels, sd = sqrt(x$sigma2))
       return(factor(val[lev], levels = val))
     }
     
@@ -248,7 +248,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
       # Permanent Environmental Competition effect
       if (exists('pec', genetic)) {
         components$pec <- c(rep(NA, Nfull-Nobs),
-                            rnorm(Nobs, sd = sqrt(genetic$pec$var.ini)))
+                            stats::rnorm(Nobs, sd = sqrt(genetic$pec$var.ini)))
         Pmat <- matrix(components$pec[Bmat[, 8+1:8]], nrow = Nobs)
         components$wnp <- c(rep(NA, Nfull-Nobs),
                             rowSums(Bmat[, 1:8] * Pmat, na.rm = TRUE))
@@ -263,7 +263,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
   } else genetic$Nparents = 0
 
   # Residual
-  components$resid <- rnorm(Nfull, sd = sqrt(residual.variance))
+  components$resid <- stats::rnorm(Nfull, sd = sqrt(residual.variance))
   phenotype <- phenotype + components$resid
   
   # Phenotype
@@ -271,7 +271,7 @@ breedR.sample.phenotype <- function(fixed = NULL,
   
   # Preferred order of the columns for the first elements
   pref.ord <- c('self', 'sire', 'dam', 'row', 'col')
-  reord <- na.omit(match(pref.ord, names(components)))
+  reord <- stats::na.omit(match(pref.ord, names(components)))
   if( length(reord) > 0 ) {
     components <- c(components[, reord], components[, -reord])
   }
@@ -381,6 +381,7 @@ breedR.sample.BV <- function(ped, Sigma, N = 1) {
 #'   from random mating of independent founders. Note that if 
 #'   \code{check.factorial} is \code{FALSE}, you can have some founders removed
 #'   from the pedigree.
+#' @importFrom stats xtabs
 breedR.sample.pedigree <- function(Nobs, Nparents, check.factorial = TRUE) {
   stopifnot(length(Nparents) == 2)
   if( is.null(names(Nparents)) ) names(Nparents) <- c('mum', 'dad')
@@ -424,7 +425,7 @@ breedR.sample.ranef <-
   
   ## Simulate Nlevels correlated vectors of dimension dim
   U <- chol(var)
-  values <- matrix(rnorm(dim*Nlevels), ncol = dim) %*% U
+  values <- matrix(stats::rnorm(dim*Nlevels), ncol = dim) %*% U
   
   ## Sample N observations of the 'factor'
   if (N == Nlevels) {

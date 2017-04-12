@@ -168,7 +168,7 @@ check_pedigree <- function(ped) {
   
   # Parent codes should appear in the first column
   # This removes 0 and NA's as codes
-  parent_codes <- sort(unique(stack(ped[,2:3])$values[which(ped[,2:3] > 0)]))
+  parent_codes <- sort(unique(utils::stack(ped[,2:3])$values[which(ped[,2:3] > 0)]))
   full_ped <- all(parent_codes %in% ped[, 1])
   
   # Offspring follow parents (in codes)
@@ -195,6 +195,7 @@ check_pedigree <- function(ped) {
 #' @describeIn build_pedigree Coerce to a data.frame. One row per individual,
 #'   the first column being the identification code, and the other two columns
 #'   are dad and mum codes respectively.
+#' @importFrom methods as
 #' @export
 as.data.frame.pedigree <- function(x, ...) {
   y <- as(x, 'data.frame')

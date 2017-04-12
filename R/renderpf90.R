@@ -439,6 +439,7 @@ renderpf90.ar <- function(x) {
 #' symmetry.
 #' 
 #' @param x matrix.
+#' @importFrom methods as
 as.triplet <- function(x) {
   xsp <- Matrix::tril(as(x, 'TsparseMatrix'))
   # Note: The Matrix package counts rows and columns starting from zero

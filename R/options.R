@@ -271,7 +271,7 @@ default_initial_variance <-
   n.traits <- ncol(x)
   
   ## Empirical half-variances of each trait
-  halfvar <- var(x, na.rm = TRUE)/2
+  halfvar <- stats::var(x, na.rm = TRUE)/2
   
   ## Check for degenerate variances
   if (any(idx <- which(diag(halfvar) == 0))) {

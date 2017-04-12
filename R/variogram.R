@@ -72,6 +72,8 @@
 #' 
 #'   
 #' @seealso \code{\link[fields]{vgram.matrix}}
+#' @importFrom stats residuals dist aggregate
+#' @importFrom grDevices colorRampPalette
 #' @export
 variogram <- function(x,
                       plot = c('all', 
@@ -252,6 +254,8 @@ variogram <- function(x,
 #'   plotted. Default: 30.
 #' @param ... not used.
 #' @import ggplot2
+#' @importFrom graphics plot.new par
+#' @importFrom utils str
 #' @describeIn variogram Print a breedR variogram
 #' @export
 print.breedR.variogram <- function(x, minN = 30, ...) {

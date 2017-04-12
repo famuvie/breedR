@@ -291,6 +291,7 @@
 #' }
 #' 
 #' @export
+#' @importFrom stats terms model.response logLik runif
 remlf90 <- function(fixed, 
                     random = NULL,
                     genetic = NULL,
@@ -704,7 +705,7 @@ model.frame.remlf90 <- function (formula, ...) {
 
 
 
-#' @importFrom stats nobs
+#' @importFrom stats nobs model.response
 #' @method nobs remlf90
 #' @export
 nobs.remlf90 <- function (object, ...) {
@@ -727,6 +728,7 @@ nobs.remlf90 <- function (object, ...) {
 #' @param ... Further layers passed to \code{\link[ggplot2]{ggplot}}.
 #'   
 #' @method plot remlf90
+#' @importFrom stats model.response fitted residuals
 #' @export
 plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspatial', 'residuals'), z = NULL, ...) {
   
@@ -994,6 +996,7 @@ vcov.remlf90 <- function (object,
 
 
 #' @method residuals remlf90
+#' @importFrom stats model.response
 #' @export
 residuals.remlf90 <- function (object, ...) {
   # TODO: to be used when na.action is included in remlf90
@@ -1004,6 +1007,7 @@ residuals.remlf90 <- function (object, ...) {
 }
 
 #' @method summary remlf90
+#' @importFrom stats logLik AIC BIC
 #' @export
 summary.remlf90 <- function(object, ...) {
   
@@ -1118,6 +1122,7 @@ print.remlf90 <- function(x, digits = max(3, getOption("digits") - 3), ...) {
 
 ## This is modeled a bit after  print.summary.lm :
 #' @method print summary.remlf90
+#' @importFrom stats printCoefmat
 #' @export
 print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
                                   correlation = TRUE, symbolic.cor = FALSE,

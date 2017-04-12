@@ -13,7 +13,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
   
   #   # Number of traits
   #   # (size of the response vector or matrix)
-  #   ntraits <- ncol(as.matrix(model.response(mf)))
+  #   ntraits <- ncol(as.matrix(stats::model.response(mf)))
   
   #   # Position counter
   #   pos = ntraits + 1
@@ -41,7 +41,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
   for (x in names(mf.rnd)) {
     effect.item <- effect_group(list(diagonal(mf.rnd[[x]])),
                                 cov.ini = var.ini[[x]],
-                                ntraits = ncol(model.response(mf)))
+                                ntraits = ncol(stats::model.response(mf)))
     effect.item.list <- structure(list(effect.item),
                                   names = x)
     effects <- c(effects, effect.item.list)
@@ -67,7 +67,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
       ## additive-genetic only
       effect.item <- effect_group(list(direct = gen_direct),
                                   cov.ini = genetic$var.ini,
-                                  ntraits = ncol(model.response(mf)))
+                                  ntraits = ncol(stats::model.response(mf)))
       effect.item.list <- list(genetic = effect.item)
     } else {
       
@@ -83,7 +83,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
       effect.item <- effect_group(list(genetic_direct = gen_direct,
                                        genetic_competition = gen_comp),
                                   cov.ini = genetic$var.ini,
-                                  ntraits = ncol(model.response(mf)))
+                                  ntraits = ncol(stats::model.response(mf)))
       effect.item.list <- list(genetic = effect.item)
       
       ## eventually, a second effect-group for pec      
@@ -95,7 +95,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
         )
         effect.item <- effect_group(list(pec = pec),
                                     cov.ini = genetic$pec$var.ini,
-                                    ntraits = ncol(model.response(mf)))
+                                    ntraits = ncol(stats::model.response(mf)))
         effect.item.list <- c(
           effect.item.list,
           list(pec = effect.item)
@@ -120,7 +120,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
     ## build the effect group with the (single) spatial model
     effect.item <- effect_group(structure(list(sp), names = class(sp)[1]),
                                 cov.ini = spatial$var.ini,
-                                ntraits = ncol(model.response(mf)))
+                                ntraits = ncol(stats::model.response(mf)))
     
     effects <- c(effects, list(spatial = effect.item))
   }
@@ -137,7 +137,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
       go <- do.call('generic', x[-grep('var.ini', names(x))])
       ef <- effect_group(list(go),
                          x[['var.ini']],
-                         ntraits = ncol(model.response(mf)))
+                         ntraits = ncol(stats::model.response(mf)))
       return(ef)
     }
     generic.groups <- lapply(generic, make_group)
@@ -191,7 +191,7 @@ progsf90 <- function (mf, weights, effects, opt = c("sol se"), res.var.ini = 10)
   # TODO: Should I pass only the response instead of the whole mf?
   # or maybe only ntraits?, or maybe include the response in effects?
   # (size of the response vector or matrix)
-  ntraits <- ncol(as.matrix(model.response(mf)))
+  ntraits <- ncol(as.matrix(stats::model.response(mf)))
   
   # Weights position
   w_pos <- ifelse(is.null(weights), '', ntraits + 1)
@@ -322,7 +322,7 @@ write.progsf90 <- function (pf90, dir) {
   # file.show(parameter.file.path)
   
   # Data file
-  write.table(pf90$data,
+  utils::write.table(pf90$data,
               file = file.path(dir, pf90$parameter$datafile),
               row.names = FALSE, col.names = FALSE)
   # file.show(data.file.path)
@@ -385,10 +385,10 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   ntraits <- as.numeric(tail(unlist(strsplit(
     grep("Number of Traits", reml.out, value = TRUE),
     ' +')), 1))
-  trait_names <- colnames(model.response(mf))  # NULL for 1 trait
+  trait_names <- colnames(stats::model.response(mf))  # NULL for 1 trait
   
   # Parsing the results
-  sol.file <- try(read.table(solfile, header=FALSE, skip=1))
+  sol.file <- try(utils::read.table(solfile, header=FALSE, skip=1))
   if( inherits(sol.file, 'try-error') ) {
     ## The output file is formatted with fixed-width columns
     ## leaving 4 spaces between the columns trait and effect
@@ -602,7 +602,7 @@ build.mf <- function(call) {
 
   ## Fixed effects
   fxd <- eval(call$fixed, parent.frame(2))
-  tfxd <- terms(fxd)
+  tfxd <- stats::terms(fxd)
   
 	# Add an intercept manually only if the user requested it
   # *and* there are no other *categorical* fixed effects
@@ -610,32 +610,32 @@ build.mf <- function(call) {
                       formula = fxd,
                       data = quote(data)),
                  parent.frame())
-  tempt <- terms(tempmf)
+  tempt <- stats::terms(tempmf)
   tempc <- attr(tempt, 'dataClasses')[attr(tempt, 'term.labels')]
   any.cat <- any(tempc %in% c('factor', 'ordered'))
 	
   if( attr(tfxd, 'intercept') == 1L & !any.cat ) {
 	  fxd <- update(fxd, " ~ Intercept + .")
 	}
-	terms.list$fxd <- attr(terms(fxd), 'term.labels')
+	terms.list$fxd <- attr(stats::terms(fxd), 'term.labels')
 	
 	
 	## Random effects (unstructured)
 	rnd <- eval(call$random, parent.frame(2))
   if(!is.null(rnd))
-    terms.list$rnd <- attr(terms(rnd), 'term.labels')
+    terms.list$rnd <- attr(stats::terms(rnd), 'term.labels')
 	
 	## Join fixed and random
 	lhs <- deparse(fxd[[2]])
 	rhs <- paste(do.call(c, terms.list), collapse = '+')  
-	fml <- as.formula(paste(lhs, rhs, sep = '~'), env = parent.frame(2))
+	fml <- stats::as.formula(paste(lhs, rhs, sep = '~'), env = parent.frame(2))
 	
   # Build Model Frame
   # Use na.pass to allow missing observations which will be handled later
 	mfcall <- call('model.frame',
                  formula = fml,
                  data = quote(transform(data, Intercept = 1)),
-                 na.action = na.pass)
+                 na.action = stats::na.pass)
 	mf <- eval(mfcall, parent.frame())
   mt <- attr(mf, 'terms')
   
