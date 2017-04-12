@@ -414,7 +414,6 @@ breedR.sample.pedigree <- function(Nobs, Nparents, check.factorial = TRUE) {
 #' @param var numeric matrix. (Co)variance matrix
 #' @param Nlevels numeric. Number of individuals values to sample
 #' @param labels character vector of labels for each level.
-#' @param N numeric. Number of observations to sample
 #' @param vname string. A name for the resulting variables
 #' @details \code{breedR.sample.ranef} simulates a random effect with a given
 #'   variance.

@@ -80,8 +80,6 @@ error.}
 \item{labels}{character vector of labels for each level.}
 
 \item{vname}{string. A name for the resulting variables}
-
-\item{N}{numeric. Number of observations to sample}
 }
 \description{
 These functions allow to draw samples from several models 

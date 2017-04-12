@@ -198,10 +198,10 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
                       generation = rep(factor(x$gen), 2),
                       sex = rep(x$sex, 2),
                       value = c(x$BV_X, x$phe_X))
-    p <- ggplot(dat, aes(x = value, fill = label)) +
+    p <- ggplot(dat, aes_string(x = "value", fill = "label")) +
       geom_density(alpha=.3) +
       facet_grid(generation~.) +
-      labs(x = "Value by generation") 
+      labs(x = "Value by generation")
   }
   
   if( !missing(...) ) {

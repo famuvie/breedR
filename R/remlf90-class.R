@@ -832,7 +832,7 @@ plot.ranef.breedR <- function(x, y, ...) {
                                                     ranef2df(x[[i]])))
     pd <- do.call(rbind, pl)
     
-    ggplot(pd, aes(x = level, y = BLUP, ymin = ymin, ymax = ymax)) + 
+    ggplot(pd, aes_string(x = "level", y = "BLUP", ymin = "ymin", ymax = "ymax")) + 
       geom_pointrange() + 
       coord_flip()
   } else message('No suitable random effects to plot')

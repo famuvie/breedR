@@ -14,6 +14,7 @@
 #' 
 #' @param x list. user specification of var.ini (or NULL)
 #' @param random formula. user specification of random effects.
+#' @param response numeric vector or matrix.
 #' @return  matrix of observation values.
 check_var.ini <- function (x, random, response) {
   

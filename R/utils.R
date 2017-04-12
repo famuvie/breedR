@@ -41,15 +41,18 @@ breedR.get.element <-  function(name, alist) {
 
 # Fit some model
 breedR.result <- function(...) {
-  res  <- suppressWarnings(remlf90(fixed  = phe_X ~ gg,
-                                   genetic = list(model = 'add_animal', 
-                                                  pedigree = globulus[,1:3],
-                                                  id = 'self'), 
-                                   spatial = list(model = 'AR', 
-                                                  coord = globulus[, c('x','y')],
-                                                  rho = c(.85, .8)), 
-                                   data = globulus,
-                                   ...))
+  dat <- breedR::globulus
+  res  <- suppressMessages(
+    remlf90(fixed  = phe_X ~ gg,
+            genetic = list(model = 'add_animal', 
+                           pedigree = dat[,1:3],
+                           id = 'self'), 
+            spatial = list(model = 'AR', 
+                           coord = dat[, c('x','y')],
+                           rho = c(.85, .8)), 
+            data = dat,
+            ...)
+  )
   return(res)
 }
 
@@ -141,7 +144,21 @@ matrix.short16 <- function(M) {
 
 #' 'Splat' arguments to a function
 #' 
+#' Wraps a function in do.call, so instead of taking multiple arguments, it
+#' takes a single named list which will be interpreted as its arguments.
+#' 
+#' @param flat function to splat
+#' 
+#' This is useful when you want to pass a function a row of data frame or array,
+#' and don't want to manually pull it apart in your function.
+#' 
 #' Borrowed from \code{\link[plyr]{splat}}
+#' 
+#' @return a function
+#' 
+#' @examples 
+#'   args <- replicate(3, runif(5), simplify = FALSE)
+#'   identical(breedR:::splat(rbind)(args), do.call(rbind, args))
 splat <- function (flat) {
   function(args, ...) {
     do.call(flat, c(args, list(...)))
@@ -207,7 +224,7 @@ names_effect <- function(inner = NULL, outer = NULL) {
 
 
 ## component names
-vcnames <- function(efname, efdim, trnames = trait_names) {
+vcnames <- function(efname, efdim, trnames) {
   
   dim_subtrait <- efdim/ifelse(is.null(trnames), 1, length(trnames))
   if (dim_subtrait > 1) 

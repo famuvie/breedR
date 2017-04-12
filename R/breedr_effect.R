@@ -1,4 +1,4 @@
-#' Constructor for a generic effect
+#' Constructor for a generic breedR effect
 #' 
 #' The breedr_effect-class is virtual. No object should be directly created with
 #' this constructor. This constructor is to be called from within non-virtual 
@@ -28,6 +28,7 @@ breedr_effect <- function(incidence) {
 # @describeIn breedr_effect Dimension of a \code{breedr_effect}: 0 for a fixed 
 #   effect, 1 for a random effect
 #' @rdname breedr_effect
+#' @param x A \code{breedr_effect}.
 #' @export
 dim.breedr_effect <- function(x) {
   siz <- ifelse(inherits(x, 'random'), 1, 0)

@@ -270,7 +270,7 @@ print.breedR.variogram <- function(x, minN = 30, ...) {
     }
     
     p.iso <-   ggplot(x$isotropic,
-                      aes(distance, variogram)) +
+                      aes_string("distance", "variogram")) +
       geom_point() +
       geom_line() +
       stat_smooth(se = FALSE, method = 'auto')

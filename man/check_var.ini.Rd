@@ -10,6 +10,8 @@ check_var.ini(x, random, response)
 \item{x}{list. user specification of var.ini (or NULL)}
 
 \item{random}{formula. user specification of random effects.}
+
+\item{response}{numeric vector or matrix.}
 }
 \value{
 A list with initial covariance matrices for all random effects in the
@@ -23,4 +25,3 @@ If the user specified initial values, verify that all random effects were
 included. Otherwise, set default values. In any case, validate all initial
 values.
 }
-

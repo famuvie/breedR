@@ -760,10 +760,10 @@ pf90_default_heritability <- function (rglist, traits = NULL, quiet = FALSE) {
 #' @param square logical. Whether to assume that the matrix is square.
 #' 
 #' If the matrix is not necessarily
-parse.txtmat <- function(v, names = NULL, square = TRUE) {
+parse.txtmat <- function(x, names = NULL, square = TRUE) {
   ## numeric values from the strings, spliting by spaces
   ans <- unname(
-    lapply(v, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
+    lapply(x, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
   )
   
   ## concatenate rows in groups of p

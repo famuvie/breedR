@@ -276,12 +276,14 @@ breedR.remote_load <- function(retry = 5) {
 }
 
 #' @method summary breedR.q
+#' @export
 summary.breedR.q = function(object, ...)
 {
   print(object, ...)
 }
 
 #' @method print breedR.q
+#' @export
 print.breedR.q = function(x, ...)
 {
   if (length(x) == 0) {

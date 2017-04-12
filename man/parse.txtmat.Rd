@@ -4,20 +4,19 @@
 \alias{parse.txtmat}
 \title{Parse a matrix from a text output robustly}
 \usage{
-parse.txtmat(v, names = NULL, square = TRUE)
+parse.txtmat(x, names = NULL, square = TRUE)
 }
 \arguments{
+\item{x}{A character vector with space-separated numbers}
+
 \item{names}{A character vector with row and column names for the output matrix.}
 
 \item{square}{logical. Whether to assume that the matrix is square.
 
 If the matrix is not necessarily}
-
-\item{x}{A character vector with space-separated numbers}
 }
 \description{
 Each row of the matrix is a string. If rows are too long, they can continue
 in another line. Hence, the number of lines might be a multiple of the number
 of columns
 }
-
