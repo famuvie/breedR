@@ -13,4 +13,3 @@ get_efnames(effects)
 Give the names of the (components) of the effects
 in a breedr_modelframe. Internal function. Not exported.
 }
-

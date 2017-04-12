@@ -28,4 +28,3 @@ This constructor performs the arguments and conformance checks. But the
 implementation details (i.e., storage format and handling) is left for the
 subclasses.
 }
-

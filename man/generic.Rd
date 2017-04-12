@@ -25,4 +25,3 @@ Check conformity of arguments and return a \code{generic} object.
 A generic random effect stores the incidence and structure matrices in Matrix
 form, which tries to take advantage of sparsity, if it exists.
 }
-

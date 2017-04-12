@@ -319,4 +319,3 @@ progsf90 wiki page: \url{http://nce.ads.uga.edu/wiki/doku.php}
 \seealso{
 \code{\link[pedigreemm]{pedigree}}
 }
-

@@ -23,4 +23,3 @@ observed values. E.g., for observations in the range -40 -- 28, the code is
 \examples{
   breedR:::pf90_code_missing(rnorm(100))
 }
-

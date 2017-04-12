@@ -1,6 +1,3 @@
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 
 #### Context: competition infrastructure ####
@@ -13,19 +10,19 @@ dat <- data.frame(id   = 1:6,
                   x    = c(1,2,-1,0,0,1),
                   y    = c(-1,0,0,1,-1,1))
 ## Corresponding pedigree with additional offspring
-ped <- build_pedigree(1:3, data = rbind(dat, c(7, 1, 2)))
-var.ini <- 1.5
+ped <- suppressWarnings(build_pedigree(1:3, data = rbind(dat, c(7, 1, 2))))
 var.ini.mat <- matrix(c(1, -.5, -.5, 1), 2, 2)
 
 
-test_that("Valid alternative model specifications pass checks", {
-  ## specify var.ini, but use pec=FALSE
+test_that("Valid alternative model specifications pass check_genetic()", {
+  ## specify var.ini, but use pec=FALSE (as by default)
   expect_error(
     check_genetic(model = 'competition',
                   pedigree = ped,
                   coordinates = dat[, c('x', 'y')],
                   id = dat$id,
-                  var.ini = var.ini),
+                  var.ini = var.ini.mat,
+                  response = rnorm(nrow(dat))),
     NA
   )
   
@@ -37,7 +34,8 @@ test_that("Valid alternative model specifications pass checks", {
                   pedigree = dat[, 1:3],
                   coordinates = dat[, c('x', 'y')],
                   id = dat$id,
-                  var.ini = var.ini),
+                  var.ini = var.ini.mat,
+                  response = rnorm(nrow(dat))),
     NA
   )
   
@@ -45,17 +43,8 @@ test_that("Valid alternative model specifications pass checks", {
 
 
 
-test_that("Invalid alternative model specifications fail checks", {
-  ## specify var.ini, but use pec=FALSE
-  expect_error(
-    check_genetic(model = 'competition',
-                  pedigree = ped,
-                  coordinates = dat[, c('x', 'y')],
-                  id = dat$id,
-                  var.ini = var.ini),
-    NA
-  )
-  
+test_that("Invalid alternative model specifications fail check_genetic()", {
+
   ## incomplete non-recoded pedigrees
   idx <- attr(ped, 'map')[dat$id]
   dat[, 1:3] <- as.data.frame(ped)[idx, ]
@@ -64,7 +53,8 @@ test_that("Invalid alternative model specifications fail checks", {
                   pedigree = dat[-nrow(dat), 1:3],
                   coordinates = dat[, c('x', 'y')],
                   id = dat$id,
-                  var.ini = var.ini), 
+                  var.ini = var.ini.mat,
+                  response = rnorm(nrow(dat))), 
     'The following individuals in id are not represented'
   )
 })
@@ -73,18 +63,25 @@ test_that("Invalid alternative model specifications fail checks", {
 
 test_that("additive_genetic_competition() works as expected", {
   ## Full specification, from minimal input
-  comp.spec <- check_genetic(model = 'competition',
-                             pedigree = ped,
-                             id = dat$id,
-                             coordinates = dat[, c('x', 'y')],
-                             pec = TRUE)
+  comp.spec <- check_genetic(
+    model = 'competition',
+    pedigree = ped,
+    id = dat$id,
+    coordinates = dat[, c('x', 'y')],
+    pec = TRUE,
+    response = rnorm(nrow(dat))
+  )
   
-  res <- with(comp.spec,
-              additive_genetic_competition(pedigree    = pedigree,
-                                           coordinates = coordinates,
-                                           id          = id,
-                                           decay       = competition_decay,
-                                           autofill    = autofill))
+  res <- with(
+    comp.spec,
+    additive_genetic_competition(
+      pedigree    = pedigree,
+      coordinates = coordinates,
+      id          = id,
+      decay       = competition_decay,
+      autofill    = autofill
+    )
+  )
   
   expect_is(res, c("additive_genetic_competition", "additive_genetic", "genetic", 
                    "competition", "spatial", "random", "breedr_effect"))

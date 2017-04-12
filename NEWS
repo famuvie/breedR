@@ -1,4 +1,12 @@
-* Interface for using **weights** for residual variance
+breedR 0.12
+===========
+
+* Basic multitrait interface  (#30)
+
+* Default values for initial (co)variances are now a function of empirical
+(co)variances
+
+* Interface for using **weights** for residual variance  (#77)
 
 * Vignette: Heterogeneous variances
 

@@ -18,7 +18,8 @@
 #'  gives the number of knots (nok) to be used for a splines model, if not 
 #'  otherwise specified
 #'  
-#'  \code{default.initial.variance}: a default value for all variance components
+#'  \code{default.initial.variance}: a function of the numeric response vector
+#'  or matrix which returns a default initial value for a variance component
 #'  
 #'  \code{col.seq}: a vector with the specification of default extreme breedR 
 #'  col for sequential scales in spatial quantitative plots. See Details.
@@ -113,7 +114,7 @@ breedR.getOption <- function(option = c("ar.eval",
     breedR.bin  = breedR.bin.builtin(),
     ar.eval     = c(-8, -2, 2, 8)/10,
     splines.nok = quote(determine.n.knots),
-    default.initial.variance = 1,
+    default.initial.variance = quote(default_initial_variance),
     col.seq = c('#034E7B', '#FDAE6B'),
     col.div = c('#3A3A98FF', '#832424FF'),
     cygwin = 'C:/cygwin',
@@ -225,4 +226,80 @@ breedR.setOption <- function(...) {
     breedR.setOption.core(...)
   }
   return (invisible(op))
+}
+
+#' Default initial value for variance components
+#' 
+#' A function of the response vector or matrix (multi-trait case) returning a
+#' SPD matrix of conforming dimensions.
+#' 
+#' The default initial covariance matrix across traits is computed as half the 
+#' empirical covariance kronecker times a Positive-Definite matrix with Compound
+#' Symmetry Structure with a constant diagonal with value 1 and constant
+#' off-diagonal elements with the positive value given by \code{cor.effect},
+#' i.e. \deqn{\Sigma = Var(x)/2 \%*\% \psi(dim).} This implies that the default
+#' initial \strong{correlations} across traits equal the empirical correlations,
+#' except if \code{cor.trait} is not \code{NULL}.
+#' 
+#' \eqn{\psi(dim)} is intendend to model correlated random effects within
+#' traits, and only has an effect when \code{dim} > 1.
+#' 
+#' If any column in \code{x} is constant (i.e. empirical variance of 0) then the
+#' function stops. It is better to remove this trait from the analysis.
+#'  
+#' @param x numeric vector or matrix with the phenotypic observations. Each 
+#'   trait in one column.
+#' @param dim integer. dimension of the random effect for each trait. Default is
+#'   1.
+#' @param cor.trait a number strictly in (-1, 1). The initial value for the 
+#'   correlation across traits. Default is NULL, which makes the function to 
+#'   take the value from the data. See Details.
+#' @param cor.effect a number strictly in (0, 1). The initial value for the
+#'   correlation across the different dimensions of the random effect. Default
+#'   is 0.1.
+#' @param digits numeric. If not NULL (as default), the resulting matrix is rounded up
+#'   to 2 significant digits.
+#' @examples 
+#'    ## Initial covariance matrix for a bidimensional random effect
+#'    ## acting independently over three traits
+#'    x <- cbind(rnorm(100, sd = 1), rnorm(100, sd = 2), rnorm(100, sd = 3))
+#'    breedR:::default_initial_variance(x, dim = 2, cor.effect = 0.5)
+default_initial_variance <- 
+  function(x, dim = 1, cor.trait = NULL, cor.effect = 0.1, digits = NULL) {
+  
+  x <- as.matrix(x)
+  n.traits <- ncol(x)
+  
+  ## Empirical half-variances of each trait
+  halfvar <- stats::var(x, na.rm = TRUE)/2
+  
+  ## Check for degenerate variances
+  if (any(idx <- which(diag(halfvar) == 0))) {
+    stop(paste('Trait', idx, 'is constant.'))
+  }
+  
+  ## User-explicit correlation across traits
+  if (!is.null(cor.trait) && n.traits > 1) {
+    D <- diag(sqrt(diag(halfvar)))
+    C <- matrix(cor.trait, nrow(D), ncol(D)) +
+      diag(1 - cor.trait, nrow(D), ncol(D))
+    halfvar <- D %*% C %*% D
+  }
+  
+  
+  ## Matrix "expansion" for correlated effects within traits
+  
+  ## build exchangeable cov matrix of given dimension
+  ## with constant variance
+  exchangeable_covmat <- function(s2, rho, dim) {
+    matrix(rho*s2, dim, dim) +
+      diag((1-rho)*s2, dim, dim)
+  }
+
+  sigma <- kronecker(halfvar, exchangeable_covmat(1, cor.effect, dim))
+  
+  ## Rounding
+  if (!is.null(digits)) sigma <- signif(sigma, digits)
+  
+  return(sigma)
 }

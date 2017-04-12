@@ -2,9 +2,9 @@
 % Please edit documentation in R/AllGeneric.R, R/get_param.R
 \name{get_param}
 \alias{get_param}
+\alias{get_param.remlf90}
 \alias{get_param.breedr_modelframe}
 \alias{get_param.effect_group}
-\alias{get_param.remlf90}
 \alias{get_param.spatial}
 \title{Parameters of a breedR component}
 \usage{

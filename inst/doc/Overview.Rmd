@@ -1233,6 +1233,73 @@ round(sqrt(mean((fitted(res.comp.cv)[rm.idx] - true.exp.cv)^2)), 2)
 
 
 
+# Multiple traits
+
+**breedR** provides a basic interface for multi-trait models which only
+requires specifying the different traits in the main formula using `cbind()`.
+
+```{r multitrait-fit}
+## Filter site and select relevant variables
+dat <- 
+  droplevels(
+    douglas[douglas$site == "s3",
+            names(douglas)[!grepl("H0[^4]|AN|BR|site", names(douglas))]]
+  )
+
+res <- 
+  remlf90(
+    fixed = cbind(H04, C13) ~ orig,
+    # random = ~ block,
+    genetic = list(
+      model = 'add_animal', 
+      pedigree = dat[, 1:3],
+      id = 'self'),
+    data = dat
+  )
+```
+
+A full covariance matrix across traits is estimated for each random effect,
+and all results, including heritabilities, are expressed effect-wise:
+
+```{r multitrait-summary, echo = FALSE}
+summary(res)
+```
+
+Although the results are summarized in tabular form, the covariance matrices
+can be recovered directly:
+
+```{r multitrait-genetic-covariances}
+res$var[["genetic", "Estimated variances"]]
+
+## Use cov2cor() to compute correlations
+cov2cor(res$var[["genetic", "Estimated variances"]])
+```
+
+Estimates of fixed effects and BLUPs of random effects can be recovered with
+`fixef()` and `ranef()` as usual. The only difference is that they will return a
+list of matrices rather than vectors, with one column per trait.
+
+The standard errors are given as attributes, and are displayed in tabular form
+whenever the object is printed.
+
+```{r multitrait-fixef-ranef}
+fixef(res)       ## printed in tabular form, but...
+unclass(fixef(res))  ## actually a matrix of estimates with attribute "se"
+
+str(ranef(res))
+head(ranef(res)$genetic)
+```
+
+Recovering the breeding values for each observation in the original dataset 
+follows the same procedure as for one trait: multiply the incidence matrix by
+the BLUP matrix. The result, however, will be a matrix with one column per
+trait.
+
+```{r multitrait-blups}
+head(model.matrix(res)$genetic %*% ranef(res)$genetic)
+```
+
+
 
 
 # Some more features

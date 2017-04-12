@@ -2,8 +2,8 @@
 % Please edit documentation in R/remlf90-class.R
 \name{ranef}
 \alias{ranef}
-\alias{ranef.breedR}
 \alias{ranef.remlf90}
+\alias{ranef.breedR}
 \title{Extract the modes of the random effects}
 \usage{
 \method{ranef}{remlf90}(object, ...)
@@ -15,9 +15,9 @@
 \item{...}{not used}
 }
 \value{
-An object of class \code{ranef.breedR} composed of a list of vectors,
-  one for each random effect. The length of the vectors are the number of
-  levels of the corresponding random effect.
+An object of class \code{ranef.breedR} composed of a list of vectors 
+  or matrices (multitrait case), one for each random effect. The length of
+  the vectors are the number of levels of the corresponding random effect.
   
   Each random effect has an attribute called \code{"se"} which is a vector 
   with the standard errors.
@@ -49,4 +49,3 @@ res <- remlf90(phe_X ~ bl,
 str(rr <- ranef(res))
 plot(rr)
 }
-

@@ -61,6 +61,7 @@ loc_grid <- function (coordinates, autofill) {
 #' 
 #' @param x numeric. Vector of increasing coordinates.
 #' @param label character. A name like 'rows' or 'x'.
+#' @importFrom stats quantile median
 fill_holes <- function(x, label) {
   
   if(length(x) > 1){

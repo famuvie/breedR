@@ -493,6 +493,44 @@ knitr::kable(var.comp)
 true.exp.cv <- with(dat[rm.idx, ], phenotype - resid)
 round(sqrt(mean((fitted(res.comp.cv)[rm.idx] - true.exp.cv)^2)), 2)
 
+## ----multitrait-fit------------------------------------------------------
+## Filter site and select relevant variables
+dat <- 
+  droplevels(
+    douglas[douglas$site == "s3",
+            names(douglas)[!grepl("H0[^4]|AN|BR|site", names(douglas))]]
+  )
+
+res <- 
+  remlf90(
+    fixed = cbind(H04, C13) ~ orig,
+    # random = ~ block,
+    genetic = list(
+      model = 'add_animal', 
+      pedigree = dat[, 1:3],
+      id = 'self'),
+    data = dat
+  )
+
+## ----multitrait-summary, echo = FALSE------------------------------------
+summary(res)
+
+## ----multitrait-genetic-covariances--------------------------------------
+res$var[["genetic", "Estimated variances"]]
+
+## Use cov2cor() to compute correlations
+cov2cor(res$var[["genetic", "Estimated variances"]])
+
+## ----multitrait-fixef-ranef----------------------------------------------
+fixef(res)       ## printed in tabular form, but...
+unclass(fixef(res))  ## actually a matrix of estimates with attribute "se"
+
+str(ranef(res))
+head(ranef(res)$genetic)
+
+## ----multitrait-blups----------------------------------------------------
+head(model.matrix(res)$genetic %*% ranef(res)$genetic)
+
 ## ----breedR-options------------------------------------------------------
 breedR.getOption()
 

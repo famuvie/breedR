@@ -15,4 +15,3 @@ A breedr_effect with element \code{incidence.matrix}.
 \description{
 Constructor for a fixed effect
 }
-

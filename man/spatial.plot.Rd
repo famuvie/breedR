@@ -16,4 +16,3 @@ with different colours. 'sequential' uses a gradient scale of two colours.}
 \description{
 Plot an spatially arranged continuous variable
 }
-

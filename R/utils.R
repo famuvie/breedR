@@ -6,7 +6,7 @@
 # Transform the separated fixed and random formulas
 # into the single formula with lme4 syntaxis
 lme4_fml <- function(fix, rnd, rm_int = TRUE) {
-  rnd.terms <- attr(terms(rnd), 'term.labels')
+  rnd.terms <- attr(stats::terms(rnd), 'term.labels')
   rnd.terms.lme4 <- paste('(1|', rnd.terms, ')', sep ='')
   int <- ifelse(rm_int, '-1', '')
   rnd.upd <- paste('~ .', int, paste('+', rnd.terms.lme4, collapse = ' '))
@@ -41,15 +41,18 @@ breedR.get.element <-  function(name, alist) {
 
 # Fit some model
 breedR.result <- function(...) {
-  res  <- suppressWarnings(remlf90(fixed  = phe_X ~ gg,
-                                   genetic = list(model = 'add_animal', 
-                                                  pedigree = globulus[,1:3],
-                                                  id = 'self'), 
-                                   spatial = list(model = 'AR', 
-                                                  coord = globulus[, c('x','y')],
-                                                  rho = c(.85, .8)), 
-                                   data = globulus,
-                                   ...))
+  dat <- breedR::globulus
+  res  <- suppressMessages(
+    remlf90(fixed  = phe_X ~ gg,
+            genetic = list(model = 'add_animal', 
+                           pedigree = dat[,1:3],
+                           id = 'self'), 
+            spatial = list(model = 'AR', 
+                           coord = dat[, c('x','y')],
+                           rho = c(.85, .8)), 
+            data = dat,
+            ...)
+  )
   return(res)
 }
 
@@ -139,3 +142,97 @@ matrix.short16 <- function(M) {
   return(Z)
 }
 
+#' 'Splat' arguments to a function
+#' 
+#' Wraps a function in do.call, so instead of taking multiple arguments, it
+#' takes a single named list which will be interpreted as its arguments.
+#' 
+#' @param flat function to splat
+#' 
+#' This is useful when you want to pass a function a row of data frame or array,
+#' and don't want to manually pull it apart in your function.
+#' 
+#' Borrowed from \code{\link[plyr]{splat}}
+#' 
+#' @return a function
+#' 
+#' @examples 
+#'   args <- replicate(3, runif(5), simplify = FALSE)
+#'   identical(breedR:::splat(rbind)(args), do.call(rbind, args))
+splat <- function (flat) {
+  function(args, ...) {
+    do.call(flat, c(args, list(...)))
+  }
+}
+
+# given a list of data.frames, extract a given column
+# from each of the data.frames into a matrix.
+# Optionally drop into a vector if dimension = 1.
+# Used in ranef.remlf90 and fixef.remlf90 to extract
+# trait-wise predictions of effects
+ldf2matrix <- function(x, vname, drop = TRUE) {
+  ## All dataframes (ntraits) are of the same size (nlevels x (value, s.e.))
+  ## ensure a matrix, even if nlevels = 1
+  ans <- do.call(cbind, lapply(x, `[[`, vname))
+  rownames(ans) <- rownames(x[[1]])
+  if (drop) ans <- drop(ans)
+  return(ans)
+}
+
+
+# Extract values and standard errors from lists
+# of effects estimates (or predictions)
+# x is a list of effects, where each element is a trait-wise
+# list of data.frames with columns 'value' and 's.e.'
+get_estimates <- function(x) {
+  values <- lapply(x, ldf2matrix, 'value')
+  se <- lapply(x, ldf2matrix, 's.e.')
+  ans <- mapply(function(gvl, gse) structure(gvl, se = gse),
+                values, se, SIMPLIFY = FALSE)
+  return(ans)
+}
+
+# combine sub-effect names and trait names
+# trait names within sub-effect names
+# bl1 bl2 bl3 + y1 y2 = bl1.y1 bl1.y2 bl2.y1 bl2.y2 bl3.y1 bl3.y2
+# names_effect(paste0("bl", 1:3), paste0("y", 1:2))
+# "bl1.y1" "bl1.y2" "bl2.y1" "bl2.y2" "bl3.y1" "bl3.y2"
+# names_effect(paste0("bl", 1:3), NULL)
+# "bl1" "bl2" "bl3"
+# names_effect(NULL, paste0("y", 1:2))
+# "y1" "y2"
+# names_effect(NULL, NULL)
+# NULL
+names_effect <- function(inner = NULL, outer = NULL) {
+
+  ans <- inner
+  if (length(outer) > 1) {
+    if (!is.null(inner)) {
+      ans <- apply(
+        expand.grid(
+          outer, inner,
+          KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
+        )[2:1],
+        1, paste, collapse = "."
+      )
+    } else {
+      ans <- outer
+    }
+  }
+  return(ans)
+}
+
+
+## component names
+vcnames <- function(efname, efdim, trnames) {
+  
+  dim_subtrait <- efdim/ifelse(is.null(trnames), 1, length(trnames))
+  if (dim_subtrait > 1) 
+    efname <- paste(efname, seq_len(dim_subtrait), sep = "_")
+  diag_names <- names_effect(efname, trnames)
+  
+  ## matrix components include variances and covariances
+  ans <- outer(diag_names, diag_names, paste, sep = "_")
+  diag(ans) <- diag_names
+  return(ans[upper.tri(ans, diag = TRUE)])
+}

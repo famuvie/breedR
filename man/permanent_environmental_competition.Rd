@@ -33,4 +33,3 @@ dat <- data.frame(id   = 1:5,
                   y    = c(rep(1:2, each = 2), 3))
 breedR:::permanent_environmental_competition(coord = dat[, c('x', 'y')], decay = 2)
 }
-

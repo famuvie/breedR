@@ -27,4 +27,3 @@ Copy the  binaries for the specified platform into a directory.
 \details{
 The url can be either of form http:// or of form file:// for local urls.
 }
-

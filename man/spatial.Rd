@@ -24,4 +24,3 @@ A list with elements \code{coordinates}, \code{incidence.matrix},
 \description{
 Check conformity of arguments and return a \code{spatial} object.
 }
-

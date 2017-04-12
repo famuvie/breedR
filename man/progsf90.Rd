@@ -22,4 +22,3 @@ This function parses a model frame and extracts the relevant fields
 that are to be written in the parameter, data and auxiliary files
 of the progsf90 programs.
 }
-

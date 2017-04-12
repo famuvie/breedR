@@ -2,11 +2,11 @@
 % Please edit documentation in R/AllGeneric.R, R/get_pedigree.R
 \name{get_pedigree}
 \alias{get_pedigree}
+\alias{get_pedigree.metagene}
+\alias{get_pedigree.remlf90}
 \alias{get_pedigree.breedr_modelframe}
 \alias{get_pedigree.effect_group}
 \alias{get_pedigree.genetic}
-\alias{get_pedigree.metagene}
-\alias{get_pedigree.remlf90}
 \title{Get the Pedigree from an object}
 \usage{
 get_pedigree(x, ...)
@@ -43,6 +43,7 @@ Internal function.
 
 \item \code{genetic}: Get the pedigree from a \code{genetic} object
 }}
+
 \references{
 \code{\link[pedigreemm]{pedigree-class}} from package
   \code{pedigreemm}
@@ -52,4 +53,3 @@ Other metagene: \code{\link{Extract.metagene}},
   \code{\link{get_ntraits}}, \code{\link{ngenerations}},
   \code{\link{nindividuals}}
 }
-

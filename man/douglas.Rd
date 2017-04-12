@@ -57,4 +57,3 @@ ggplot(douglas, aes(x, y)) +
   facet_wrap(~ site)
  
 }
-

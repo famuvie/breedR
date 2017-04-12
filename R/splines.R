@@ -28,6 +28,7 @@
 #' @return A list with elements \code{incidence.matrix}, \code{structure.matrix}
 #'   and \code{structure.type}, which is a string indicating either 
 #'   \code{covariance} or \code{precision}.
+#' @importFrom methods as
 breedr_splines <- function(coordinates,
                            n.knots  = NULL,
                            autofill = TRUE,

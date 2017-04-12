@@ -1,6 +1,3 @@
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 ### Internal spatial functions ###
 context("Internal spatial functions")

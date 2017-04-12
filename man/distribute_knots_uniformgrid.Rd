@@ -25,4 +25,3 @@ The margin is calculated as half the median separation between observations.
 Furthermore, three more knots are added with equal spacing at each side, for
 each dimension.
 }
-

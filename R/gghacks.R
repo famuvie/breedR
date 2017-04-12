@@ -3,9 +3,11 @@
 #' This function presents several ggplots of the same type side by side
 #' under the same scale, while keeping annotations.
 #' 
+#' The names of the objects in the list will be used for facet labels.
+#' 
 #' @param plots List of ggplots with meaningful names
 #' 
-#' The names of the objects in the list will be used for facet labels.
+#' @usage compare.plots(plots)
 #' @import ggplot2
 #' @export compare.plots
 compare.plots <- function(plots) {
@@ -45,13 +47,13 @@ compare.plots <- function(plots) {
   if( nrow(text.data) > 0 ) {
     # Remove the original geom_text layer
     p$layers[[text.data[1, 'layer']]] <- NULL
-    p <- p + geom_text(aes(x, y, label = lab),
+    p <- p + geom_text(aes_string("x", "y", label = "lab"),
                        data = text.data,
                        parse = any(text.data$parse))    
   }
   
   # Include all annotations and facets
-  p <- p + facet_grid(~ .id)
+  p <- p + facet_grid("~ .id")
   p
   #   
   #   ggplot(tmpdat, aes(irow, icol)) + 
@@ -79,7 +81,8 @@ spatial.plot <- function(dat, scale = c('divergent', 'sequential')) {
     ggcl <- paste('ggplot2::ggplot(dat, aes(',cn[1], ',', cn[2], ')) + geom_raster(aes(fill = ', cn[3], '))')
     p <- eval(parse(text = ggcl))
   } else {
-    p <- ggplot2::ggplot(dat, aes(x , y)) + geom_raster(aes(fill =  z))
+    p <- ggplot2::ggplot(dat, aes_string("x" , "y")) +
+      geom_raster(aes_string(fill =  "z"))
   }
   
     

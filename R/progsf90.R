@@ -13,7 +13,7 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
   
   #   # Number of traits
   #   # (size of the response vector or matrix)
-  #   ntraits <- ncol(as.matrix(model.response(mf)))
+  #   ntraits <- ncol(as.matrix(stats::model.response(mf)))
   
   #   # Position counter
   #   pos = ntraits + 1
@@ -40,7 +40,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
 
   for (x in names(mf.rnd)) {
     effect.item <- effect_group(list(diagonal(mf.rnd[[x]])),
-                                cov.ini = var.ini[[x]])
+                                cov.ini = var.ini[[x]],
+                                ntraits = ncol(stats::model.response(mf)))
     effect.item.list <- structure(list(effect.item),
                                   names = x)
     effects <- c(effects, effect.item.list)
@@ -65,7 +66,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
       
       ## additive-genetic only
       effect.item <- effect_group(list(direct = gen_direct),
-                                  cov.ini = genetic$var.ini)
+                                  cov.ini = genetic$var.ini,
+                                  ntraits = ncol(stats::model.response(mf)))
       effect.item.list <- list(genetic = effect.item)
     } else {
       
@@ -80,7 +82,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
       
       effect.item <- effect_group(list(genetic_direct = gen_direct,
                                        genetic_competition = gen_comp),
-                                  cov.ini = genetic$var.ini)
+                                  cov.ini = genetic$var.ini,
+                                  ntraits = ncol(stats::model.response(mf)))
       effect.item.list <- list(genetic = effect.item)
       
       ## eventually, a second effect-group for pec      
@@ -91,7 +94,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
           autofill    = genetic$autofill
         )
         effect.item <- effect_group(list(pec = pec),
-                                    cov.ini = genetic$pec$var.ini)
+                                    cov.ini = genetic$pec$var.ini,
+                                    ntraits = ncol(stats::model.response(mf)))
         effect.item.list <- c(
           effect.item.list,
           list(pec = effect.item)
@@ -115,7 +119,8 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
     
     ## build the effect group with the (single) spatial model
     effect.item <- effect_group(structure(list(sp), names = class(sp)[1]),
-                                cov.ini = spatial$var.ini)
+                                cov.ini = spatial$var.ini,
+                                ntraits = ncol(stats::model.response(mf)))
     
     effects <- c(effects, list(spatial = effect.item))
   }
@@ -130,7 +135,9 @@ build.effects <- function (mf, genetic, spatial, generic, var.ini) {
     make_group <- function(x) {
       stopifnot('var.ini' %in% names(x))
       go <- do.call('generic', x[-grep('var.ini', names(x))])
-      ef <- effect_group(list(go), x[['var.ini']])
+      ef <- effect_group(list(go),
+                         x[['var.ini']],
+                         ntraits = ncol(stats::model.response(mf)))
       return(ef)
     }
     generic.groups <- lapply(generic, make_group)
@@ -184,25 +191,22 @@ progsf90 <- function (mf, weights, effects, opt = c("sol se"), res.var.ini = 10)
   # TODO: Should I pass only the response instead of the whole mf?
   # or maybe only ntraits?, or maybe include the response in effects?
   # (size of the response vector or matrix)
-  ntraits <- ncol(as.matrix(model.response(mf)))
+  ntraits <- ncol(as.matrix(stats::model.response(mf)))
   
   # Weights position
   w_pos <- ifelse(is.null(weights), '', ntraits + 1)
-  
+
   ## renderpf90 all the effects
   ## positions in data file starting after offset for traits and weights
-  effects.pf90 <- renderpf90.breedr_modelframe(effects, ntraits + (w_pos>0)) 
+  effects.pf90 <- renderpf90.breedr_modelframe(effects, ntraits, w_pos>0)
 
   # Builds the lines in the EFFECTS section
-  na2empty <- function(x) {
-    x <- as.character(x)
-    x[is.na(x)] <- ''
-    return(x)
+  
+  setup_effectline <- function(x) {
+    with(x, paste(pos, levels, type, nest))
   }
   
-  effect.lst <-
-    sapply(effects.pf90,
-           function(x) with(x, paste(pos, levels, type, na2empty(nest))))
+  effect.lst <- lapply(effects.pf90, setup_effectline)
 
   # Phenotype
   Y <- mf[, attr(attr(mf, 'terms'), 'response')]
@@ -219,17 +223,12 @@ progsf90 <- function (mf, weights, effects, opt = c("sol se"), res.var.ini = 10)
   }
   
   parse.rangroup <- function(x) {
-    group.size <- nrow(as.matrix(effects.pf90[[x]]$var))
+    group.size <- nrow(as.matrix(effects.pf90[[x]]$var))/ntraits
     ## The group 'head' is the first effect with a number of levels > 0
     group.head <- head(which(effects.pf90[[x]]$levels != 0), 1)
     # Determine the right position in the effects list
     group.head.abs <- sum(sapply(effect.lst, length)[1:(x-1)]) + group.head
     
-    ## Refactored effects
-    fn <- ifelse('file_name' %in% names(effects.pf90[[x]]),
-                 effects.pf90[[x]]$file_name,
-                 effects.pf90[[x]]$file)
-      
     return(list(pos = group.head.abs + 1:group.size - 1,
                 type = effects.pf90[[x]]$model, 
                 file = effects.pf90[[x]]$file_name, 
@@ -239,7 +238,7 @@ progsf90 <- function (mf, weights, effects, opt = c("sol se"), res.var.ini = 10)
   par <- list(datafile = 'data',
               ntraits  = ntraits,
               neffects = sum(sapply(effect.lst, length)),
-              observations = 1:ntraits,
+              observations = paste(seq_len(ntraits), collapse = " "),
               weights  = w_pos,
               effects  = effect.lst,
               residvar = res.var.ini,
@@ -289,6 +288,21 @@ progsf90 <- function (mf, weights, effects, opt = c("sol se"), res.var.ini = 10)
 
 write.progsf90 <- function (pf90, dir) {
   
+  write_matrix <- function(x) {
+    apply(as.matrix(x), 1, paste, collapse = " ")
+  }
+  
+  write_rangroup <- function(x) {
+    c('RANDOM_GROUP',
+      paste(x$pos, collapse = ' '),
+      'RANDOM_TYPE',
+      x$type,
+      'FILE',
+      x$file,
+      '(CO)VARIANCES',
+      write_matrix(x$cov))
+  }
+  
   # Parameter file
   parameter.file <- 
     with(pf90$parameter, 
@@ -299,19 +313,8 @@ write.progsf90 <- function (pf90, dir) {
            'WEIGHT(S)', weights,
            'EFFECTS: POSITIONS_IN_DATAFILE NUMBER_OF_LEVELS TYPE_OF_EFFECT [EFFECT NESTED]',
            paste(unlist(effects)),
-           'RANDOM_RESIDUAL VALUES', residvar,
-           c(sapply(rangroup, 
-                  function(x) c('RANDOM_GROUP',
-                                paste(x$pos, collapse = ' '),
-                                'RANDOM_TYPE',
-                                x$type,
-                                'FILE',
-                                x$file,
-                                '(CO)VARIANCES',
-                                apply(as.matrix(x$cov), 1,
-                                      paste,
-                                      collapse = ' '))),
-             recursive = TRUE),
+           'RANDOM_RESIDUAL VALUES', write_matrix(residvar),
+           c(sapply(rangroup, write_rangroup), recursive = TRUE),
            paste('OPTION', options)))
   
   writeLines(as.character(parameter.file),
@@ -319,7 +322,7 @@ write.progsf90 <- function (pf90, dir) {
   # file.show(parameter.file.path)
   
   # Data file
-  write.table(pf90$data,
+  utils::write.table(pf90$data,
               file = file.path(dir, pf90$parameter$datafile),
               row.names = FALSE, col.names = FALSE)
   # file.show(data.file.path)
@@ -339,18 +342,6 @@ write.progsf90 <- function (pf90, dir) {
 # Parse results from a progsf90 'solutions' file
 parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
 
-  ## Parse a matrix from a text output
-  parse.txtmat <- function(v, names) {
-    # get the numeric values from the strings, spliting by spaces
-    ans <- sapply(v, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
-    # ensure matrix even if only a number
-    ans <- as.matrix(ans)
-    # if no sub-names passed, remove all naming
-    if( is.null(names) ) names(ans) <- dimnames(ans) <- NULL
-    # otherwise, put the given names in both dimensions (covariance matrix)
-    else dimnames(ans) <- list(names, names)
-    ans
-  }
   
   ## Parse the AI matrix from AIREML output
   parse_invAI <- function(x) {
@@ -358,7 +349,8 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     idx <- grep('inverse of AI matrix', x)
     stopifnot(length(idx) == 2)
     mat.txt <- x[(idx[1]+1):(idx[2]-1)]
-    invAI <- parse.txtmat(mat.txt, rownames(varcomp))
+    
+    invAI <- parse.txtmat(mat.txt)
     return(invAI)
   }
 
@@ -377,7 +369,7 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                 names = c('mean', 'sample mean', 'sample sd'))
     }
     
-    pattern <- "^.*? SE for function of \\(co\\)variances (\\w+) .*$"
+    pattern <- "^.*? SE for function of \\(co\\)variances (\\S+) .*$"
     labels.idx <- grep(pattern, x)
     labels <- gsub(pattern, "\\1", x[labels.idx])
     idx <- grep('  - Function:', x)
@@ -387,9 +379,16 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     if (N > 0L) colnames(ans) <- labels
     return(ans)
   }
-                              
+
+  
+  ## Number and names of traits
+  ntraits <- as.numeric(tail(unlist(strsplit(
+    grep("Number of Traits", reml.out, value = TRUE),
+    ' +')), 1))
+  trait_names <- colnames(stats::model.response(mf))  # NULL for 1 trait
+  
   # Parsing the results
-  sol.file <- try(read.table(solfile, header=FALSE, skip=1))
+  sol.file <- try(utils::read.table(solfile, header=FALSE, skip=1))
   if( inherits(sol.file, 'try-error') ) {
     ## The output file is formatted with fixed-width columns
     ## leaving 4 spaces between the columns trait and effect
@@ -416,11 +415,24 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   }
   colnames(sol.file) <- c('trait', 'effect', 'level', 'value', 's.e.')
   
-  # Assuming one trait only
-  result <- split(sol.file[, c('value', 's.e.')], sol.file$effect)
+  # trait < level < effect
+  split_by <- function(x, var) {
+    col.id <- match(var, names(x))
+    split(x[, -col.id], x[[col.id]])
+  }
+  result_by_effect <- split_by(sol.file[, -3], 'effect')
+  result <- lapply(result_by_effect, split_by, 'trait')
+
+  # Name the results according to effects
+  # Effects can be grouped (e.g. competition) and account for correlated
+  # effects
+  names(result) <- get_efnames(effects)
   
+  # Name traits within effects
+  result <- lapply(result, structure, names = trait_names)
+
   # Different results can be associated to a single (group) effect
-  effect.size <- vapply(effects, effect_size, 1)
+  effect.size <- vapply(effects, dim, numeric(2))["size", ]
 
   # count fixed effects as of size 1
   effect.size[effect.size == 0] <- 1
@@ -430,12 +442,6 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     unlist(sapply(seq_along(effects),
                   function(idx) rep(idx, effect.size[idx])))
     
-  # Name the results according to effects
-  # Effects can be grouped (e.g. competition) and account for correlated
-  # effects
-  
-  names(result) <- get_efnames(effects)
-  
   # Identify factors in model terms
   mt <- attr(mf, 'terms')
   isF <- sapply(attr(mt, 'dataClasses'), 
@@ -446,37 +452,18 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   isSpatial <- exists('spatial', effects)
   
   # write labels for factor levels in results
-  for( x in names(isF)[which(isF)] )
-    rownames(result[[x]]) <- levels(mf[[x]])
+  for (x in names(isF)[which(isF)] ) {
+    for (trait in seq_len(ntraits)) {
+      rownames(result[[x]][[trait]]) <- levels(mf[[x]])
+    }
+  }
   
   # Random and Fixed effects indices with respect to the 'effects' list
   effect.type <- vapply(effects, effect_type, '')
   
-#   fixed.effects.idx <- which(effect.type == 'fixed')
-#   diagonal.effects.idx <- sapply(effects,
-#                                  function(x) identical(x$model, 'diagonal'))
-#   special.effects.idx <- !(fixed.effects.idx | diagonal.effects.idx)
-#   random.effects.idx <- diagonal.effects.idx | special.effects.idx
-  
 
-  
   # Random effects coefficients
   ranef <- result[result_effect.map %in% which(effect.type == 'random')]
-
-#   # Build up the model matrix *for the fixed and random terms*
-#   # with one dummy variable per level of factors
-#   # as progsf90 takes care of everything
-#   # I need to provide each factor with an identity matrix
-#   # as its 'contrasts' attribute
-#   diagonal_contrasts <- function(x) {
-#     ctr <- diag(nlevels(x))
-#     colnames(ctr) <- levels(x)
-#     attr(x, 'contrasts') <- ctr
-#     x
-#   }
-#   mf[isF] <- lapply(mf[isF], diagonal_contrasts)
-#   mm <- model.matrix(mt, mf) 
-#   
 
   # REML info
   # TODO: 'delta convergence' only for AI-REML?
@@ -490,9 +477,16 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   # Maximum number of iterations
   # (Hardcoded in REML and AIREML)
   max.it <- 5000
+
+  ## Dimension of random effects
+  rangroup.sizes <- c(effect.size[effect.type == 'random'],
+                      resid = 1)*ntraits
+
+  ## index of variance component results
+  varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
   
   # Variance components
-  if( identical(last.round[1], max.it) ) {
+  if (identical(last.round[1], max.it)) {
     warning('The algorithm did not converge')
     varcomp <- cbind('Estimated variances' = rep(NA, sum(effect.type == 'random') + 1L))
     rownames(varcomp) <- c(names(effects)[effect.type == 'random'], 'Residual')
@@ -500,32 +494,28 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     # Variance components
     sd.label <- ifelse(TRUE, 'SE', 'S.D.')
     
-    varcomp.idx <- grep('Genetic variance|Residual variance', reml.out) + 1
     # There should be one variance for each random effect plus one resid. var.
     stopifnot(identical(length(varcomp.idx), sum(effect.type == 'random') + 1L))
 
-    rangroup.sizes <- c(effect.size[effect.type == 'random'],
-                        resid = 1)
-
-    if( all(rangroup.sizes == 1) ){
+    if (all(rangroup.sizes == 1)){
       varcomp <- cbind('Estimated variances' = as.numeric(reml.out[varcomp.idx]))
       rownames(varcomp) <- c(names(effects)[effect.type == 'random'], 'Residual')
     } else {
       varcomp.str <- lapply(mapply(function(x, y) x + 1:y,
                                    varcomp.idx-1,
-                                   rangroup.sizes),
+                                   rangroup.sizes,
+                                   SIMPLIFY = FALSE),
                             function(x) reml.out[x])
 
       # names for the members of a group (if more than one)
       get_subnames <- function(name) {
-        if (name %in% names(rangroup.sizes) &&
-            rangroup.sizes[name] > 1) {
-          sn <- names(effects[[name]]$effects)
-        } else sn <- NULL
+        ## effect sub-names (or NULL)
+        esn <- names(effects[[name]]$effects)
+        names_effect(esn, trait_names)
       }
       
-      subnames <- sapply(names(rangroup.sizes), get_subnames)
-      varcomp <- mapply(parse.txtmat, varcomp.str, subnames)
+      subnames <- lapply(names(rangroup.sizes), get_subnames)
+      varcomp <- mapply(parse.txtmat, varcomp.str, subnames, SIMPLIFY = FALSE)
       names(varcomp) <- c(names(effects)[effect.type == 'random'], 'Residual')
     }
     
@@ -535,15 +525,18 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       # There should be one variance for each random effect plus one resid. var.
       stopifnot(identical(length(varcomp.idx), sum(effect.type == 'random') + 1L))
       
-      if( all(rangroup.sizes == 1) ){
+      if (all(rangroup.sizes == 1)){
         varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
       } else {
         varsd.str <- lapply(mapply(function(x, y) x + 1:y,
                                    varsd.idx-1,
-                                   rangroup.sizes),
+                                   rangroup.sizes,
+                                   SIMPLIFY = FALSE),
                             function(x) reml.out[x])
-        varsd <- mapply(parse.txtmat, varsd.str, subnames)
+        varsd <- mapply(parse.txtmat, varsd.str, subnames, SIMPLIFY = FALSE)
         names(varsd) <- c(names(effects)[effect.type == 'random'], 'Residual')
+        varcomp <- cbind("Estimated variances" = varcomp,
+                         "S.E." = varsd)
       }
     }
   }
@@ -557,7 +550,16 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
                                      split='delta convergence=')[[1]][2]),
     output = reml.out
   )
-  if (method == 'ai') reml$invAI <- parse_invAI(reml.out)
+  
+  ## AI matrix
+  if (method == 'ai') {
+
+    comp_names <- unlist(
+      mapply(vcnames, names(rangroup.sizes), rangroup.sizes,
+             MoreArgs = list(trnames = trait_names), SIMPLIFY = FALSE))
+    reml$invAI <- parse_invAI(reml.out)
+    dimnames(reml$invAI) <- list(comp_names, comp_names)
+  }
 
   # Fit info
   last.fit <- as.numeric(strsplit(strsplit(reml.out[last.round.idx-1],
@@ -568,14 +570,11 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
     AIC = last.fit[2]
   )
 
-  # TODO: Add inbreeding coefficient for each tree (in the pedigree) (use pedigreemm::inbreeding())
-  #       Include the matrix A of additive relationships (as sparse. Use pedigreemm::getA)
-  #       Compute covariances estimates for multiple traits (and their standard errors)
   ans <- list(
     call = mcout,
     method = method,
     components = list(pedigree = isGenetic,
-                      spatial  = isSpatial), # TODO competition, ...
+                      spatial  = isSpatial),
     effects = effects,
     mf = mf,
     fixed = result[result_effect.map %in% which(effect.type == 'fixed')],
@@ -603,7 +602,7 @@ build.mf <- function(call) {
 
   ## Fixed effects
   fxd <- eval(call$fixed, parent.frame(2))
-  tfxd <- terms(fxd)
+  tfxd <- stats::terms(fxd)
   
 	# Add an intercept manually only if the user requested it
   # *and* there are no other *categorical* fixed effects
@@ -611,32 +610,32 @@ build.mf <- function(call) {
                       formula = fxd,
                       data = quote(data)),
                  parent.frame())
-  tempt <- terms(tempmf)
+  tempt <- stats::terms(tempmf)
   tempc <- attr(tempt, 'dataClasses')[attr(tempt, 'term.labels')]
   any.cat <- any(tempc %in% c('factor', 'ordered'))
 	
   if( attr(tfxd, 'intercept') == 1L & !any.cat ) {
 	  fxd <- update(fxd, " ~ Intercept + .")
 	}
-	terms.list$fxd <- attr(terms(fxd), 'term.labels')
+	terms.list$fxd <- attr(stats::terms(fxd), 'term.labels')
 	
 	
 	## Random effects (unstructured)
 	rnd <- eval(call$random, parent.frame(2))
   if(!is.null(rnd))
-    terms.list$rnd <- attr(terms(rnd), 'term.labels')
+    terms.list$rnd <- attr(stats::terms(rnd), 'term.labels')
 	
 	## Join fixed and random
-	lhs <- as.character(fxd[[2]])
+	lhs <- deparse(fxd[[2]])
 	rhs <- paste(do.call(c, terms.list), collapse = '+')  
-	fml <- as.formula(paste(lhs, rhs, sep = '~'), env = parent.frame(2))
+	fml <- stats::as.formula(paste(lhs, rhs, sep = '~'), env = parent.frame(2))
 	
   # Build Model Frame
   # Use na.pass to allow missing observations which will be handled later
 	mfcall <- call('model.frame',
                  formula = fml,
                  data = quote(transform(data, Intercept = 1)),
-                 na.action = na.pass)
+                 na.action = stats::na.pass)
 	mf <- eval(mfcall, parent.frame())
   mt <- attr(mf, 'terms')
   
@@ -693,21 +692,26 @@ pf90_code_missing <- function(x) {
 #' genetic variance by the sum of all variance components plus the residual
 #' variance.
 #' 
-#' Assumes only one trait.
+#' @return A character vector with one option specification per trait.
 #' 
 #' @param rglist list of random groups in the parameters of a
 #'   \code{\link{progsf90}} object
+#' @param traits A character vector with trait names, or NULL for single trait.
 #' @param quiet logical. If FALSE, the function issues a message when it fails
 #'   to build a formula.
 #'   
 #' @references 
 #'    http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
-pf90_default_heritability <- function (rglist, quiet = FALSE) {
+pf90_default_heritability <- function (rglist, traits = NULL, quiet = FALSE) {
   
   stopifnot(is.list(rglist))
   
   ## Positions of random effects in the list of random groups
   ranef.idx <- sapply(rglist, function(x) x$pos)
+  
+  ## trait indices
+  tr_idx <- seq_along(traits)
+  if (is.null(traits)) tr_idx <- 1
   
   if (length(rglist) > 0 &&                       # there is at least one group
       all(vapply(ranef.idx, length, 1) == 1) &&   # all of them of size 1
@@ -715,19 +719,24 @@ pf90_default_heritability <- function (rglist, quiet = FALSE) {
     
     ## Compose a formula term for the variance of random effect x
     ## trait # is 1. vector-friendly
-    fterm <- function(x) paste('G', x, x, '1', '1', sep = '_')
+    fterm <- function(x) paste('G', x, x, tr_idx, tr_idx, sep = '_')
     
     ## Additive-genetic variance in the numerator
     ## (Potentially more than one)
     numerator <- fterm(ranef.idx[['genetic']])
     
     ## All variance estimates plus residual variance in the denominator
-    denom <- paste(c(sapply(ranef.idx, fterm), paste('R', '1', '1', sep = '_')),
-                   collapse = '+')
+    trait_component <- cbind(
+      matrix(sapply(ranef.idx, fterm), ncol = length(ranef.idx)),
+      paste('R', tr_idx, tr_idx, sep = '_')
+    )
+    denom <- apply(trait_component, 1, paste, collapse = '+')
     
     H2fml <- paste0(numerator, "/(", denom, ")")
     
-    option.str <- paste('se_covar_function', 'Heritability', H2fml)
+    H2lbl <- "Heritability"
+    if (!is.null(traits)) H2lbl <- paste(H2lbl, traits, sep = ":")
+    option.str <- paste('se_covar_function', H2lbl, H2fml)
     
   } else {
     
@@ -738,3 +747,63 @@ pf90_default_heritability <- function (rglist, quiet = FALSE) {
   
   return(option.str)
 }
+
+
+#' Parse a matrix from a text output robustly
+#' 
+#' Each row of the matrix is a string. If rows are too long, they can continue
+#' in another line. Hence, the number of lines might be a multiple of the number
+#' of columns
+#' 
+#' @param x A character vector with space-separated numbers
+#' @param names A character vector with row and column names for the output matrix.
+#' @param square logical. Whether to assume that the matrix is square.
+#' 
+#' If the matrix is not necessarily
+parse.txtmat <- function(x, names = NULL, square = TRUE) {
+  ## numeric values from the strings, spliting by spaces
+  ans <- unname(
+    lapply(x, function(x) as.numeric(strsplit(x, ' +')[[1]][-1]))
+  )
+  
+  ## concatenate rows in groups of p
+  fix_rows <- function(x, p) {
+    grp <- split(x, rep(seq_len(length(x)/p), each = p))
+    return(unname(lapply(grp, unlist)))
+  }
+
+  row_lengths <- sapply(ans, length)
+  nonzero_drl <- diff(row_lengths) != 0L
+
+  ## Handle potential line wrapping
+  if( any(nonzero_drl) ) {
+    ## row-lengths not constant: e.g. drl = 10 10 2 10 10 2 ...
+    ## concatenate lines by period
+    period <- head(which(nonzero_drl), 1) + 1
+    ans <- fix_rows(ans, period)
+    
+    ## row lengths should be constant by now
+    row_lengths <- sapply(ans, length)
+    nonzero_drl <- diff(row_lengths) != 0L
+    stopifnot(!any(nonzero_drl))
+  }
+  
+  if ( square && (m <- length(ans)) != (n <- row_lengths[1]) ) {
+    ## square matrix not square
+    ## check rows are multiple of cols
+    if (m %% n != 0) stop("Could not figure out square matrix dimensions.")
+    period <- m %/% n
+    ans <- fix_rows(ans, period)
+  }
+  
+  ## ensure matrix even if only a number
+  ans <- as.matrix(simplify2array(ans))
+  
+  ## if no sub-names passed, remove all naming
+  if( is.null(names) ) names(ans) <- dimnames(ans) <- NULL
+  # otherwise, put the given names in both dimensions (covariance matrix)
+  else dimnames(ans) <- list(names, names)
+  
+  return(ans)
+}
+

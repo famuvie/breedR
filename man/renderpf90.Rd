@@ -2,18 +2,18 @@
 % Please edit documentation in R/AllGeneric.R, R/renderpf90.R
 \name{renderpf90}
 \alias{renderpf90}
+\alias{renderpf90.default}
+\alias{renderpf90.fixed}
+\alias{renderpf90.diagonal}
+\alias{renderpf90.breedr_modelframe}
+\alias{renderpf90.effect_group}
+\alias{renderpf90.generic}
 \alias{renderpf90.additive_genetic_animal}
 \alias{renderpf90.additive_genetic_competition}
-\alias{renderpf90.ar}
-\alias{renderpf90.blocks}
-\alias{renderpf90.breedr_modelframe}
-\alias{renderpf90.default}
-\alias{renderpf90.diagonal}
-\alias{renderpf90.effect_group}
-\alias{renderpf90.fixed}
-\alias{renderpf90.generic}
 \alias{renderpf90.permanent_environmental_competition}
 \alias{renderpf90.splines}
+\alias{renderpf90.blocks}
+\alias{renderpf90.ar}
 \title{Render a progsf90 effect}
 \usage{
 renderpf90(x)
@@ -24,7 +24,7 @@ renderpf90(x)
 
 \method{renderpf90}{diagonal}(x)
 
-\method{renderpf90}{breedr_modelframe}(x, ntraits)
+\method{renderpf90}{breedr_modelframe}(x, ntraits, weights)
 
 \method{renderpf90}{effect_group}(x)
 
@@ -46,6 +46,8 @@ renderpf90(x)
 \item{x}{object of class breedr_modelframe, effect_group or breedr_effect.}
 
 \item{ntraits}{integer. Number of traits in the model.}
+
+\item{weights}{logical. Whether there is an additional column of weights.}
 }
 \value{
 The number of levels and type for each 'virtual' effect; the progsf90
@@ -107,7 +109,7 @@ a blocks effect.
 \item \code{ar}: Compute the parameters of a progsf90 representation of
 an AR effect.
 }}
+
 \seealso{
 Other renderpf90: \code{\link{renderpf90.matrix}}
 }
-

@@ -2,14 +2,19 @@
 % Please edit documentation in R/breedr_effect.R
 \name{effect_group}
 \alias{effect_group}
+\alias{dim.effect_group}
 \title{Constructor for a group of effects}
 \usage{
-effect_group(x, cov.ini)
+effect_group(x, cov.ini, ntraits)
+
+\method{dim}{effect_group}(x)
 }
 \arguments{
 \item{x}{list of breedr_effect elements}
 
 \item{cov.ini}{initial covariance matrix for the estimation algorithm}
+
+\item{ntraits}{number of traits in the model}
 }
 \value{
 A list of \code{breedr_effect} elements.
@@ -21,5 +26,6 @@ Builds an \code{effect_group} from a list of \code{breer_effect} elements.
 Temporarily, this takes the \code{cov.ini} argument and includes it in the 
 object. In the future, the initial covariance matrix will be a matter of the
 inference engine, not inherent to the model.
-}
 
+The `ntraits` is used to check the dimension of the initial variance matrix.
+}

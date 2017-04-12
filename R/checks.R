@@ -1,12 +1,27 @@
 ## Functions for checking model components
 ## Internal - not exported
 
-check_var.ini <- function (x, random) {
+
+#' Check initial variances specification
+#' 
+#' If the user specified initial values, verify that all random effects were
+#' included. Otherwise, set default values. In any case, validate all initial
+#' values.
+#' 
+#' @return A list with initial covariance matrices for all random effects in the
+#'   model. A logical attribute `var.ini.default` is TRUE if values were set by
+#'   default.
+#' 
+#' @param x list. user specification of var.ini (or NULL)
+#' @param random formula. user specification of random effects.
+#' @param response numeric vector or matrix.
+#' @return  matrix of observation values.
+check_var.ini <- function (x, random, response) {
   
   
   ## terms in the random component + 'residual'
   random.terms <- switch( is.null(random) + 1,
-                          c(attr(terms(random), 'term.labels'), 'residuals'),
+                          c(attr(stats::terms(random), 'term.labels'), 'residuals'),
                           'residuals')
   
   if (!is.null(x)) {
@@ -27,8 +42,10 @@ check_var.ini <- function (x, random) {
   } else {
     
     ## set default values and flag
-    x <- as.list(rep(breedR.getOption('default.initial.variance'),
-                     length(random.terms)))
+    div_fun <- breedR.getOption('default.initial.variance')
+    default_ini <- 
+      eval(div_fun)(response, dim = 1, cor.effect = 0.1, digits = 2)
+    x <- lapply(random.terms, function(x) default_ini)
     names(x) <- random.terms
     attr(x, 'var.ini.default') <- TRUE
   }
@@ -42,6 +59,7 @@ check_var.ini <- function (x, random) {
 }
 
 
+## Checks and completes the specification of a genetic model
 check_genetic <- function(model = c('add_animal', 'competition'),
                           pedigree,
                           id,
@@ -51,18 +69,15 @@ check_genetic <- function(model = c('add_animal', 'competition'),
                           autofill = TRUE,
                           var.ini,
                           data,
+                          response,
                           ...) {
   
   ## do not include data in the call
   ## data is an auxiliar for checking and substituting id
   ## but it is not part of the genetic component specification
   mc <- match.call()
-  mc <- mc[names(mc) != 'data']
+  mc <- mc[!names(mc) %in% c('data', 'response')]
   
-  ## flag indicating whether the var.ini was taken by default
-  ## or specified by the user
-  attr(mc, 'var.ini.default') <- FALSE
-
   ## Mandatory arguments
   for (arg in c('model', 'pedigree', 'id')) {
     if (eval(call('missing', as.name(arg))) || 
@@ -115,23 +130,32 @@ check_genetic <- function(model = c('add_animal', 'competition'),
                'not represented in the pedigree:\n',
                toString(mc$id[which(!idx)])))
 
+  ## flag indicating whether the var.ini was taken by default
+  ## or specified by the user
+  attr(mc, 'var.ini.default') <- FALSE
+
+  ## default initial variance function
+  div_fun <- breedR.getOption('default.initial.variance')
+  
+  ## dimension of the genetic effect
+  dim <- switch(mc$model, add_animal = 1, competition = 2)
+  
   ## Set default var.ini if missing
   if (missing(var.ini) || is.null(var.ini)) {
 
-    var.ini <- switch(
-      mc$model,
-      add_animal = breedR.getOption('default.initial.variance'),
-      competition = {
-        var.ini.mat <- diag(breedR.getOption('default.initial.variance'), 2)
-        var.ini.mat[1,2] <- var.ini.mat[2,1] <- -var.ini.mat[1,1]/2
-        var.ini.mat
-      }
-    )
+    ## default initial covariance matrix
+    var.ini <- 
+      eval(div_fun)(response, dim = dim, cor.effect = 0.1, digits = 2)
+    
+    ## set flag indicating a default initial value
     attr(mc, 'var.ini.default') <- TRUE
   }
   
-  ## Validate initial variance
-  validate_variance(var.ini)
+  ## Validate initial variance (SPD, dimensions, etc.)
+  validate_variance(
+    var.ini,
+    dimension = rep(dim*ncol(as.matrix(response)), 2),
+    where = 'genetic component.')
   
   ## Checks specific to competition models
   if (mc$model == 'competition') {
@@ -184,7 +208,10 @@ check_genetic <- function(model = c('add_animal', 'competition'),
                     'in the competition specification.\n',
                     'e.g. pec = list(present = TRUE, var.ini = 1)'))
       }
-      pec$var.ini <- breedR.getOption('default.initial.variance')
+      
+      ## default initial covariance matrix
+      pec$var.ini <-
+        eval(div_fun)(response, dim = 1, cor.effect = 0.1, digits = 2)
     }
     
     ## Validate initial variance in pec
@@ -227,17 +254,14 @@ check_spatial <- function(model = c('splines', 'AR', 'blocks'),
                           autofill = TRUE,
                           sparse   = TRUE,
                           var.ini,
-                          data) {
+                          data,
+                          response) {
 
   ## do not include data in the call
   ## data is an auxiliar for checking and substituting id
   ## but it is not part of the genetic component specification
   mc <- match.call()
-  mc <- mc[names(mc) != 'data']
-  
-  ## flag indicating whether the var.ini was taken by default
-  ## or specified by the user
-  attr(mc, 'var.ini.default') <- FALSE
+  mc <- mc[!names(mc) %in% c('data', 'response')]
   
   for (arg in c('model', 'coordinates')) {
     if (eval(call('missing', as.name(arg))))
@@ -321,15 +345,31 @@ check_spatial <- function(model = c('splines', 'AR', 'blocks'),
     mc$rho <- rho.grid
   }
   
+  ## flag indicating whether the var.ini was taken by default
+  ## or specified by the user
+  attr(mc, 'var.ini.default') <- FALSE
+  
+  ## default initial variance function
+  div_fun <- breedR.getOption('default.initial.variance')
+
+  ## dimension of the spatial effect
+  dim <- 1
+  
   if (missing(var.ini) || is.null(var.ini)) {
-    ## If not specified, return function that gives the value
-    ## in order to check later whether the value is default or specified
-    var.ini <- breedR.getOption('default.initial.variance')
+    
+    ## default initial covariance matrix
+    var.ini <- eval(div_fun)(response, dim, cor.effect = 0.1, digits = 2)
+    
+    ## set flag indicating a default initial value
     attr(mc, 'var.ini.default') <- TRUE
   } 
-  
-  ## Validate initial variance
-  validate_variance(var.ini)
+
+  ## Validate initial variance (SPD, dimensions, etc.)
+  validate_variance(
+    var.ini,
+    dimension = rep(dim*ncol(as.matrix(response)), 2),
+    where = 'spatial component.'
+  )
   mc$var.ini <- var.ini
   
   ## evaluate remaining parameters
@@ -342,7 +382,7 @@ check_spatial <- function(model = c('splines', 'AR', 'blocks'),
 
 
 
-check_generic <- function(x){
+check_generic <- function(x, response){
   
   mc <- match.call()
   
@@ -362,7 +402,9 @@ check_generic <- function(x){
   
   ## validate individual elements
   for (arg.idx in seq_along(x)){ 
-    result <- try(do.call('validate_generic_element', x[[arg.idx]]), silent =TRUE)
+    result <- try(do.call('validate_generic_element', 
+                          c(x[[arg.idx]], response = list(response))),
+                  silent =TRUE)
     if (inherits(result, 'try-error')) {
       stop(paste(attr(result, 'condition')$message, 'in generic component',
                  names(x)[arg.idx]))
@@ -389,13 +431,14 @@ check_generic <- function(x){
 }
 
 
-validate_generic_element <- function(incidence, covariance, precision, var.ini) {
+validate_generic_element <- function(incidence, 
+                                     covariance, 
+                                     precision, 
+                                     var.ini, 
+                                     response) {
   
   mc <- match.call()
-  
-  ## flag indicating whether the var.ini was taken by default
-  ## or specified by the user
-  attr(mc, 'var.ini.default') <- FALSE
+  mc <- mc[names(mc) != 'response']
   
   for (arg in c('incidence')) {
     if (eval(call('missing', as.name(arg))))
@@ -418,18 +461,33 @@ validate_generic_element <- function(incidence, covariance, precision, var.ini) 
     stop(paste(str.name, 'must be of type matrix'))
   if(ncol(incidence) != nrow(structure))
     stop(paste('Non conformant incidence and', str.name, 'matrices'))
+
+  ## flag indicating whether the var.ini was taken by default
+  ## or specified by the user
+  attr(mc, 'var.ini.default') <- FALSE
+  
+  ## default initial variance function
+  div_fun <- breedR.getOption('default.initial.variance')
+  
+  ## dimension of the generic effect
+  dim <- 1
   
   if (missing(var.ini) || is.null(var.ini)) {
     ## If not specified, return function that gives the value
     ## in order to check later whether the value is default or specified
-    var.ini <- breedR.getOption('default.initial.variance')
+    var.ini <- eval(div_fun)(response, dim, cor.effect = 0.1, digits = 2)
+    
+    ## set flag indicating a default initial value
     attr(mc, 'var.ini.default') <- TRUE
-  } 
+  }
   
-  ## Validate specified variance 
-  ## even if default, since the user could have changed the default option
-  validate_variance(var.ini)
-
+  ## Validate initial variance 
+  ## even if default: the user could have changed the default function
+  validate_variance(
+    var.ini,
+    dimension = rep(dim*ncol(as.matrix(response)), 2),
+    where = 'generic component.')
+  
   mc$var.ini <- var.ini
   
   return(structure(as.list(mc[-1]),
@@ -477,26 +535,23 @@ normalise_coordinates <- function (x, where = '') {
 #' @param where string. Model component where coordinates were specified. For 
 #'   error messages only. E.g. \code{where = 'competition specification'}.
 #'
-#' @return \code{TRUE} is all checks pass
+#' @return \code{TRUE} if all checks pass
 validate_variance <- function (x, dimension = dim(as.matrix(x)), where = '') {
 
-  stopifnot(is.numeric(dimension) || length(dimension) != 2)
+  stopifnot(
+    is.numeric(x <- as.matrix(x)),
+    is.numeric(dimension),
+    length(dimension) == 2
+  )
   
-  if (isTRUE(all.equal(dimension, c(1, 1)))) {
-    ## Case for a number
-    if (!is.numeric(x) || !x > 0)
-      stop(paste('the variance must be a positive number in the', where))
-  } else {
-    ## Case for a matrix
-    x <- as.matrix(x)
-    if (nrow(x)!=ncol(x))
-      stop(paste('x must be a square matrix in the', where))
-    if (length(x) != prod(dimension))
-      stop(paste('x must be a', paste(dimension, collapse = 'x'),
-                 'matrix in the', where))
-    if (!all(x == t(x)) || !all(eigen(x)$values >0 ))
-      stop(paste('x must be a SPD matrix in the', where))
-  }
+  if (nrow(x)!=ncol(x))
+    stop(paste('x must be a square matrix in the', where))
+  if (length(x) != prod(dimension))
+    stop(paste('x must be a', paste(dimension, collapse = 'x'),
+               'matrix in the', where))
+  ev <- eigen(x, symmetric = TRUE, only.values = TRUE)$values
+  if (!isSymmetric(x, check.attributes = FALSE) || !all( ev > 0 ))
+    stop(paste('x must be a SPD matrix in the', where))
   
   return(TRUE)
 }

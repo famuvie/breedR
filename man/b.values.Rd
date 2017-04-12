@@ -12,4 +12,3 @@ b.values(x)
 \description{
 Breeding values
 }
-

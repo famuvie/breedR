@@ -135,17 +135,15 @@ renderpf90.matrix <- function(x) {
 
 #' @describeIn renderpf90 Render a full \code{breedr_modelframe}
 #' @param ntraits integer. Number of traits in the model.
+#' @param weights logical. Whether there is an additional column of weights.
 #' @export
-renderpf90.breedr_modelframe <- function(x, ntraits) {
-  
-  ## Until the refactoring is completed, not all effects in the list
-  ## will be breedr_effects or effect_groups
-  ## Those which are not remain untouched
+renderpf90.breedr_modelframe <- function(x, ntraits, weights) {
   
   xpf90 <- lapply(x, renderpf90)
   
-  ## The dimension of the response will be translated here from progsf90
-  ## This determines the initial position of the effects in the data file
+  ## The dimension of the response (i.e. ntraits) will be translated here from
+  ## progsf90 This determines the initial position of the effects in the data
+  ## file, and the dimension of 'pos' and 'nest'.
 
   ## Make sure file_name are unique
   aux.idx <- which(sapply(x, inherits, 'effect_group'))
@@ -159,13 +157,21 @@ renderpf90.breedr_modelframe <- function(x, ntraits) {
   ## Positions of the 'virtual' effects in the data file
   ## (to appear in the EFFECTS section in progsf90)
   dat.widths <- sapply(xpf90, function(x) ncol(x$data))
-  end.columns <- cumsum(c(response = ntraits, dat.widths)) 
+  end.columns <- cumsum(c(response = ntraits + weights, dat.widths)) 
   offsets <- structure(head(end.columns, -1),
                        names = names(dat.widths))
   
+  collapse_traits <- function(x, ntraits) {
+    if (!is.na(x))
+      paste(rep(x, ntraits), collapse = " ")
+    else ''
+  }
+
   for (i in seq_along(xpf90)) {
-    xpf90[[i]]$pos <- offsets[[i]] + xpf90[[i]]$pos
-    xpf90[[i]]$nest <- offsets[[i]] + xpf90[[i]]$nest
+    xpf90[[i]]$pos <- vapply(offsets[[i]] + xpf90[[i]]$pos,
+                          collapse_traits, "str", ntraits)
+    xpf90[[i]]$nest <- vapply(offsets[[i]] + xpf90[[i]]$nest,
+                           collapse_traits, "str", ntraits)
   }
   
 
@@ -433,6 +439,7 @@ renderpf90.ar <- function(x) {
 #' symmetry.
 #' 
 #' @param x matrix.
+#' @importFrom methods as
 as.triplet <- function(x) {
   xsp <- Matrix::tril(as(x, 'TsparseMatrix'))
   # Note: The Matrix package counts rows and columns starting from zero

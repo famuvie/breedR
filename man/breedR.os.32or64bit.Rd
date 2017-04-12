@@ -12,4 +12,3 @@ Either "32" or "64"
 \description{
 Give precedence to current R architecture
 }
-

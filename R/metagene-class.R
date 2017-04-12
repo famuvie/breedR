@@ -9,6 +9,7 @@
 #'   insim.002)
 #' @return the data in the file as an object of class \code{metagene}
 #' @references \url{http://www.igv.fi.cnr.it/noveltree/}
+#' @importFrom utils read.table
 #' @export
 #' @aliases metagene
 read.metagene <- function(fname) {
@@ -71,12 +72,13 @@ read.metagene <- function(fname) {
 #' @method summary metagene
 #' @param object a metagene object
 #' @describeIn read.metagene summary of a metagene object
+#' @importFrom stats sd var
 #' @export
 summary.metagene <- function(object, ...) {
 #   attach(x)
   xsummary <- function(x) c(summary(x),
-                            'SD'=sd(x),
-                            'Var'=var(x))[c(4, 7, 8, 1:3, 5:6)]
+                            'SD'=stats::sd(x),
+                            'Var'=stats::var(x))[c(4, 7, 8, 1:3, 5:6)]
   
   breeding.values <- list(
     global = do.call(rbind,
@@ -196,10 +198,10 @@ plot.metagene <- function(x, type = c('default', 'spatial'), ...) {
                       generation = rep(factor(x$gen), 2),
                       sex = rep(x$sex, 2),
                       value = c(x$BV_X, x$phe_X))
-    p <- ggplot(dat, aes(x = value, fill = label)) +
+    p <- ggplot(dat, aes_string(x = "value", fill = "label")) +
       geom_density(alpha=.3) +
       facet_grid(generation~.) +
-      labs(x = "Value by generation") 
+      labs(x = "Value by generation")
   }
   
   if( !missing(...) ) {
@@ -348,6 +350,7 @@ b.values <- function(x) {
 
 #### Simulate spatial structure ####
 
+#' @importFrom stats var
 #' @export
 sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   

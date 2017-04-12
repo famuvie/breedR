@@ -32,4 +32,3 @@ The 1600 descendants were arranged at random in a \eqn{40\times 40}{40 x 40} spa
   qplot(BV_X, phe_X-BV_X, colour = dad, data = as.data.frame(m1)) + 
     geom_abline(intercept=0, slope=0, col='gray')
 }
-

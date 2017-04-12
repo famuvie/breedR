@@ -2,8 +2,8 @@
 % Please edit documentation in R/help.R
 \docType{package}
 \name{breedR-package}
-\alias{breedR}
 \alias{breedR-package}
+\alias{breedR}
 \title{Frequentist and Bayesian methods for breeders, quantitative geneticists and 
 forest genetic resources analysts.}
 \description{
@@ -58,4 +58,3 @@ Traits}. Sinauer Associates, Inc.
 \code{\link[pedigreemm]{pedigreemm}}
 }
 \keyword{package}
-

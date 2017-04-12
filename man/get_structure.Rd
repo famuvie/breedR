@@ -3,8 +3,8 @@
 \name{get_structure}
 \alias{get_structure}
 \alias{get_structure.breedR}
-\alias{get_structure.breedr_effect}
 \alias{get_structure.effect_group}
+\alias{get_structure.breedr_effect}
 \title{Covariance structure of a breedR component}
 \usage{
 get_structure(x)
@@ -30,7 +30,8 @@ in the group.
 \itemize{
 \item \code{breedR}: Return the structure matrices of all structured random effects
 
-\item \code{effect_group}: Check that all elements share the same structure and return it.
+\item \code{effect_group}: Check that all elements share the same structure
+and return it.
 
 \item \code{breedr_effect}: Return the structure matrix with an attribute
 indicating its \code{type}.

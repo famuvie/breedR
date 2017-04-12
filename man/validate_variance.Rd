@@ -15,9 +15,8 @@ validate_variance(x, dimension = dim(as.matrix(x)), where = "")
 error messages only. E.g. \code{where = 'competition specification'}.}
 }
 \value{
-\code{TRUE} is all checks pass
+\code{TRUE} if all checks pass
 }
 \description{
 Check properties for a covariance matrix
 }
-

@@ -40,7 +40,7 @@ res <- remlf90(y ~ x, data = dat)
 
 ## The predicted phenotype for y[1] is the estimated effect
 ## of the corresponding level of x
-fitted(res)[1] == fixef(res)$x['a', 'value']
+fitted(res)[1] == fixef(res)$x['a']
 ```
 
 
@@ -48,7 +48,7 @@ fitted(res)[1] == fixef(res)$x['a', 'value']
 ## Missing value for a fixed effect
 
 This is not allowed, as it would yield an underdetermined system of equations.
-`breedR` issues a warning if missing values are detected.
+`breedR` issues an error if missing values are detected.
 
 ```{r missing-fixed, message = FALSE, error = TRUE}
 N <- 1e3
@@ -99,7 +99,7 @@ available effects. In this case, the global mean.
 
 
 ```{r missing-diagonal-residual}
-fitted(res)[1] == fixef(res)$Intercept[1, 'value']
+fitted(res)[1] == fixef(res)$Intercept[1]
 ```
 
 
@@ -115,7 +115,7 @@ res <- remlf90(y ~ 1,
                data = dat)
 
 c(sum(model.matrix(res)$spatial[1,]) == 0,
-fitted(res)[1] == fixef(res)$Intercept[1, 'value'])
+fitted(res)[1] == fixef(res)$Intercept[1])
 ```
 
 
@@ -139,7 +139,7 @@ sample_first_residual <- function(N = 1e3, N.blk = 20) {
 
 
 ```{r variance-missing-residuals}
-resid_sample <- replicate(1e3, sample_first_residual())
+resid_sample <- replicate(1e2, sample_first_residual())
 var(resid_sample)
 
 ```

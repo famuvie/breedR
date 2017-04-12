@@ -2,13 +2,13 @@
 % Please edit documentation in R/coordinates.R, R/metagene-class.R
 \docType{methods}
 \name{coordinates_breedR}
-\alias{coordinates,breedR-method}
-\alias{coordinates,effect_group-method}
-\alias{coordinates,metagene-method}
-\alias{coordinates,spatial-method}
-\alias{coordinates<-,breedR-method}
-\alias{coordinates<-,metagene-method}
 \alias{coordinates_breedR}
+\alias{coordinates,breedR-method}
+\alias{coordinates<-,breedR-method}
+\alias{coordinates,effect_group-method}
+\alias{coordinates,spatial-method}
+\alias{coordinates,metagene-method}
+\alias{coordinates<-,metagene-method}
 \title{breedR coordinates methods}
 \usage{
 \S4method{coordinates}{breedR}(obj, ...)
@@ -35,4 +35,3 @@
 \description{
 breedR coordinates methods
 }
-

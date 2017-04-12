@@ -16,4 +16,3 @@ breedR.remote(jobid, breedR.call, verbose = TRUE)
 \description{
 Assumes that all the relevant files are in the current directory.
 }
-

@@ -1,6 +1,3 @@
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 ### For testing competition, we perform a simulation excercise ###
 
@@ -145,12 +142,11 @@ dat <- transform(dat, z = a + wnc + pec + e)
 
 
 
-#### Fitting the competition model with remlf90
+#### Fitting the competition model with remlf90 ################################
 context('Fitting competition models')
-########################
 
-res <- try(
-  suppressMessages(
+expect_error(
+  res <- suppressMessages(
     remlf90(
       fixed  = z ~ 1,
       genetic = list(model = c('comp'), 
@@ -162,20 +158,16 @@ res <- try(
       data = dat,
       method = 'em',
       debug = F)
-  )
-)
+  ),
+  NA)
+
 
 # ggplot2::qplot(dat$z - dat$e, fitted(res)) + 
 #   ggplot2::geom_abline(intercept = 0, slope = 1, col = 'darkgray')
 
-
-
-test_that('remlf90() suceeds in fitting a single competition model', {
-  expect_false(inherits(res, 'try-error'))
-})
-
+#### Context: Extraction of results from competition model #####################
 context("Extraction of results from competition model")
-########################
+
 
 n.fixed   <- 1
 nlevels.fixed <- 1
@@ -198,14 +190,16 @@ test_that("fitted() gets a vector of length N", {
   expect_equal(length(fitted(res)), Nobs)
 })
 
-test_that("fixef() gets a named list of data.frames with estimated values and s.e.", {
+test_that("fixef() gets a named list of numeric vectors with estimated values and s.e.", {
   x <- fixef(res)
-  expect_is(x, 'list')
+  expect_is(x, 'breedR_estimates')
   expect_named(x)
   expect_equal(length(x), n.fixed)
   for (f in x) {
-    expect_is(f, 'data.frame')
-    expect_named(f, c('value', 's.e.'))
+    expect_is(f, 'numeric')
+    expect_false(is.null(fse <- attr(f, 'se')))
+    expect_is(fse, 'numeric')
+    expect_equal(length(fse), length(f))
   }
 })
 

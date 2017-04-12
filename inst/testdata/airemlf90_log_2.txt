@@ -1,0 +1,197 @@
+ name of parameter file?
+parameters
+ * missing observation (default=0):        -999
+ *** store solutions and s.e. *** se                  
+ 
+     AI-REMLF90 ver. 1.122
+
+ Parameter file:             parameters
+ Data file:                  data
+ Number of Traits             2
+ Number of Effects            2
+ Position of Observations      1  2
+ Position of Weight (1)        0
+ Value of Missing Trait/Observation           0
+
+EFFECTS
+ #  type                position (2)        levels   [positions for nested]
+    1  covariable             3    3                                               1
+    2  cross-classified       4    4                                              50
+
+ Residual (co)variance Matrix
+ 0.96000     0.42000    
+ 0.42000      11.000    
+
+ Random Effect(s)    2
+ Type of Random Effect:      diagonal
+ trait   effect    (CO)VARIANCES
+  1       2    0.9600      0.4200    
+  2       2    0.4200       11.00    
+
+ REMARKS
+  (1) Weight position 0 means no weights utilized
+  (2) Effect positions of 0 for some effects and traits means that such
+      effects are missing for specified traits
+ 
+ Data record length =            4
+ # free parameters=           6
+ # parameters=           8
+ # random effects=           1
+ # elements for random effects=           3
+ # maximum (ntrait*random)**2=           4
+ # (co)variance matrices=           1
+ read         1000  records in   3.1268999E-02  s,                     353 
+  nonzeroes
+ finished peds in   3.1434000E-02  s,                     353  nonzeroes
+ rank=         102
+               **************
+               **** FSPAK ***
+               **************
+               MPE / IM / MAE
+                   Jun 1994
+
+              SPARSE STATISTICS
+      DIMENSION OF MATRIX     =                      102
+      RANK                    =                      102
+      STORAGE AVAILABLE       =                     2633
+      MAXIMUM NEEDED          =                     2633
+      NZE IN UPPER TRIANGULAR =                      455
+      NZE IN FACTOR           =                      251
+      NO. OF CALLS NUM FACT   =                        1
+      NO. OF CALLS SOLVE      =                        1
+      NO. OF CALLS SPARS SOLV =                        0
+      NO. OF CALLS DET / LDET =                        1
+      NO. OF CALLS SPARS INV  =                        1
+      TOTAL CPU TIME IN FSPAK =                 0.000217
+      TIME FOR FINDING ORDER  =                 0.000027
+      TIME FOR SYMBOLIC FAC   =                 0.000011
+      TIME FOR NUMERICAL FAC  =                 0.000016
+      TIME FOR SOLVE          =                 0.000006
+      TIME FOR SPARSE SOLVE   =                 0.000000
+      TIME FOR SPARSE INVERSE =                 0.000020
+ -2logL =    6366.17154923307       : AIC =    6378.17154923307     
+  In round            1  convergence=  0.938064549357143     
+  delta convergence=   1.72604629535046     
+ new R
+  0.80411       2.8065    
+   2.8065       10.501    
+ new G
+  0.76390      -1.4009    
+  -1.4009       5.7025    
+ -2logL =    8439.29230205048       : AIC =    8451.29230205048     
+  In round            2  convergence=  9.139887763314413E-003
+  delta convergence=  0.309209041036213     
+ new R
+  0.87701       2.9817    
+   2.9817       11.412    
+ new G
+  0.81509      -1.3933    
+  -1.3933       6.3398    
+ -2logL =    6453.50000092506       : AIC =    6465.50000092506     
+  In round            3  convergence=  3.689929967706082E-004
+  delta convergence=  8.076761706861509E-002
+ new R
+  0.90211       2.9372    
+   2.9372       11.671    
+ new G
+  0.82093      -1.3696    
+  -1.3696       6.4659    
+ -2logL =    5695.91871227495       : AIC =    5707.91871227495     
+  In round            4  convergence=  1.411428458053771E-006
+  delta convergence=  5.578205480891912E-002
+ new R
+  0.92570       2.8644    
+   2.8644       11.899    
+ new G
+  0.82004      -1.3655    
+  -1.3655       6.4603    
+ -2logL =    5478.99932068048       : AIC =    5490.99932068048     
+  In round            5  convergence=  1.195716496128840E-006
+  delta convergence=  3.965654780422352E-002
+ new R
+  0.94231       2.8128    
+   2.8128       12.059    
+ new G
+  0.81936      -1.3634    
+  -1.3634       6.4536    
+ -2logL =    5445.58284810838       : AIC =    5457.58284810838     
+  In round            6  convergence=  4.789183100061474E-008
+  delta convergence=  1.098547212561306E-002
+ new R
+  0.94696       2.7984    
+   2.7984       12.104    
+ new G
+  0.81923      -1.3630    
+  -1.3630       6.4522    
+ -2logL =    5444.20337255722       : AIC =    5456.20337255722     
+  In round            7  convergence=  3.950567465682949E-010
+  delta convergence=  6.133881450508541E-004
+ new R
+  0.94722       2.7976    
+   2.7976       12.106    
+ new G
+  0.81924      -1.3631    
+  -1.3631       6.4523    
+ -2logL =    5444.19986995476       : AIC =    5456.19986995476     
+  In round            8  convergence=  4.223625924120614E-012
+  delta convergence=  4.579101840204427E-006
+ new R
+  0.94722       2.7976    
+   2.7976       12.106    
+ new G
+  0.81924      -1.3631    
+  -1.3631       6.4524    
+ -2logL =    5444.19986992974       : AIC =    5456.19986992974     
+  In round            9  convergence=  4.947098163518088E-018
+  delta convergence=  3.649287847394725E-009
+ new R
+  0.94722       2.7976    
+   2.7976       12.106    
+ new G
+  0.81924      -1.3631    
+  -1.3631       6.4524    
+ solutions and s.e. stored in file: "solutions"
+
+Final Estimates
+ Genetic variance(s) for effect  2       
+  0.81924      -1.3631    
+  -1.3631       6.4524    
+   correlations
+   1.0000     -0.59285    
+ -0.59285       1.0000    
+   eigenvectors
+ -0.97471     -0.22346    
+ -0.22346      0.97471    
+  eigenvalues
+  0.50676       6.7648    
+ Residual variance(s)
+  0.94722       2.7976    
+   2.7976       12.106    
+   correlations
+   1.0000      0.82613    
+  0.82613       1.0000    
+   eigenvectors
+ -0.97312      0.23030    
+  0.23030      0.97312    
+  eigenvalues
+  0.28516       12.768    
+ inverse of AI matrix (Sampling Variance)
+  0.30120E-01 -0.42370E-01  0.59559E-01 -0.90746E-04 -0.26714E-03 -0.78650E-03
+ -0.42370E-01  0.15253     -0.34518     -0.26905E-03 -0.97917E-03 -0.34332E-02
+  0.59559E-01 -0.34518       2.0014     -0.79760E-03 -0.34575E-02 -0.14989E-01
+ -0.90746E-04 -0.26905E-03 -0.79760E-03  0.18886E-02  0.55772E-02  0.16469E-01
+ -0.26714E-03 -0.97917E-03 -0.34575E-02  0.55772E-02  0.20303E-01  0.71279E-01
+ -0.78650E-03 -0.34332E-02 -0.14989E-01  0.16469E-01  0.71279E-01  0.30849    
+ Correlations from inverse of AI matrix
+   1.0000     -0.62511      0.24258     -0.12032E-01 -0.10803E-01 -0.81592E-02
+ -0.62511       1.0000     -0.62476     -0.15852E-01 -0.17595E-01 -0.15827E-01
+  0.24258     -0.62476       1.0000     -0.12973E-01 -0.17152E-01 -0.19075E-01
+ -0.12032E-01 -0.15852E-01 -0.12973E-01   1.0000      0.90064      0.68230    
+ -0.10803E-01 -0.17595E-01 -0.17152E-01  0.90064       1.0000      0.90064    
+ -0.81592E-02 -0.15827E-01 -0.19075E-01  0.68230      0.90064       1.0000    
+ SE for G
+  0.17355      0.39055    
+  0.39055       1.4147    
+ SE for R
+  0.43458E-01  0.14249    
+  0.14249      0.55542    

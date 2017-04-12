@@ -44,4 +44,3 @@ Weighted Neighbour Competition effect over one's phenotype is given by
 constant which makes \eqn{Var(wnc) = \sigma_{a_c}^2} and independent of the
 number of neighbours.
 }
-

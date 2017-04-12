@@ -1,0 +1,138 @@
+ name of parameter file?
+parameters
+ * missing observation (default=0):        -999
+ *** store solutions and s.e. *** se                  
+ 
+     AI-REMLF90 ver. 1.122
+
+ Parameter file:             parameters
+ Data file:                  data
+ Number of Traits             2
+ Number of Effects            2
+ Position of Observations      1  2
+ Position of Weight (1)        0
+ Value of Missing Trait/Observation           0
+
+EFFECTS
+ #  type                position (2)        levels   [positions for nested]
+    1  covariable             3    3                                               1
+    2  cross-classified       4    4                                              50
+
+ Residual (co)variance Matrix
+ 0.96000     0.42000    
+ 0.42000      11.000    
+
+ REMARKS
+  (1) Weight position 0 means no weights utilized
+  (2) Effect positions of 0 for some effects and traits means that such
+      effects are missing for specified traits
+ 
+ Data record length =            4
+ # free parameters=           3
+ # parameters=           4
+ # random effects=           0
+ # elements for random effects=           0
+ # maximum (ntrait*random)**2=           2
+ # (co)variance matrices=           0
+ read         1000  records in   1.8728999E-02  s,                     353 
+  nonzeroes
+ finished peds in   1.8753000E-02  s,                     353  nonzeroes
+ rank=         102
+               **************
+               **** FSPAK ***
+               **************
+               MPE / IM / MAE
+                   Jun 1994
+
+              SPARSE STATISTICS
+      DIMENSION OF MATRIX     =                      102
+      RANK                    =                      102
+      STORAGE AVAILABLE       =                     2633
+      MAXIMUM NEEDED          =                     2633
+      NZE IN UPPER TRIANGULAR =                      455
+      NZE IN FACTOR           =                      251
+      NO. OF CALLS NUM FACT   =                        1
+      NO. OF CALLS SOLVE      =                        1
+      NO. OF CALLS SPARS SOLV =                        0
+      NO. OF CALLS DET / LDET =                        1
+      NO. OF CALLS SPARS INV  =                        1
+      TOTAL CPU TIME IN FSPAK =                 0.000198
+      TIME FOR FINDING ORDER  =                 0.000025
+      TIME FOR SYMBOLIC FAC   =                 0.000011
+      TIME FOR NUMERICAL FAC  =                 0.000014
+      TIME FOR SOLVE          =                 0.000004
+      TIME FOR SPARSE SOLVE   =                 0.000000
+      TIME FOR SPARSE INVERSE =                 0.000017
+ -2logL =    6072.75298482128       : AIC =    6078.75298482128     
+  In round            1  convergence=  9.204781127338116E-002
+  delta convergence=   1.01127528179923     
+ new R
+  0.80456       2.8095    
+   2.8095       10.511    
+ -2logL =    8203.74733381667       : AIC =    8209.74733381667     
+  In round            2  convergence=  6.071740180487556E-003
+  delta convergence=  0.388474372557198     
+ new R
+  0.87780       2.9864    
+   2.9864       11.426    
+ -2logL =    6199.31814983008       : AIC =    6205.31814983008     
+  In round            3  convergence=  4.584489388588833E-004
+  delta convergence=  0.108987600459738     
+ new R
+  0.90281       2.9419    
+   2.9419       11.684    
+ -2logL =    5432.29529740702       : AIC =    5438.29529740702     
+  In round            4  convergence=  3.935632136149145E-004
+  delta convergence=  0.107799737895211     
+ new R
+  0.92643       2.8690    
+   2.8690       11.911    
+ -2logL =    5211.59203500297       : AIC =    5217.59203500297     
+  In round            5  convergence=  1.948306589984007E-004
+  delta convergence=  7.664565612114138E-002
+ new R
+  0.94322       2.8170    
+   2.8170       12.072    
+ -2logL =    5177.23684734518       : AIC =    5183.23684734518     
+  In round            6  convergence=  1.566568185087734E-005
+  delta convergence=  2.179722332893752E-002
+ new R
+  0.94799       2.8022    
+   2.8022       12.118    
+ -2logL =    5175.78686638886       : AIC =    5181.78686638886     
+  In round            7  convergence=  4.949525098641211E-008
+  delta convergence=  1.225404679715726E-003
+ new R
+  0.94826       2.8013    
+   2.8013       12.120    
+ -2logL =    5175.78300206193       : AIC =    5181.78300206193     
+  In round            8  convergence=  4.038531195941370E-013
+  delta convergence=  3.500335555297703E-006
+ new R
+  0.94826       2.8013    
+   2.8013       12.120    
+ solutions and s.e. stored in file: "solutions"
+
+Final Estimates
+ Residual variance(s)
+  0.94826       2.8013    
+   2.8013       12.120    
+   correlations
+   1.0000      0.82631    
+  0.82631       1.0000    
+   eigenvectors
+ -0.97311      0.23033    
+  0.23033      0.97311    
+  eigenvalues
+  0.28519       12.783    
+ inverse of AI matrix (Sampling Variance)
+  0.18950E-02  0.55983E-02  0.16538E-01
+  0.55983E-02  0.20380E-01  0.71555E-01
+  0.16538E-01  0.71555E-01  0.30959    
+ Correlations from inverse of AI matrix
+   1.0000      0.90083      0.68280    
+  0.90083       1.0000      0.90083    
+  0.68280      0.90083       1.0000    
+ SE for R
+  0.43532E-01  0.14276    
+  0.14276      0.55641    

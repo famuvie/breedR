@@ -20,4 +20,3 @@ coordinates. Overrides \code{type}.}
 \description{
 Plots the predicted values of the component effects of the phenotype.
 }
-

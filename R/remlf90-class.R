@@ -291,6 +291,7 @@
 #' }
 #' 
 #' @export
+#' @importFrom stats terms model.response logLik runif
 remlf90 <- function(fixed, 
                     random = NULL,
                     genetic = NULL,
@@ -314,10 +315,18 @@ remlf90 <- function(fixed,
   # Allow for multiple responses
   # Allow for generalized mixed models
 
-  
 
   ###  Call
   mc <- mcout <- match.call()
+
+  # Builds model frame by joining the fixed and random terms
+  # and translating the intercept (if appropriate) to a fake covariate
+  # Add an additional 'term.types' attribute within 'terms'
+  # indicating whether the term is 'fixed' or 'random'
+  # progsf90 does not allow for custom model parameterizations
+  # and they don't use intercepts
+  mf <- build.mf(mc)
+  mt <- attr(mf, 'terms')
   
   ### Checks
   if ( missing(fixed) | missing(data) ) { 
@@ -349,15 +358,30 @@ remlf90 <- function(fixed,
   method <- tolower(method)
   method <- match.arg(method)
   
+
+  ### Number of traits
+  # ntraits <- ncol(as.matrix(model.response(mf)))
+  
+  ### Response matrix (ntraits = ncols)
+  responsem <- as.matrix(model.response(mf))
+  
   ## Genetic specification
   if (!is.null(genetic)) {
-    genetic <- do.call('check_genetic',  c(genetic, list(data = data)))
+    ## TODO: Ideally, I should pass the model frame only, containing the
+    ## necessary variables (also for special effects and response)
+    genetic <- do.call('check_genetic',
+                       c(genetic, list(data = data, 
+                                       response = responsem)))
   }
+  
   
   ## Spatial specification
   if (!is.null(spatial)) {
-    
-    spatial <- do.call('check_spatial', c(spatial, list(data = data)))
+    ## TODO: Ideally, I should pass the model frame only, containing the
+    ## necessary variables (also for special effects and response)
+    spatial <- do.call('check_spatial', 
+                       c(spatial, list(data = data,
+                                       response = responsem)))
     
     # If AR model without rho specified
     # we need to fit it with several fixed rho's
@@ -391,15 +415,17 @@ remlf90 <- function(fixed,
 
   ## Generic specification
   if (!is.null(generic)) {
-    generic <- check_generic(generic)
+    ## TODO: multitrait case shoud check initial variance conformity
+    ## and return a sensible default
+    generic <- check_generic(generic, response = responsem)
   }
   
   ## Initial variances specification
   ## We check even the NULL case, where the function returns the 
   ## default initial variances for all random effects + residuals
-  var.ini <- check_var.ini(var.ini, random)
+  var.ini <- check_var.ini(var.ini, random, responsem)
   
-  ## Whether the user specified all initial variances for each component
+  ## Whether the initial variances for each component are defaults
   has_var.ini <- 
     function(x) {
       if (eval(call('is.null', as.symbol(x)))) return(NA)
@@ -415,22 +441,11 @@ remlf90 <- function(fixed,
                'Please specify either all or none.'))
   ## Issue a warning in the case of no specification
   if (all(var.ini.checks, na.rm = TRUE)) {
-    message(paste('No specification of initial variances.\n',
-                  '\tUsing default value of',
-                  breedR.getOption('default.initial.variance'),
-                  'for all variance components.\n',
-                  '\tSee ?breedR.getOption.\n'))
+    message(paste0('Using default initial variances given by ',
+                  breedR.getOption('default.initial.variance'), '()\n',
+                  'See ?breedR.getOption.\n'))
   }
   
-  
-  # Builds model frame by joining the fixed and random terms
-  # and translating the intercept (if appropriate) to a fake covariate
-  # Add an additional 'term.types' attribute within 'terms'
-  # indicating whether the term is 'fixed' or 'random'
-  # progsf90 does not allow for custom model parameterizations
-  # and they don't use intercepts
-  mf <- build.mf(mc)
-  mt <- attr(mf, 'terms')
   
   # Build a list of parameters and information for each effect
   effects <- build.effects(mf, genetic, spatial, generic, var.ini)
@@ -445,13 +460,13 @@ remlf90 <- function(fixed,
                    opt = union('sol se', progsf90.options),
                    res.var.ini = var.ini$residuals)
   
-  
   if (!is.null(genetic) && method == 'ai') {
     ## Compute default heritability if possible
     ## add and additional PROGSF90 OPTION
+    trait_names <- colnames(model.response(mf))  # NULL for 1 trait
     pf90$parameter$options <- 
       c(pf90$parameter$options, 
-        pf90_default_heritability(pf90$parameter$rangroup))
+        pf90_default_heritability(pf90$parameter$rangroup, trait_names))
   }
   
   # Temporary dir
@@ -554,9 +569,13 @@ remlf90 <- function(fixed,
 
 #' @export
 coef.remlf90 <- function(object, ...) { 
-  unlist(c(lapply(fixef(object),
-                  function(x) x$value),
-           ranef(object)))
+  ans <- 
+    rbind(
+      splat(rbind)(lapply(object$fixed, splat(rbind))),
+      splat(rbind)(lapply(object$ranef, splat(rbind)))
+    )
+
+  return(structure(ans[, "value"], names = rownames(ans)))
 }
 
 #' @export
@@ -572,8 +591,7 @@ fitted.remlf90 <- function (object, ...) {
   
   mml <- model.matrix(object)
   
-  vall <- c(lapply(fixef(object), function(x) x$value),
-            ranef(object))
+  vall <- c(fixef(object), ranef(object))
   
   ## Match order
   stopifnot(setequal(names(mml), names(vall)))
@@ -584,12 +602,13 @@ fitted.remlf90 <- function (object, ...) {
   }
 
   ## Multiply component-wise
-  comp.mat <- mapply(silent.matmult.drop, mml, vall,
-                     SIMPLIFY = TRUE)
+  ## dimensions: observation; trait (if ntraits > 1); effect
+  comp.mat <- mapply(silent.matmult.drop, mml, vall, SIMPLIFY = 'array')
   
   
   # Linear Predictor / Fitted Values
-  eta <- rowSums(comp.mat)
+  ndim <- length(dim(comp.mat))
+  eta <- rowSums(comp.mat, dims = ndim - 1)
 
   
   #   fixed.part <- model.matrix(object)$fixed %*%
@@ -637,7 +656,9 @@ fitted.remlf90 <- function (object, ...) {
 #' @export fixef
 #' @export
 fixef.remlf90 <- function (object, ...) {
-      object$fixed
+  ans <- get_estimates(object$fixed)
+  class(ans) <- 'breedR_estimates'
+  return(ans)
 }
 
 
@@ -684,7 +705,7 @@ model.frame.remlf90 <- function (formula, ...) {
 
 
 
-#' @importFrom stats nobs
+#' @importFrom stats nobs model.response
 #' @method nobs remlf90
 #' @export
 nobs.remlf90 <- function (object, ...) {
@@ -707,6 +728,7 @@ nobs.remlf90 <- function (object, ...) {
 #' @param ... Further layers passed to \code{\link[ggplot2]{ggplot}}.
 #'   
 #' @method plot remlf90
+#' @importFrom stats model.response fitted residuals
 #' @export
 plot.remlf90 <- function (x, type = c('phenotype', 'fitted', 'spatial', 'fullspatial', 'residuals'), z = NULL, ...) {
   
@@ -810,16 +832,16 @@ plot.ranef.breedR <- function(x, y, ...) {
                                                     ranef2df(x[[i]])))
     pd <- do.call(rbind, pl)
     
-    ggplot(pd, aes(x = level, y = BLUP, ymin = ymin, ymax = ymax)) + 
+    ggplot(pd, aes_string(x = "level", y = "BLUP", ymin = "ymin", ymax = "ymax")) + 
       geom_pointrange() + 
       coord_flip()
   } else message('No suitable random effects to plot')
 }
 
-#' @method print ranef.breedR
+#' @method print breedR_estimates
 # @describeIn ranef
 #' @export
-print.ranef.breedR <- function(x, ...) {
+print.breedR_estimates <- function(x, ...) {
   attr2df <- function(x) {
     data.frame(value = x, `s.e.` = attr(x, 'se'))
   }
@@ -853,9 +875,9 @@ print.ranef.breedR <- function(x, ...) {
 #' @param object a fitted models with random effects of class 
 #'   \code{\link{remlf90}}.
 #' @param ... not used
-#' @return An object of class \code{ranef.breedR} composed of a list of vectors,
-#'   one for each random effect. The length of the vectors are the number of
-#'   levels of the corresponding random effect.
+#' @return An object of class \code{ranef.breedR} composed of a list of vectors 
+#'   or matrices (multitrait case), one for each random effect. The length of
+#'   the vectors are the number of levels of the corresponding random effect.
 #'   
 #'   Each random effect has an attribute called \code{"se"} which is a vector 
 #'   with the standard errors.
@@ -878,48 +900,35 @@ print.ranef.breedR <- function(x, ...) {
 #' @export ranef
 #' @export
 ranef.remlf90 <- function (object, ...) {
-  
-  ## List of random effects
-  ranef <- object$ranef
-  
+
   ## ranef() will provide the model's random effects
   ## and further methods will let the user compute their 'projection'
   ## onto observed individuals (fit) or predict over unobserved individuals (pred)
-  ans <- list()
-
-  ## Genetic component
+  
+  ans <- get_estimates(object$ranef)
+  
+  ## Additional attributes
+  
+  ## Genetic component: names of individuals
   if( object$components$pedigree ){
     
     # Indices (in ranef) of genetic-related effects (direct and/or competition)
-    gen.idx <- grep('genetic', names(ranef))
+    gen.idx <- grep('genetic', names(ans))
     nm <- get_pedigree(object)@label
-    gl <- lapply(ranef[gen.idx], function(x) structure(x$value,
-                                                       se = x$s.e.,
-                                                       names = nm))
-    ranef <- ranef[-gen.idx]
-    ans <- c(ans, gl)
-  }
-  
-  ## Spatial component
-  if ( object$components$spatial ) {
     
-    ans$spatial <- with(ranef$spatial,
-                        structure(value, se = s.e.))
-    ranef$spatial <- NULL
+    for (k in gen.idx) attr(ans[[k]], 'names') <- nm
+    
   }
-  
   
   ## Other random effects with no particular treatment
-  other.ranef <- lapply(ranef,
-                        function(x) structure(x$value,
-                                              se = x$s.e.))
-  for(x in names(other.ranef)) {
-    attr(other.ranef[[x]], 'names') <- 
+  idx <- grep('genetic|spatial', names(ans), invert = TRUE)
+  
+  for(x in names(ans[idx])) {
+    attr(ans[[x]], 'names') <- 
       colnames(attr(model.matrix(object)$random[[x]], 'contrasts'))
   }
   
-  ans <- c(ans, other.ranef)
-  class(ans) <- 'ranef.breedR'
+  class(ans) <- c('ranef.breedR', 'breedR_estimates')
   return(ans)
 }
 
@@ -987,6 +996,7 @@ vcov.remlf90 <- function (object,
 
 
 #' @method residuals remlf90
+#' @importFrom stats model.response
 #' @export
 residuals.remlf90 <- function (object, ...) {
   # TODO: to be used when na.action is included in remlf90
@@ -997,6 +1007,7 @@ residuals.remlf90 <- function (object, ...) {
 }
 
 #' @method summary remlf90
+#' @importFrom stats logLik AIC BIC
 #' @export
 summary.remlf90 <- function(object, ...) {
   
@@ -1007,22 +1018,21 @@ summary.remlf90 <- function(object, ...) {
     return(breedR.qstat(object))
   } 
   
-  ans <- object
-  
   # Literal description of the model
-  effects <- paste(names(ans$components), sep=' and ')
+  effects <- paste(names(object$components), sep=' and ')
   title <- paste('Linear Mixed Model with', 
                  paste(effects, collapse = ' and '), 
                  ifelse(length(effects)==1, 'effect', 'effects'), 
                  'fit by', object$reml$version)
   
   # Formula
-  fml <- deparse(attr(object$mf, 'terms'))
+  fml.spec <- names(object$components)[unlist(object$components)]
+  fml <- paste(c(deparse(attr(object$mf, 'terms')), fml.spec),
+               collapse = ' + ')
   
   # Coefficients
-  # TODO: How to compute Standard errors (and therefore t scores and p-values)
   # TODO: How to avoid showing the unused levels
-  coef <- do.call(rbind, object$fixed)
+  coef <- splat(rbind)(lapply(object$fixed, splat(rbind)))
 #   colnames(coef) <- c('Estimate')
   
   # Model fit measures
@@ -1037,7 +1047,31 @@ summary.remlf90 <- function(object, ...) {
 #TODO                          deviance = dev[["ML"]],
 #                          REMLdev = dev[["REML"]],
                          row.names = "")
-  ans <- c(ans, 
+  
+  ## Variance components
+  ## Either a numeric matrix (1 trait)  - !is.list
+  ## or a matrix of matrices (>1 trait) - is.list && is.matrix
+  ## or a list of matrices (>1 trait, em: no SE) - !is.matrix
+  if (is.list(object$var) && is.matrix(object$var)) {
+    ## multiple-trait case: a 2-col (est; SE) matrix of covariance matrices
+    ## transform a list of 2 cov-matrices (est; SE) into a 2-col data frame
+    ## with properly named estimates
+    lmat2df <- function(x, nm) {
+        data.frame(
+          lapply(x, `[`, lower.tri(x[[1]], diag = TRUE)),
+          row.names =  vcnames(nm, nrow(x[[1]]), trnames = rownames(x[[1]])),
+          check.names = FALSE
+        )
+    }
+    varnm_df <- function(x, nm) lmat2df(object$var[nm, ], nm)
+    
+    ## list of data-frames with variance estimates and SE
+    var_ldf <- lapply(rownames(object$var), varnm_df, x = object$var)
+    
+    object$var <- splat(rbind)(var_ldf)
+  }
+  
+  ans <- c(object, 
            model.description = title, 
            formula = fml,
            model.fit = list(AICframe),
@@ -1088,13 +1122,14 @@ print.remlf90 <- function(x, digits = max(3, getOption("digits") - 3), ...) {
 
 ## This is modeled a bit after  print.summary.lm :
 #' @method print summary.remlf90
+#' @importFrom stats printCoefmat
 #' @export
 print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
                                   correlation = TRUE, symbolic.cor = FALSE,
                                   signif.stars = getOption("show.signif.stars"), ...) {
   
-  cat(x$model.description, '\n')
-  if(!is.null(x$call$formula))
+  # cat(x$model.description, '\n')
+  if(!is.null(x$formula))
     cat("Formula:", x$formula,"\n")
   if(!is.null(x$call$data))
     cat("   Data:", deparse(x$call$data),"\n")
@@ -1102,16 +1137,18 @@ print.summary.remlf90 <- function(x, digits = max(3, getOption("digits") - 3),
     cat(" Subset:", x$call$subset,"\n")
   print(x$model.fit, digits = digits)
 
-  cat("\nParameters of special components:\n")  
   parl <- get_param.remlf90(x)
-  for (i in seq_along(parl)) {
-    for (j in seq_along(parl[[i]])) {
-      comp.nm <- ifelse(j==1,
-                        paste0(names(parl)[i], ':'),
-                        paste(character(nchar(names(parl)[i]) + 1),
-                        collapse = ''))
-      model.nm <- paste0(names(parl[[i]])[j], ':')
-      cat(comp.nm, model.nm, parl[[i]][[j]])
+  if (!is.null(parl)){
+    cat("\nParameters of special components:\n")  
+    for (i in seq_along(parl)) {
+      for (j in seq_along(parl[[i]])) {
+        comp.nm <- ifelse(j==1,
+                          paste0(names(parl)[i], ':'),
+                          paste(character(nchar(names(parl)[i]) + 1),
+                                collapse = ''))
+        model.nm <- paste0(names(parl[[i]])[j], ':')
+        cat(comp.nm, model.nm, parl[[i]][[j]])
+      }
     }
   }
   cat("\n")

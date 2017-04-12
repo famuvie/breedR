@@ -25,4 +25,3 @@ The plantation is gridded with a separation of 3 m.
 \examples{
 data(globulus)
 }
-

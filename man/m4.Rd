@@ -34,4 +34,3 @@ The 6400 individuals from generations 1 to 4 were arranged at random in a \eqn{8
   qplot(BV_X, phe_X-BV_X, facets = .~gen, data = as.data.frame(m4)) + 
     geom_abline(intercept=0, slope=0, col='gray')
 }
-

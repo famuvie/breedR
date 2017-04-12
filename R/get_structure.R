@@ -11,7 +11,8 @@ get_structure.breedR <- function (x) {
 }
 
 
-#' @describeIn get_structure Check that all elements share the same structure and return it.
+#' @describeIn get_structure Check that all elements share the same structure
+#'   and return it.
 #' @export 
 get_structure.effect_group <- function(x) {
   
@@ -36,9 +37,17 @@ get_structure.effect_group <- function(x) {
       str.list.prec <- str.list[str.types == 'precision']
 
       if (length(str.list.cov) > 1)
-        stopifnot(all.equalx(str.list.cov[1], str.list.cov[-1]))
+        stopifnot(
+          all(vapply(str.list.cov[-1],
+                     function(x) isTRUE(all.equal(str.list.cov[1], x)),
+                     TRUE))
+          )
       if (length(str.list.prec) > 1)
-        stopifnot(all.equalx(str.list.prec[1], str.list.prec[-1]))
+        stopifnot(
+          all(vapply(str.list.prec[-1],
+                     function(x) isTRUE(all.equal(str.list.prec[1], x)),
+                     TRUE))
+        )
       
       ## Compare one covariance with one inverted precision
       ## Converting to standard matrix format, as solving often 

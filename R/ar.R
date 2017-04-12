@@ -115,5 +115,6 @@ build.AR.rho.grid <- function(rho) {
 build.AR1d <- function(n, x) {
   temp <- diag(c(1, rep(1 + x^2, n-2), 1))
   subdiag <- rbind(0, cbind(diag(-x, n-1), 0))
-  return(as(Matrix::Matrix(temp + subdiag + t(subdiag), sparse = TRUE), 'dgTMatrix'))
+  ans <- Matrix::Matrix(temp + subdiag + t(subdiag), sparse = TRUE)
+  return(methods::as(ans, 'dgTMatrix'))
 }

@@ -1,7 +1,6 @@
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
-require(spam)
+suppressPackageStartupMessages(
+ require(spam)
+)  
 
 #### Context: Models with several effects working together ####
 context("Models with several effects working together") 

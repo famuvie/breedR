@@ -2,12 +2,17 @@
 % Please edit documentation in R/breedr_effect.R
 \name{breedr_effect}
 \alias{breedr_effect}
-\title{Constructor for a generic effect}
+\alias{dim.breedr_effect}
+\title{Constructor for a generic breedR effect}
 \usage{
 breedr_effect(incidence)
+
+\method{dim}{breedr_effect}(x)
 }
 \arguments{
 \item{incidence}{matrix-like object}
+
+\item{x}{A \code{breedr_effect}.}
 }
 \value{
 A list with a single element \code{incidence.matrix}.
@@ -21,4 +26,3 @@ subclasses like generic, diagonal, spatial or additive_genetic.
 This constructor performs the arguments checks. But the implementation
 details (i.e., storage format and handling) is left for the subclasses.
 }
-

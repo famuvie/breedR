@@ -13,4 +13,3 @@ as.triplet(x)
 It only gives the lower triangular elements, and **do not** check for
 symmetry.
 }
-

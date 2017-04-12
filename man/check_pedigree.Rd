@@ -58,4 +58,3 @@ check_pedigree(build_pedigree(1:3, data = ped_notconsec))
 \seealso{
 \code{\link{build_pedigree}}
 }
-

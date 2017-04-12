@@ -7,12 +7,12 @@
 compare.plots(plots)
 }
 \arguments{
-\item{plots}{List of ggplots with meaningful names
-
-The names of the objects in the list will be used for facet labels.}
+\item{plots}{List of ggplots with meaningful names}
 }
 \description{
 This function presents several ggplots of the same type side by side
 under the same scale, while keeping annotations.
 }
-
+\details{
+The names of the objects in the list will be used for facet labels.
+}

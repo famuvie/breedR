@@ -22,4 +22,3 @@ Uses sparse storage. It does not support nesting (yet). So it is not possible
 to build random regression coefficients for each level of a grouping factor. 
 This is in the TODO list.
 }
-

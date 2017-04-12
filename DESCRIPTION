@@ -1,7 +1,7 @@
 Package: breedR
 Type: Package
 Title: Statistical Methods for Forest Genetic Resources Analysts
-Version: 0.11-5
+Version: 0.12
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
     role=c("aut", "cre"),
@@ -24,12 +24,16 @@ Depends:
     sp
 Imports:
     ggplot2,
+    graphics,
+    grDevices,
     Matrix (>= 1.2.0),
     methods,
     nlme,
     pedigree,
     pedigreemm,
-    splines
+    splines,
+    stats,
+    utils
 Suggests:
     doParallel,
     GGally,
@@ -52,4 +56,4 @@ URL: https://github.com/famuvie/breedR
 BugReports: https://github.com/famuvie/breedR/issues
 Additional_repositories: http://www.math.ntnu.no/inla/R/testing
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

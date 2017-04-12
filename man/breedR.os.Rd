@@ -15,4 +15,3 @@ Identifies host operating system.
 \details{
 Relies on \code{.Platform$OS.type}, but distinguishes between linux or mac.
 }
-

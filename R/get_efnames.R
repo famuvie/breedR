@@ -8,7 +8,7 @@
 get_efnames <- function(effects) {
   
   subnames <- function(idx) {
-    sizes <- vapply(effects, effect_size, 1)
+    sizes <- vapply(effects, dim, numeric(2))["size", ]
     if (sizes[idx] <= 1)
       return(names(effects)[idx]) else
         return(names(effects[[idx]]$effects))

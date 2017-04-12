@@ -23,12 +23,6 @@ get_param <- function(x) UseMethod('get_param')
 #' @param x object to be \emph{translated} to progsf90
 effect_type <- function(x) UseMethod('effect_type')
 
-#' Size of a (group of) effect(s)
-#' 
-#' Returns 0 for a \code{fixed} effect, and the size of a \code{effect_group}
-#' @param x element of the breedr_modelframe
-effect_size <- function(x) UseMethod('effect_size')
-
 #' Render a progsf90 effect
 #' 
 #' Translates breedR effects into progsf90 parameters and data.

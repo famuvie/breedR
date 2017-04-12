@@ -1,7 +1,6 @@
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
-require(spam)
+suppressPackageStartupMessages(
+  require(spam)
+)
 
 ### Test the interface to PROGSF90 OPTIONS ###
 
@@ -96,7 +95,8 @@ test_that('AI-remlf90() returns heritability and inverse AI matrix', {
   expect_output(print(summary(res)), "Heritability")
   
   # reported SE are consistent with AI matrix
-  expect_equal(res$var[, 'S.E.'], sqrt(diag(res$reml$invAI)), tol = 1e-04)
+  expect_equal(res$var[, 'S.E.'], sqrt(diag(res$reml$invAI)),
+               tol = 1e-04, check.attributes = FALSE)
   
 })
 

@@ -31,4 +31,3 @@ Need at least 2*ord -1 knots (typically, 7) but in fact, we need at least
   temperature interaction using two-dimensional penalized signal regression.
   \emph{Chemometrics and Intelligent Laboratory Systems} 66(2), 159-174.
 }
-

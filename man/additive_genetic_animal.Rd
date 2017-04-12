@@ -33,4 +33,3 @@ dat <- data.frame(id = 1:4,
 ped <- build_pedigree(1:3, data = dat)
 breedR:::additive_genetic_animal(ped, dat$id)
 }
-

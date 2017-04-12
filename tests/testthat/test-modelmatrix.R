@@ -1,8 +1,5 @@
 ### Test the computation of model matrices ###
 
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 context("Model Matrix")
 
@@ -59,7 +56,7 @@ test_that('model.matrix(·, fullgrid=TRUE) works as expected with generic object
 ## Extracting incidence matrices from groups of effects
 ## with identical covariance structure
 
-eg <- effect_group(list(spl, gen), cov.ini = diag(1,2,2))
+eg <- effect_group(list(spl, gen), cov.ini = diag(1,2,2), ntraits = 1)
 eg.mm <- model.matrix(eg)
 
 test_that('model.matrix() recovers the list of incidence matrices', {

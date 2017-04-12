@@ -1,7 +1,4 @@
 ### For testing prediction, we perform a cross-validation excercise ###
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 data(m1)
 
@@ -107,6 +104,6 @@ test_that('(ai)remlf90() predict correctly when missing code is not 0', {
     NA
   )
   
-  expect_equal(fitted(res)[1], fixef(res)$group[1, 'value'], 
+  expect_equal(fitted(res)[1], fixef(res)$group[1], 
                check.attributes = FALSE)
 })

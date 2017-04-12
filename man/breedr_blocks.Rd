@@ -23,4 +23,3 @@ Given the coordinates of the observations, the *factor* identifying blocks,
 and the logical autofill, build the incidence and covariance matrices of a
 blocks model.
 }
-

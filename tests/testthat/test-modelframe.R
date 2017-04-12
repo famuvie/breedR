@@ -1,13 +1,10 @@
 ### Test the building of model frames ###
 
-old.op <- options(warn = -1,  # suppressWarnings
-                  show.error.messages = FALSE)  # silent try
-on.exit(options(old.op))
 
 # In particular, check that the intercept attribute is always set to zero,
 # and it is manually introduced in the model frame when necessary
 
-context("Model Frame")
+context("Model Frame infrastructure")
 
 data <- transform(as.data.frame(m1),
                   mum2 = mum,
@@ -38,7 +35,7 @@ mlst <- unlist(lapply(fxdlst,
 
 # Function that runs checks to each model spec
 run_expectations <- function(m) {
-  fc <- call('remlf90',
+  fc <- call('remlf90',   # call only, no eval
              fixed  = m$fxd,
              random = m$rnd,
              data   = quote(as.data.frame(m1)))
@@ -125,17 +122,19 @@ gen_spec <- check_genetic(model = 'competition',
                           pedigree = data[, c('self', 'dad', 'mum')],   # pedigree
                           id = data$self,          # vector
                           coordinates = data[, c('irow', 'icol')],  # matrix
-                          pec = TRUE)
+                          pec = TRUE,
+                          response = data$phe_X)
 
 sp_spec <- check_spatial(model = 'splines',
-                         coordinates = data[, c('irow', 'icol')])
+                         coordinates = data[, c('irow', 'icol')],
+                         response = data$phe_X)
 
 x1 <- list(inc = matrix(1,1600,3), cov = diag(3), var.ini = 6)
 x2 <- list(inc = matrix(1:8,1600,2), pre = diag(2), var.ini = 4)
 x <- list (a = x1, b = x2)
-grc_spec <- check_generic(x)
+grc_spec <- check_generic(x, response = data$phe_X)
 
-fc <- call('remlf90',
+fc <- call('remlf90',   # call only, no eval
            fixed  = m$fxd,
            random = m$rnd,
            genetic = gen_spec,
