@@ -39,4 +39,3 @@ heritability.
 
 The spatial unit is the distance between consecutive trees.
 }
-

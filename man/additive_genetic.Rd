@@ -26,4 +26,3 @@ ped <- pedigreemm::pedigree(sire = c(NA,NA,1, 1,4,5),
 inc <- cbind(0, 0, diag(4))
 breedR:::additive_genetic(ped, inc)
 }
-

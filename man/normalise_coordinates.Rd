@@ -18,4 +18,3 @@ a two-column data.frame, with numeric values.
 \description{
 If checks succeed, returns a complete normalised specification.
 }
-

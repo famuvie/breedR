@@ -9,4 +9,3 @@ breedR.get.USER()
 \description{
 Determine the user name
 }
-

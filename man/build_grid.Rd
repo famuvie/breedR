@@ -29,4 +29,3 @@ Build the minimal regularly-spaced grid containing a given set of points.
 Note that \code{autofill = FALSE} virtually removes the empty lines,
 considering the spacing as constant.
 }
-

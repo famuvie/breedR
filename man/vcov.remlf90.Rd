@@ -17,4 +17,3 @@
 \description{
 Returns the variance-covariance matrix of the specified random effect.
 }
-

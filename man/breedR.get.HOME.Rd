@@ -10,4 +10,3 @@ breedR.get.HOME()
 Relies on \code{Sys.getenv('HOME')}, or under windows, on
 \code{Sys.getenv("USERPROFILE"))} changing backslashes to slashes.
 }
-

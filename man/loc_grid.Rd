@@ -25,4 +25,3 @@ list of row and column coordinates of spatial units
 \description{
 Returns a list row and column coordinates of observations
 }
-

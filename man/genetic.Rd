@@ -26,4 +26,3 @@ Check conformity of arguments and return a \code{genetic} object.
 \details{
 This is a virtual class. No objects are expected to be created directly.
 }
-

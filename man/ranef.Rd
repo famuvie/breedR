@@ -2,8 +2,8 @@
 % Please edit documentation in R/remlf90-class.R
 \name{ranef}
 \alias{ranef}
-\alias{ranef.breedR}
 \alias{ranef.remlf90}
+\alias{ranef.breedR}
 \title{Extract the modes of the random effects}
 \usage{
 \method{ranef}{remlf90}(object, ...)
@@ -49,4 +49,3 @@ res <- remlf90(phe_X ~ bl,
 str(rr <- ranef(res))
 plot(rr)
 }
-

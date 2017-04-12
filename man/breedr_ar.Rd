@@ -30,4 +30,3 @@ Given the coordinates of the observations, the autocorrelation parameters
 and the autofill logical value, computes the incidence 
 matrix B and the covariance matrix U
 }
-

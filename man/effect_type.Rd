@@ -2,8 +2,8 @@
 % Please edit documentation in R/AllGeneric.R, R/effect_type.R
 \name{effect_type}
 \alias{effect_type}
-\alias{effect_type.breedr_effect}
 \alias{effect_type.effect_group}
+\alias{effect_type.breedr_effect}
 \title{Type of a (group of) effect(s)}
 \usage{
 effect_type(x)

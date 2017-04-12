@@ -25,4 +25,3 @@ This function does not check whether the binaries are for the right platform
 or architecture. It only checks the presence of files with the expected 
 names.
 }
-

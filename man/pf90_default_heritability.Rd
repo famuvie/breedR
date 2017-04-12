@@ -27,4 +27,3 @@ variance.
 \references{
 http://nce.ads.uga.edu/wiki/doku.php?id=readme.aireml#options
 }
-

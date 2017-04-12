@@ -2,8 +2,8 @@
 % Please edit documentation in R/AllGeneric.R, R/neighbours.at.R
 \name{neighbours.at}
 \alias{neighbours.at}
-\alias{neighbours.at.list}
 \alias{neighbours.at.matrix}
+\alias{neighbours.at.list}
 \title{'move' an arrangement in a given direction}
 \usage{
 neighbours.at(x, dir)

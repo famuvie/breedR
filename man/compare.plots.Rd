@@ -16,4 +16,3 @@ under the same scale, while keeping annotations.
 \details{
 The names of the objects in the list will be used for facet labels.
 }
-

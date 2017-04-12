@@ -20,4 +20,3 @@ error messages only. E.g. \code{where = 'competition specification'}.}
 \description{
 Check properties for a covariance matrix
 }
-

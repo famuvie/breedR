@@ -26,4 +26,3 @@ basis of unidimensional B-splines
   splines. \emph{Journal of Computational and Graphical Statistics} 11, 
   735–757.
 }
-

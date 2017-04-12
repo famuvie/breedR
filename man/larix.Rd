@@ -53,4 +53,3 @@ if (require(GGally)) {
   ggpairs(larix[, c('map', 'mat', 'mi', 'LAS', 'DOS')])
 }
 }
-

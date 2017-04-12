@@ -14,4 +14,3 @@ fill_holes(x, label)
 \description{
 Find and fill all the holes in a vector
 }
-

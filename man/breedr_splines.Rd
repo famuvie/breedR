@@ -46,4 +46,3 @@ with. This is probably convenient only for really big datasets in comparison
 with RAM size. The covariance matrix is always stored in sparse format, as it
 is particularly sparse.
 }
-

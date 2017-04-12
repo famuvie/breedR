@@ -15,4 +15,3 @@ dir name where the results are retrieved
 \description{
 Use scp to transfer compressed files. Clean up afterwards.
 }
-

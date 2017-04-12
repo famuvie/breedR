@@ -6,7 +6,22 @@
 \usage{
 splat(flat)
 }
-\description{
-Borrowed from \code{\link[plyr]{splat}}
-}
+\arguments{
+\item{flat}{function to splat
 
+This is useful when you want to pass a function a row of data frame or array,
+and don't want to manually pull it apart in your function.
+
+Borrowed from \code{\link[plyr]{splat}}}
+}
+\value{
+a function
+}
+\description{
+Wraps a function in do.call, so instead of taking multiple arguments, it
+takes a single named list which will be interpreted as its arguments.
+}
+\examples{
+  args <- replicate(3, runif(5), simplify = FALSE)
+  identical(breedR:::splat(rbind)(args), do.call(rbind, args))
+}

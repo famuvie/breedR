@@ -46,4 +46,3 @@ dat <- data.frame(id   = 1:5,
 ped <- build_pedigree(1:3, data = dat)
 breedR:::additive_genetic_competition(ped, coord = dat[, c('x', 'y')], dat$id, 2)
 }
-

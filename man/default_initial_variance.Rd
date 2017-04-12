@@ -50,4 +50,3 @@ function stops. It is better to remove this trait from the analysis.
    x <- cbind(rnorm(100, sd = 1), rnorm(100, sd = 2), rnorm(100, sd = 3))
    breedR:::default_initial_variance(x, dim = 2, cor.effect = 0.5)
 }
-
