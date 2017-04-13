@@ -1,11 +1,10 @@
 Package: breedR
-Version: 0.11-5
+Version: 0.12
 Depends: R (>= 3.1.2), sp
-Imports: ggplot2, Matrix (>= 1.2.0), methods, nlme, pedigree,
-       pedigreemm, splines
-Suggests: doParallel, GGally, grid, INLA, MASS, msm, plyr, dplyr,
-       spam, testthat, knitr, rmarkdown, tidyr
+Imports: ggplot2, graphics, grDevices, Matrix (>= 1.2.0), methods, nlme, pedigree, pedigreemm, splines,
+           stats, utils
+Suggests: doParallel, GGally, grid, INLA, MASS, msm, plyr, dplyr, spam, testthat, knitr, rmarkdown, tidyr
 License: GPL-3 | file LICENSE
-MD5sum: 519ff54c706da09ca6fcca68a7b59a3c
+MD5sum: 6880b9cfd739bac2861f5c724e5888ce
 NeedsCompilation: yes
 
