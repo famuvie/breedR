@@ -601,3 +601,28 @@ spell_check_rd <- function(rdfile, ignore){
   text <- tools::RdTextFilter(rdfile)
   spell_check_text(text, ignore = ignore)
 }
+
+
+## Download results from r-hub
+download_rhub <- function(
+  x,
+  dir = normalizePath("../../breedR_releases/")
+) {
+  x$web()   # open web logs (didn't figure out how to download them)
+  baseurl <- "https://artifacts.r-hub.io/"
+  ids <- x$.__enclos_env__$private$ids_
+  ver <- x$.__enclos_env__$private$status_[[1]]$version
+  
+  urls <- paste0(baseurl, ids, "/")
+  dir <- paste0(dir, "/v", ver)
+  dir.create(dir)
+  
+  fn <- paste0("breedR_", ver, ".zip")
+  
+  for (i in ids) {
+    local_dir <- file.path(dir, names(ids)[i])
+    remote_file <- paste0(urls[i], fn)
+    dir.create(local_dir, showWarnings = FALSE)
+    download.file(remote_file, file.path(local_dir, fn))
+  }
+}
