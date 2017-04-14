@@ -1,6 +1,7 @@
 
 ### Tests of functions for checking model components ###
 
+#### Context: Checks for model components ####
 context("Checks for model components")
 
 ## Model add_animal ##
@@ -530,43 +531,61 @@ test_that("check_generic returns null if specification is empty",{
 
 test_that("check_generic() errors if specification is wrong",{
   
-  expect_error(check_generic(c(1,1)), 'be a list')
+  expect_error(check_generic(c(1,1)), 'be a named list')
   
   expect_error(check_generic(list(x1, x2)), 'be a named list')
   
-  expect_error(check_generic(list(a = x1, b = x2, c = 5)), 'be list elements')
+  expect_error(check_generic(list(a = x1, b = x2, c = 5)),
+               'Element c of the generic component must be a list.')
   
-  expect_error(check_generic(list(a = x1, a = x2)), 'different names')
+  expect_error(check_generic(list(a = x1, a = x2)), 'Duplicated names')
   
-  expect_error(check_generic(list(a = list(cov = diag(3), var.ini = 6)), 
-                             response = dat$y), 'incidence required')
+  expect_error(
+    check_generic(list(a = list(cov = diag(3), var.ini = 6)), response = dat$y),
+    'incidence required in the generic component a'
+  )
   
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), 
-                                           cov = diag(3),
-                                           pre = diag(2))), 
-                             response = dat$y), 
-               'one argument between covariance and precision')
+  expect_error(
+    check_generic(
+      list(a = list(inc = matrix((1:12),4,3), 
+                    cov = diag(3),
+                    pre = diag(2))), 
+      response = dat$y), 
+    'one argument between covariance and precision .+ component a'
+    )
   
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), var.ini = 6)), 
-                             response = dat$y), 
-               'one argument between covariance and precision')
+  expect_error(
+    check_generic(
+      list(a = list(inc = matrix((1:12),4,3), var.ini = 6)), 
+      response = dat$y
+    ), 
+    'one argument between covariance and precision .+ component a')
 
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = 'test')), 
-                             response = dat$y),
-               'covariance must be of type matrix')
+  expect_error(
+    check_generic(list(a = list(inc = matrix((1:12),4,3), cov = 'test')), 
+                  response = dat$y
+    ),
+    'covariance must be of type matrix .+ component a')
   
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = c(1:3))), 
-                             response = dat$y),
-               'covariance must be of type matrix')
+  expect_error(
+    check_generic(
+      list(a = list(inc = matrix((1:12),4,3), cov = c(1:3))), 
+      response = dat$y
+    ),
+    'covariance must be of type matrix .+ component a')
 
-  expect_error(check_generic(list(a = list(inc = matrix((1:12),4,3), cov = diag(5))), 
-                             response = dat$y),
-               'conformant incidence and covariance')
+  expect_error(
+    check_generic(
+      list(a = list(inc = matrix((1:12),4,3), cov = diag(5))), 
+      response = dat$y
+    ),
+    'conformant incidence and covariance .+ component a')
 })
 
 
 
 
+#### Context: Check Variances ####
 context('Check Variances')
 
 test_that('validate_variance() returns TRUE for correct variance specifications', {
@@ -594,6 +613,12 @@ test_that('validate_variance() stops for inconsistent values of variance', {
   expect_error(validate_variance(-1.5, where = 'test'), 'SPD matrix')
   
   expect_error(validate_variance(1, dim = c(2,2)), '2x2 matrix')
+})
+
+
+test_that('validate_variance() returns informative error messages', {
+  expect_error(validate_variance(-1, what = "this", where = "there"),
+               'this must be a SPD matrix in the there')
 })
 
 test_that('default_initial_variance() works as expected', {
