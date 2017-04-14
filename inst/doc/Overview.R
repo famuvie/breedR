@@ -504,7 +504,6 @@ dat <-
 res <- 
   remlf90(
     fixed = cbind(H04, C13) ~ orig,
-    # random = ~ block,
     genetic = list(
       model = 'add_animal', 
       pedigree = dat[, 1:3],
@@ -530,6 +529,23 @@ head(ranef(res)$genetic)
 
 ## ----multitrait-blups----------------------------------------------------
 head(model.matrix(res)$genetic %*% ranef(res)$genetic)
+
+## ----multitrait-var-ini-spec, eval = FALSE-------------------------------
+#  initial_covs <- list(
+#    genetic = 1e3*matrix(c(1, .5, .5, 1), nrow = 2),
+#    residual = diag(2)   # no residual covariances
+#  )
+#  res <-
+#    remlf90(
+#      fixed = cbind(H04, C13) ~ orig,
+#      genetic = list(
+#        model = 'add_animal',
+#        pedigree = dat[, 1:3],
+#        id = 'self',
+#        var.ini = initial_covs$genetic),
+#      data = dat,
+#      var.ini = list(residual = initial_covs$residual)
+#    )
 
 ## ----breedR-options------------------------------------------------------
 breedR.getOption()
