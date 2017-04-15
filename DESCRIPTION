@@ -36,6 +36,7 @@ Imports:
     utils
 Suggests:
     doParallel,
+    fields,
     GGally,
     grid,
     INLA,
