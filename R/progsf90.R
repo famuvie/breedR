@@ -330,7 +330,7 @@ write.progsf90 <- function (pf90, dir) {
   for(fl in pf90$files) {
     if(!is.null(fl)) {
     # NAs are written as 0
-    write.table(fl$file, file=file.path(dir, fl$fname),
+    utils::write.table(fl$file, file=file.path(dir, fl$fname),
                 row.names = FALSE, col.names = FALSE, na = "0")   
     # file.show(file.path(dir, fl$fname))
     }
