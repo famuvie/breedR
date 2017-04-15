@@ -4,12 +4,15 @@
 \alias{validate_variance}
 \title{Check properties for a covariance matrix}
 \usage{
-validate_variance(x, dimension = dim(as.matrix(x)), where = "")
+validate_variance(x, dimension = dim(as.matrix(x)), what = "var.ini",
+  where = "")
 }
 \arguments{
 \item{x}{number or matrix.}
 
 \item{dimension}{numeric vector with dimensions of the matrix}
+
+\item{what}{string. What are we validating}
 
 \item{where}{string. Model component where coordinates were specified. For 
 error messages only. E.g. \code{where = 'competition specification'}.}

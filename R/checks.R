@@ -51,7 +51,9 @@ check_var.ini <- function (x, random, response) {
   }
   
   ## validate values
-  stopifnot(all(vapply(x, validate_variance, TRUE)))
+  for (i in seq_along(x)) {
+    validate_variance(x[[i]], what = names(x)[i], where = "var.ini specification")
+  }
   
   ## return component with names normalised and 
   ## possibly default values added
@@ -215,7 +217,9 @@ check_genetic <- function(model = c('add_animal', 'competition'),
     }
     
     ## Validate initial variance in pec
-    validate_variance(pec$var.ini)
+    validate_variance(pec$var.ini,
+                      what = "pec$var.ini",
+                      where = "genetic component")
     
     ## At this point, names should match exactly those
     if (!all(idx <- names(pec) %in% c('present', 'var.ini'))) {
@@ -389,30 +393,35 @@ check_generic <- function(x, response){
   if (missing(x)) return(NULL)
   
   ## check general specification
-  if (!is.list(x))
-    stop('Argument x in the generic component must be a list')
-  if (is.null(names(x)))
-    stop('Argument x must be a named list')
+  if (!is.list(x) || is.null(names(x)))
+    stop('The generic component must be a named list.', call. = FALSE)
   if (!all(nchar(names(x))>0))
-    stop('All elements of the argument x must be named')
+    stop('All elements of the generic component must be named.', call. = FALSE)
   if (any(duplicated(names(x))))
-    stop('Argument x must be a named list with different names')
-  if (!all(sapply(x,is.list)))
-    stop('All elements of the argument x must be list elements')
+    stop('Duplicated names in generic elements.', call. = FALSE)
+  if (!all(idx <- sapply(x,is.list))) {
+    nm <- names(x)[!idx]
+    if (length(nm) > 1)
+      msg <- paste("Elements", paste(nm, collapse = ", "),
+                   "of the generic component must be lists.")
+    else
+      msg <- paste("Element", paste(nm, collapse = ", "),
+                   "of the generic component must be a list.")
+    stop(msg, call. = FALSE)
+  }
   
   ## validate individual elements
   for (arg.idx in seq_along(x)){ 
-    result <- try(do.call('validate_generic_element', 
-                          c(x[[arg.idx]], response = list(response))),
-                  silent =TRUE)
-    if (inherits(result, 'try-error')) {
-      stop(paste(attr(result, 'condition')$message, 'in generic component',
-                 names(x)[arg.idx]))
-    } else {
-      ## If valid, the original spec might have been completed
-      ## with a default initial variance
-      x[[arg.idx]] <- result
-    }
+    id <- paste("generic component", names(x)[arg.idx])
+    result <- do.call(
+      'validate_generic_element', 
+      c(x[[arg.idx]],
+        response = list(response),
+        where = id)
+    )
+    ## If valid, the original spec might have been completed
+    ## with a default initial variance
+    x[[arg.idx]] <- result
   }
   
   ## Check default var.ini values
@@ -420,7 +429,7 @@ check_generic <- function(x, response){
   var.ini.default <- vapply(x, attr, TRUE, 'var.ini.default')
   if (any(var.ini.default) && any(!var.ini.default)) {
     stop(paste('Some initial variances missing in the generic component.\n',
-               'Please specify either all or none.'))
+               'Please specify either all or none.'), call. = FALSE)
   }
   
   ## Merge individual attributes into the list object
@@ -435,17 +444,19 @@ validate_generic_element <- function(incidence,
                                      covariance, 
                                      precision, 
                                      var.ini, 
-                                     response) {
+                                     response,
+                                     where) {
   
   mc <- match.call()
-  mc <- mc[names(mc) != 'response']
+  mc <- mc[names(mc) != 'response' & names(mc) != 'where']
   
   for (arg in c('incidence')) {
     if (eval(call('missing', as.name(arg))))
-      stop(paste('Argument', arg, 'required'))
+      stop(paste('Argument', arg, 'required in the', where), call. = FALSE)
   }
   if (!xor(missing(covariance), missing(precision)))
-    stop(paste('Exactly one argument between covariance and precision must be specified'))
+    stop(paste('Exactly one argument between covariance',
+               'and precision must be specified in the', where), call. = FALSE)
   
   if (missing(covariance)) {
     structure <- precision
@@ -456,11 +467,13 @@ validate_generic_element <- function(incidence,
     str.name <- 'covariance'
   }
   if(!is.matrix(incidence) && !inherits(incidence, 'Matrix'))
-    stop(paste('Argument incidence must be of type matrix'))
+    stop(paste('Argument incidence must be of type matrix in the', where),
+         call. = FALSE)
   if(!is.matrix(structure) && !inherits(structure, 'Matrix'))
-    stop(paste(str.name, 'must be of type matrix'))
+    stop(paste(str.name, 'must be of type matrix in the', where), call. = FALSE)
   if(ncol(incidence) != nrow(structure))
-    stop(paste('Non conformant incidence and', str.name, 'matrices'))
+    stop(paste('Non conformant incidence and', str.name, 'matrices in the', where),
+         call. = FALSE)
 
   ## flag indicating whether the var.ini was taken by default
   ## or specified by the user
@@ -486,7 +499,7 @@ validate_generic_element <- function(incidence,
   validate_variance(
     var.ini,
     dimension = rep(dim*ncol(as.matrix(response)), 2),
-    where = 'generic component.')
+    where = where)
   
   mc$var.ini <- var.ini
   
@@ -532,11 +545,13 @@ normalise_coordinates <- function (x, where = '') {
 #'
 #' @param x number or matrix.
 #' @param dimension numeric vector with dimensions of the matrix
+#' @param what string. What are we validating
 #' @param where string. Model component where coordinates were specified. For 
 #'   error messages only. E.g. \code{where = 'competition specification'}.
 #'
 #' @return \code{TRUE} if all checks pass
-validate_variance <- function (x, dimension = dim(as.matrix(x)), where = '') {
+validate_variance <- function (x, dimension = dim(as.matrix(x)),
+                               what = 'var.ini', where = '') {
 
   stopifnot(
     is.numeric(x <- as.matrix(x)),
@@ -545,13 +560,13 @@ validate_variance <- function (x, dimension = dim(as.matrix(x)), where = '') {
   )
   
   if (nrow(x)!=ncol(x))
-    stop(paste('x must be a square matrix in the', where))
+    stop(paste(what, "must be a square matrix in the", where), call. = FALSE)
   if (length(x) != prod(dimension))
-    stop(paste('x must be a', paste(dimension, collapse = 'x'),
-               'matrix in the', where))
+    stop(paste(what, "must be a", paste(dimension, collapse = 'x'),
+               "matrix in the", where), call. = FALSE)
   ev <- eigen(x, symmetric = TRUE, only.values = TRUE)$values
   if (!isSymmetric(x, check.attributes = FALSE) || !all( ev > 0 ))
-    stop(paste('x must be a SPD matrix in the', where))
+    stop(paste(what, "must be a SPD matrix in the", where), call. = FALSE)
   
   return(TRUE)
 }

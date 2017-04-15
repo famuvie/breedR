@@ -1,3 +1,10 @@
+
+
+* More informative error messages on specification of initial variances (#79)
+
+* Bugfixes (#80)
+
+
 breedR 0.12
 ===========
 

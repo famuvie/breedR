@@ -200,6 +200,100 @@ test_that("Simulated values reasonably recovered using one or more traits", {
 })
 
 
+test_that("Initial variance specification", {
+  
+  vi <- function(n) diag(n) + matrix(1, n, n)
+  ## 2 trait - full matrices
+  res_2 <- remlf90(
+    cbind(y1, y2) ~ 0 + X,
+    random = ~ bl,
+    data = testdat,
+    method = "ai",
+    var.ini = list(bl = vi(2), resid = vi(2))
+  )
+  
+  expect_equal(S_resid[-3, -3], res_2$var[["Residual", 1]], tol = .01)
+  expect_equal(S_bl[-3, -3], res_2$var[["bl", 1]], tol = 1)
+  expect_equal(beta_X[-3], fixef(res_2)$X, tol = .1, check.attributes = FALSE)
+  
+  ## The invAI matrix have all covariance terms
+  invai.names <- c(paste0("bl.", c("y1", "y1_bl.y2", "y2")),
+                   paste0("resid.", c("y1", "y1_resid.y2", "y2")))
+  expect_identical(rownames(res_2$reml$invAI), invai.names)
+
+  ## 2 trait - non-full residual matrix
+  res_2 <- remlf90(
+    cbind(y1, y2) ~ 0 + X,
+    random = ~ bl,
+    data = testdat,
+    method = "ai",
+    var.ini = list(bl = vi(2), resid = diag(2))
+  )
+  
+  expect_equal(diag(diag(S_resid[-3, -3])), res_2$var[["Residual", 1]],
+               tol = .01, check.attributes = FALSE)
+  
+  ## estimated residual covariance of 0
+  expect_identical(res_2$var[["Residual", 1]][1, 2], 0)
+  
+  expect_equal(S_bl[-3, -3], res_2$var[["bl", 1]], tol = 1)
+  expect_equal(beta_X[-3], fixef(res_2)$X, tol = .1, check.attributes = FALSE)
+  
+  ## The invAI matrix does not have the residual covariance term
+  invai.names <- c(paste0("bl.", c("y1", "y1_bl.y2", "y2")),
+                   paste0("resid.", paste0("y", 1:2)))
+  expect_identical(rownames(res_2$reml$invAI), invai.names)
+  
+  ## 2 trait - non-full block matrix
+  res_2 <- remlf90(
+    cbind(y1, y2) ~ 0 + X,
+    random = ~ bl,
+    data = testdat,
+    method = "ai",
+    var.ini = list(bl = diag(2), resid = vi(2))
+  )
+  
+  expect_equal(S_resid[-3, -3], res_2$var[["Residual", 1]],
+               tol = .01, check.attributes = FALSE)
+
+  expect_equal(S_bl[-3, -3], res_2$var[["bl", 1]], tol = 1)
+  
+  ## estimated bl covariance of 0
+  expect_identical(res_2$var[["bl", 1]][1, 2], 0)
+  
+  expect_equal(beta_X[-3], fixef(res_2)$X, tol = .1, check.attributes = FALSE)
+
+  ## The invAI matrix does not have the block covariance term
+  invai.names <- c(paste0("bl.", c("y1", "y2")),
+                   paste0("resid.", c("y1", "y1_resid.y2", "y2")))
+  expect_identical(rownames(res_2$reml$invAI), invai.names)
+
+  
+  ## 3 trait - not full matrices
+  blvi <- vi(3)
+  blvi[2, 1] <- blvi[1, 2] <- 0
+  
+  res_3 <- remlf90(
+    cbind(y1, y2, y3) ~ 0 + X,
+    random = ~ bl,
+    data = testdat,
+    method = "em",
+    var.ini = list(bl = blvi, resid = diag(3))
+  )  
+  
+  expect_equal(diag(diag(S_resid)), res_3$var$Residual,
+               tol = .1, check.attributes = FALSE)
+  expect_equal(S_bl, res_3$var$bl, tol = 1)
+
+  ## estimated bl covariances of 0
+  expect_identical(res_3$var$bl[1, 2], 0)
+  
+  ## estimated residual covariance of 0
+  expect_identical(res_3$var$Residual[lower.tri(res_3$var$Residual)], rep(0, 3))
+
+  expect_equal(beta_X, fixef(res_3)$X, tol = .5, check.attributes = FALSE)
+})
+
 
 # mf <- model.frame(cbind(V1, V2) ~ 0 + mu, transform(testdat, mu = 1))
 # attr(attr(mf, 'terms'), 'term.types') <- list(mu = "fixed")
@@ -210,10 +304,11 @@ test_that("Simulated values reasonably recovered using one or more traits", {
 ## - Two phenotypes: LAS and DOS
 ## - repeated measurements along 16 years (yr)
 
-inc.mat <- model.matrix(~ 0 + bl, larix)
-cov.mat <- diag(nlevels(larix$bl))
 
 test_that("Multitrait model with all kind of effects works as expected", {
+  
+  inc.mat <- model.matrix(~ 0 + bl, larix)
+  cov.mat <- diag(nlevels(larix$bl))
   
   fullrun <- function(method, opt = NULL) {
     try(

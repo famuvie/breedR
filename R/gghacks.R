@@ -26,14 +26,21 @@ compare.plots <- function(plots) {
   if( is.null(names(plots)) ) {
     names(plots) <- paste('p', seq_along(plots), sep = '')
   }
-  tmpdat <- plyr::ldply(plots, function(x) x$data)
-  # Keep the order of the plots
-  tmpdat <- transform(tmpdat,
-                      .id = factor(.id, levels = unique(tmpdat$.id)))
+  tmpdat <- plyr::ldply(plots, function(x) x$data, .id = ".id")
+
+  ## TODO: get rid of the plyr dependency using:
+  # tmpdat <- do.call(
+  #   rbind,
+  #   lapply(seq_along(plots),
+  #          function(x) cbind(.id = names(plots)[x], plots[[x]]$data))
+  # )
+  # tmpdat$.id <- factor(tmpdat$.id, levels = unique(tmpdat$.id))
+  
   p <- p %+% tmpdat
   # Annotations
   extract.text.data <- function(plot) {
     # identify the geom_text layer
+    ## TODO: remove plyr dependency. 
     lab.idx <- which(plyr::laply(plot$layers,
                            function(x) x$geom$objname == 'text'))
     if(length(lab.idx) == 0) return(NULL)
@@ -41,8 +48,9 @@ compare.plots <- function(plots) {
                plot$layers[[lab.idx]]$data,
                parse = plot$layers[[lab.idx]]$geom_params$parse)
   }
-  text.data <- plyr::ldply(plots, extract.text.data)
-
+  text.data <- plyr::ldply(plots, extract.text.data, .id = ".id")
+  ## TODO: remove plyr dependency. see above.
+  
   # If there are annotations ...
   if( nrow(text.data) > 0 ) {
     # Remove the original geom_text layer

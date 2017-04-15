@@ -330,7 +330,7 @@ write.progsf90 <- function (pf90, dir) {
   for(fl in pf90$files) {
     if(!is.null(fl)) {
     # NAs are written as 0
-    write.table(fl$file, file=file.path(dir, fl$fname),
+    utils::write.table(fl$file, file=file.path(dir, fl$fname),
                 row.names = FALSE, col.names = FALSE, na = "0")   
     # file.show(file.path(dir, fl$fname))
     }
@@ -554,11 +554,24 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
   ## AI matrix
   if (method == 'ai') {
 
-    comp_names <- unlist(
-      mapply(vcnames, names(rangroup.sizes), rangroup.sizes,
-             MoreArgs = list(trnames = trait_names), SIMPLIFY = FALSE))
     reml$invAI <- parse_invAI(reml.out)
-    dimnames(reml$invAI) <- list(comp_names, comp_names)
+    
+    ## names of components of inverse AI matrix
+    ## except those not estimated (due to initial value of 0)
+    ## here we check for exact estimated values of 0
+    comp_names <- unname(unlist(
+      mapply(vcnames, names(rangroup.sizes), rangroup.sizes,
+             MoreArgs = list(trnames = trait_names), SIMPLIFY = FALSE)))
+    estvar <- unlist(lapply(varcomp[, 1],
+                            function(x) x[lower.tri(x, diag = TRUE)]))
+    idx <- vapply(estvar, identical, TRUE, 0)
+    comp_names <- comp_names[!idx]
+    
+    ## assign component names to the invAI matrix
+    ## but don't break everything if dimensions don't match
+    if (nrow(reml$invAI) == length(comp_names)) {
+      dimnames(reml$invAI) <- list(comp_names, comp_names)
+    }
   }
 
   # Fit info

@@ -1249,7 +1249,6 @@ dat <-
 res <- 
   remlf90(
     fixed = cbind(H04, C13) ~ orig,
-    # random = ~ block,
     genetic = list(
       model = 'add_animal', 
       pedigree = dat[, 1:3],
@@ -1297,6 +1296,39 @@ trait.
 
 ```{r multitrait-blups}
 head(model.matrix(res)$genetic %*% ranef(res)$genetic)
+```
+
+
+## Initial (co)variance specification
+
+__breedR__ will use the empirical variances and covariances to compute initial 
+covariance matrices. But you can specify your own. This is particularly
+interesting for setting some initial covariances to 0, which indicates that you
+don't want that component to be estimated, and thus reducing the dimension of
+the model.
+
+Typical cases are Multi-Environment Trials (MET, e.g. multiple sites,
+or years) where you don't really want to estimate the residual covariances, or 
+when you know _a priori_ that two traits are little correlated.
+
+Specify the initial covariance values in matrix form.
+
+```{r multitrait-var-ini-spec, eval = FALSE}
+initial_covs <- list(
+  genetic = 1e3*matrix(c(1, .5, .5, 1), nrow = 2),
+  residual = diag(2)   # no residual covariances
+)
+res <- 
+  remlf90(
+    fixed = cbind(H04, C13) ~ orig,
+    genetic = list(
+      model = 'add_animal', 
+      pedigree = dat[, 1:3],
+      id = 'self',
+      var.ini = initial_covs$genetic),
+    data = dat,
+    var.ini = list(residual = initial_covs$residual)
+  )
 ```
 
 
