@@ -9,12 +9,16 @@ breedR.update_guides <- function(pkg = "."){
   pkg <- as.package(pkg)
   vigns <- tools::pkgVignettes(dir = pkg$path)
 
+  ## Filter modified vignettes
+  vigns <- changed_guides(vigns)
+  
   ## Check existence of any vignette
   if (length(vigns$doc) == 0) 
     return()
   
   ## Otherwise, go ahead
-  message("Building ", pkg$package, " vignettes")
+  message("Building ", pkg$package, " vignettes: ",
+          paste(vigns$names, collapse = ", "))
   out <- breedR.build_vignettes(vigns)
   
   ## Compact vignettes
@@ -32,6 +36,39 @@ breedR.update_guides <- function(pkg = "."){
 }
 
 
+## Given a list of vignettes, filter out those who have changed
+## with respect to the version in inst/doc
+changed_guides <- function(vigns) {
+  require(tools, utils)
+  dest_dir <- file.path(vigns$pkgdir, "inst", "doc")
+  
+  has_changed <- function(x) {
+    ## flag as changed only if x is newer than that within inst/doc
+    ## and files are not identical (as per md5sum)
+    dest_file <- file.path(dest_dir, basename(x))
+    
+    file_test("-nt", x, dest_file) &&
+      !identical(unname(md5sum(x)), unname(md5sum(dest_file)))
+  }
+  
+  subset_length <- function(x, idx) {
+    if (identical(length(x), length(idx)))
+      return(x[idx])
+    else
+      return(x)
+  }
+  
+  change_idx <- vapply(vigns$docs, has_changed, TRUE)
+  
+  ans <- structure(
+    lapply(vigns, subset_length, change_idx),
+    class = class(vigns)
+  )
+  
+  return(ans)
+}
+
+
 ## This function renders md, pdf and R versions of vignettes
 ## Furthermore, stores images into _files directories
 ## It returns a vector of **new** file names (that were not there
@@ -44,9 +81,12 @@ breedR.build_vignettes <- function (vigns) {
   if (any(dups)) {
     names <- unique(vigns$names[dups])
     docs <- sort(basename(vigns$docs[vigns$names %in% names]))
-    stop(gettextf("Detected vignette source files (%s) with shared names (%s) and therefore risking overwriting each others output files", 
-                  paste(sQuote(docs), collapse = ", "), paste(sQuote(names), 
-                                                              collapse = ", ")), domain = NA)
+    errmsg <- 
+      sprintf("Detected vignette source files (%s) with shared names (%s)
+              and therefore risking overwriting each others output files", 
+              paste(sQuote(docs), collapse = ", "),
+              paste(sQuote(names), collapse = ", "))
+    stop(errmsg)
   }
   
   ## Prepare to render vignettes
