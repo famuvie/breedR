@@ -227,14 +227,16 @@ names_effect <- function(inner = NULL, outer = NULL) {
 vcnames <- function(efname, efdim, trnames) {
   
   dim_subtrait <- efdim/ifelse(is.null(trnames), 1, length(trnames))
-  if (dim_subtrait > 1) 
+  if (dim_subtrait > 1)
     efname <- paste(efname, seq_len(dim_subtrait), sep = "_")
   diag_names <- names_effect(efname, trnames)
   
   ## matrix components include variances and covariances
   ans <- outer(diag_names, diag_names, paste, sep = "_")
   diag(ans) <- diag_names
-  return(ans[upper.tri(ans, diag = TRUE)])
+  return(t(ans)[lower.tri(ans, diag = TRUE)])
+}
+
 
 ## transform a list of 2 cov-matrices (est; SE) into a 2-col data frame
 ## with properly named estimates. Use nm to name the original effect
