@@ -1054,15 +1054,9 @@ summary.remlf90 <- function(object, ...) {
   ## or a list of matrices (>1 trait, em: no SE) - !is.matrix
   if (is.list(object$var) && is.matrix(object$var)) {
     ## multiple-trait case: a 2-col (est; SE) matrix of covariance matrices
-    ## transform a list of 2 cov-matrices (est; SE) into a 2-col data frame
-    ## with properly named estimates
-    lmat2df <- function(x, nm) {
-        data.frame(
-          lapply(x, `[`, lower.tri(x[[1]], diag = TRUE)),
-          row.names =  vcnames(nm, nrow(x[[1]]), trnames = rownames(x[[1]])),
-          check.names = FALSE
-        )
-    }
+
+    ## transform the list of est and se symmetric matrices into a data.frame
+    ## with values from lower triangule only
     varnm_df <- function(x, nm) lmat2df(object$var[nm, ], nm)
     
     ## list of data-frames with variance estimates and SE

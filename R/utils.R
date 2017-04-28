@@ -235,4 +235,13 @@ vcnames <- function(efname, efdim, trnames) {
   ans <- outer(diag_names, diag_names, paste, sep = "_")
   diag(ans) <- diag_names
   return(ans[upper.tri(ans, diag = TRUE)])
+
+## transform a list of 2 cov-matrices (est; SE) into a 2-col data frame
+## with properly named estimates. Use nm to name the original effect
+lmat2df <- function(x, nm) {
+  data.frame(
+    lapply(x, `[`, lower.tri(x[[1]], diag = TRUE)),
+    row.names =  vcnames(nm, nrow(x[[1]]), trnames = rownames(x[[1]])),
+    check.names = FALSE
+  )
 }
