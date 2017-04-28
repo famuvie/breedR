@@ -97,7 +97,7 @@ identical(ped.fix, get_pedigree(res.raw))
 
 
 ## Recovering Breeding Values in the original coding
-```{r PBV, results = 'asis'}
+```{r PBV}
 ## Predicted Breeding Valuess of the observed individuals
 ## Left-multiplying the vector of BLUP by the incidence matrix
 ## gives the BLUP of the observations in the right order.
@@ -111,5 +111,44 @@ rownames(PBVs) <- test.dat$self
 
 ```{r PBV-table, results = 'asis', echo=FALSE}
 knitr::kable(PBVs, digits = 2)
+```
+
+
+## Recovering Breeding Values for the founders, in the original coding
+
+```{r PBV-founders}
+## original codes of non-observed parents
+(founders.orig <- setdiff(
+  sort(unique(as.vector(ped.nightmare[, c("sire", "dam")]))),
+  ped.nightmare[, "self"]
+))
+
+## map from original to internal codes
+map.codes <- attr(get_pedigree(res.raw), "map")
+
+## internal codes of non-observed parents
+founders.int <- map.codes[founders.orig]
+
+## Breeding Values of non-observed parents
+founders.PBVs <- gen.blup[founders.int, ]
+rownames(founders.PBVs) <- founders.orig
+```
+
+```{r PBV-founders-table, results = 'asis', echo=FALSE}
+knitr::kable(founders.PBVs, digits = 2)
+```
+
+
+## Identifying original codes from internal representation
+
+If, for whatever reason, you want to reverse-identify specific individuals from
+the internal codes, you can `match` their codes:
+
+```{r reverse-lookup}
+## individuals of interest in internal codification
+idx <- c(3, 5, 9)
+
+## original codes
+(match(idx, map.codes))
 ```
 

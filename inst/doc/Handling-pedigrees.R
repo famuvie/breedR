@@ -33,7 +33,7 @@ length(ranef(res.raw)$genetic)
 ## The pedigree used in the model matches the one manually built
 identical(ped.fix, get_pedigree(res.raw))
 
-## ----PBV, results = 'asis'-----------------------------------------------
+## ----PBV-----------------------------------------------------------------
 ## Predicted Breeding Valuess of the observed individuals
 ## Left-multiplying the vector of BLUP by the incidence matrix
 ## gives the BLUP of the observations in the right order.
@@ -46,4 +46,31 @@ rownames(PBVs) <- test.dat$self
 
 ## ----PBV-table, results = 'asis', echo=FALSE-----------------------------
 knitr::kable(PBVs, digits = 2)
+
+## ----PBV-founders--------------------------------------------------------
+## original codes of non-observed parents
+(founders.orig <- setdiff(
+  sort(unique(as.vector(ped.nightmare[, c("sire", "dam")]))),
+  ped.nightmare[, "self"]
+))
+
+## map from original to internal codes
+map.codes <- attr(get_pedigree(res.raw), "map")
+
+## internal codes of non-observed parents
+founders.int <- map.codes[founders.orig]
+
+## Breeding Values of non-observed parents
+founders.PBVs <- gen.blup[founders.int, ]
+rownames(founders.PBVs) <- founders.orig
+
+## ----PBV-founders-table, results = 'asis', echo=FALSE--------------------
+knitr::kable(founders.PBVs, digits = 2)
+
+## ----reverse-lookup------------------------------------------------------
+## individuals of interest in internal codification
+idx <- c(3, 5, 9)
+
+## original codes
+(match(idx, map.codes))
 
