@@ -639,7 +639,7 @@ build.mf <- function(call) {
     terms.list$rnd <- attr(stats::terms(rnd), 'term.labels')
 	
 	## Join fixed and random
-	lhs <- deparse(fxd[[2]])
+	lhs <- deparse(fxd[[2]], width.cutoff = 500)
 	rhs <- paste(do.call(c, terms.list), collapse = '+')  
 	fml <- stats::as.formula(paste(lhs, rhs, sep = '~'), env = parent.frame(2))
 	
