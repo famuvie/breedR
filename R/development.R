@@ -39,7 +39,8 @@ breedR.update_guides <- function(pkg = "."){
 ## Given a list of vignettes, filter out those who have changed
 ## with respect to the version in inst/doc
 changed_guides <- function(vigns) {
-  require(tools, utils)
+  require(tools)
+  require(utils)
   dest_dir <- file.path(vigns$pkgdir, "inst", "doc")
   
   has_changed <- function(x) {
@@ -503,6 +504,26 @@ breedR_release <- function(
 }
 
 
+## Once there are a set of compiled and source packages within
+## a new version directory under reldir, deploy to repodir
+## don't forget to push.
+breedR_deploy <- function(
+  ver = "v0.12-1",
+  reldir = normalizePath("../../breedR_releases/"),
+  repodir = normalizePath('../breedR-web')
+) {
+  dir <- file.path(reldir, ver)
+  stopifnot(dir.exists(dir))
+  
+  subdirs <- list.dirs(dir, recursive = FALSE)
+  
+  for (d in subdirs) {
+    fn <- grep("breedR", list.files(d), value = TRUE)
+    drat::insertPackage(file.path(d, fn), repodir)
+  }
+}
+
+
 ## This function http-serves a package repository
 ## and displays a slide with detailed installation instructions
 breedR_serve <- function(
@@ -642,6 +663,52 @@ spell_check_rd <- function(rdfile, ignore){
   spell_check_text(text, ignore = ignore)
 }
 
+download_winbuilder <- function(
+  ids = c("XBOVtggM7Zax", "CL5DgvX5vRH5", "wBtX7KU9Oah3"),
+  dir = normalizePath("../../breedR_releases/")
+) {
+  # ids <- c("XBOVtggM7Zax", "CL5DgvX5vRH5", "wBtX7KU9Oah3")
+  baseurl <- "https://win-builder.r-project.org/"
+  urls <- paste0(baseurl, ids, "/")
+
+  ## pkg metadata  
+  pkg <- as.package('.')
+  pkg_basename <- paste(pkg$package, pkg$version, sep = '_')
+  ver <- pkg$version
+  
+  ## create local release dir
+  dir <- paste0(dir, "/v", ver)
+  dir.create(dir)
+  
+  ## compiled package name
+  fn <- paste0(pkg_basename, ".zip")
+  
+  for (i in seq_along(urls)) {
+    
+    ## get log to temporary file
+    tf <- tempfile()
+    download.file(file.path(urls[i], "00check.log"), tf)
+    
+    ## get platform
+    log <- readLines(tf)
+    Rver <- stringr::str_match(log[1], "R-(\\w+)")[1, 2]
+    # Rver <- stringr::str_match(log[2], "R version ([\\d.]+)")[1, 2]
+    winver <- stringr::str_match(log[3], "platform: ([\\w\\d_]+)")[1, 2]
+    platform <- paste("windows", winver, Rver, sep = "-")
+
+    ## create local dir    
+    local_dir <- file.path(dir, platform)
+    dir.create(local_dir, showWarnings = FALSE)
+    
+    ## get logs
+    file.copy(tf, file.path(local_dir, "00check.log"))
+    download.file(paste0(urls[i], "00install.out"), file.path(local_dir, "00install.out"))
+
+    ## get built package
+    remote_file <- paste0(urls[i], fn)
+    download.file(remote_file, file.path(local_dir, fn))
+  }
+}
 
 ## Download results from r-hub
 download_rhub <- function(
@@ -659,10 +726,11 @@ download_rhub <- function(
   
   fn <- paste0("breedR_", ver, ".zip")
   
-  for (i in ids) {
+  for (i in seq_along(ids)) {
     local_dir <- file.path(dir, names(ids)[i])
     remote_file <- paste0(urls[i], fn)
     dir.create(local_dir, showWarnings = FALSE)
-    download.file(remote_file, file.path(local_dir, fn))
+    try(download.file(remote_file, file.path(local_dir, fn)))
   }
 }
+

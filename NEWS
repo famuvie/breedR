@@ -2,7 +2,7 @@
 
 * More informative error messages on specification of initial variances (#79)
 
-* Bugfixes (#80)
+* Bugfixes (#80, #85, #86)
 
 * Improved documentation (Handling pedigrees)
 
