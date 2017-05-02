@@ -730,7 +730,7 @@ download_rhub <- function(
     local_dir <- file.path(dir, names(ids)[i])
     remote_file <- paste0(urls[i], fn)
     dir.create(local_dir, showWarnings = FALSE)
-    download.file(remote_file, file.path(local_dir, fn))
+    try(download.file(remote_file, file.path(local_dir, fn)))
   }
 }
 
