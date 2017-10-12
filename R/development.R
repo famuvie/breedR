@@ -459,6 +459,7 @@ breedR_release <- function(
   pkg_basename <- paste(pkg$package, pkg$version, sep = '_')
   
   ## Check latest released versions for windows binaries and source
+  ## Note: this will only look for the _installed_ R_version series
   released.win <- try(
     available.packages(contrib.url(file.path('file://', repodir), 'win.binary')),
     silent = TRUE
@@ -482,6 +483,12 @@ breedR_release <- function(
   if (win.update) {
     if (!silent) message('Building windows binary pacakge ..')
     build_win()
+    # version="R-release"
+    # built_path <- grep(pkg$version, list.files(contrib.url(repodir, 'source'), full.names = TRUE), value = TRUE)
+    # url <- paste0("ftp://win-builder.r-project.org/", version,
+    # "/", basename(built_path))
+    # devtools:::upload_ftp(file = built_path, url = url)
+
     if (!silent)
       ## Manually deploy later
       message('Wait for email from buildwin service and deploy with:\n',
@@ -508,7 +515,7 @@ breedR_release <- function(
 ## a new version directory under reldir, deploy to repodir
 ## don't forget to push.
 breedR_deploy <- function(
-  ver = "v0.12-1",
+  ver = "v0.12-2",
   reldir = normalizePath("../../breedR_releases/"),
   repodir = normalizePath('../breedR-web')
 ) {
