@@ -79,15 +79,9 @@ breedR.bin.builtin  <- function()
     bindir <- 'bin'
     if (breedR.os('windows'))
       bindir <- file.path(bindir, paste0(breedR.os.32or64bit(), 'bit'))
-    fnm <- system.file(bindir, package='breedR')
+    return(file.path(system.file(package='breedR'), bindir))
   } else {
     stop("Unknown platform")
-  }
-  
-  if (file.exists(fnm)) {
-    return (fnm)
-  } else {
-    stop(paste("breedR installation error; no such directory", fnm))
   }
 }
 
