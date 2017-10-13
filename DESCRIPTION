@@ -8,7 +8,9 @@ Authors@R: c(person("Facundo", "Muñoz",
     email="facundo.munoz@inra.fr"),
     person("Leopoldo", "Sanchez", role="aut"),
     person("Ignacy", "Misztal", role="ctb"),
-    person("Pablo", "Cappa", role="ctb"))
+    person("Pablo", "Cappa", role="ctb"),
+    person("Timothée", "Flutre", role="ctb")
+    )
 Author: Facundo Muñoz with libraries by Ignacy Misztal
 Maintainer: Facundo Muñoz <facundo.munoz@inra.fr>
 Description: Statistical tools to build predictive models
