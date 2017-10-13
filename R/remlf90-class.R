@@ -924,8 +924,14 @@ ranef.remlf90 <- function (object, ...) {
   idx <- grep('genetic|spatial', names(ans), invert = TRUE)
   
   for(x in names(ans[idx])) {
-    attr(ans[[x]], 'names') <- 
-      colnames(attr(model.matrix(object)$random[[x]], 'contrasts'))
+    if("effect_group" %in% class(object$effects[[x]])){
+      if("generic" %in% class(object$effects[[x]]$effects[[1]]) &
+         ! is.null(rownames(object$effects[[x]]$effects[[1]]$structure.matrix)))
+        attr(ans[[x]], 'names') <- 
+          rownames(object$effects[[x]]$effects[[1]]$structure.matrix)
+    } else
+      attr(ans[[x]], 'names') <- 
+        colnames(attr(model.matrix(object)$random[[x]], 'contrasts'))
   }
   
   class(ans) <- c('ranef.breedR', 'breedR_estimates')
