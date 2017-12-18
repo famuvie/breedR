@@ -115,19 +115,21 @@ breedR.sample.phenotype <- function(fixed = NULL,
   phenotype  <- rep(0, Nfull)
 
   # Fixed
-  if( !is.null(fixed) ) {
-    X <- cbind(1,
-               matrix(stats::runif(Nfull*(length(fixed) - 1)),
-                      nrow = Nfull))
-    phenotype <- phenotype + X %*% fixed
-
-    components$X <- as.data.frame(X)
-    if( is.null(names(fixed)) ) {
-      if( length(fixed) == 1 ) names(fixed) <- 'X'
-      else names(fixed) <- paste('X', seq_along(fixed)-1, sep = '')
-    }
-    names(components$X) <- names(fixed)
+  if( is.null(fixed) ) {
+    fixed = c(Intercept = 0)
   }
+  
+  X <- cbind(1,
+             matrix(stats::runif(Nfull*(length(fixed) - 1)),
+                    nrow = Nfull))
+  phenotype <- phenotype + X %*% fixed
+  
+  components$X <- as.data.frame(X)
+  if( is.null(names(fixed)) ) {
+    if( length(fixed) == 1 ) names(fixed) <- 'X'
+    else names(fixed) <- paste('X', seq_along(fixed)-1, sep = '')
+  }
+  names(components$X) <- names(fixed)
 
   # Random
   if( !is.null(random) ) {
