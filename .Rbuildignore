@@ -5,3 +5,4 @@
 ^vignettes/.*_files
 ^R/development.R
 ^\.travis\.yml$
+^appveyor\.yml$

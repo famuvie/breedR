@@ -1,4 +1,5 @@
 [![Travis-CI Build Status](https://travis-ci.org/famuvie/breedR.png?branch=master)](https://travis-ci.org/famuvie/breedR)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/famuvie/breedR?branch=master&svg=true)](https://ci.appveyor.com/project/famuvie/breedR)
 [![DOI](https://zenodo.org/badge/4357/famuvie/breedR.svg)](https://zenodo.org/badge/latestdoi/4357/famuvie/breedR)
 
 breedR
