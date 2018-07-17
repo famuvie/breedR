@@ -5,7 +5,7 @@ Version: 0.12-2
 Encoding: UTF-8
 Authors@R: c(person("Facundo", "Muñoz",
     role=c("aut", "cre"),
-    email="facundo.munoz@inra.fr"),
+    email="facundo.munoz@cirad.fr"),
     person("Leopoldo", "Sanchez", role="aut"),
     person("Ignacy", "Misztal", role="ctb"),
     person("Pablo", "Cappa", role="ctb"),
