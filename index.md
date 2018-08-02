@@ -47,7 +47,7 @@ demo('globulus')
 
 ### Slides
 
-- [breedR Overview](http://prodinra.inra.fr/ft?id={83EC402E-BFD9-445B-BE2E-7E02CC1FD2A2}) (Trees4Future 04-2016, Brussels)
+- [breedR Overview](http://prodinra.inra.fr/ft?id={28048EF3-1A14-481A-8353-773B3259C665}) (Trees4Future 04-2016, Brussels)
 - [Spatial and Competition effects in tree breeding](http://prodinra.inra.fr/ft?id={CCE02CF3-1CEC-495D-B45A-711E8C5B1979}) (IUFRO 05-2016, Arcachon)
 
 ### Citing
