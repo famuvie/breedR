@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Further common genetic models</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Facundo Muñoz facundo.munoz@cirad.fr   famuvie" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="libs/font-awesome/css/fontawesome-all.min.css" type="text/css" />
+    <link rel="stylesheet" href="breedR.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Further common genetic models
+### Facundo Muñoz<br/><a href="mailto:facundo.munoz@cirad.fr">facundo.munoz@cirad.fr</a><br/><i class="fab fa-twitter"></i> <i class="fab fa-github"></i> famuvie
+### Orléans, Sep. 18, 2018
+
+---
+
+
+
+
+class: inverse, center, middle
+
+# Competition
+
+## a.k.a. Indirect Genetic Effects
+
+---
+
+# Diagnosis of Competition
+
+1. Plot of residuals vs average neighbouring residuals
+  
+  Negative correlation, after accounting for Direct Genetic Effects and Spatial Autocorrelation
+
+2. Variogram assessment
+
+  Peak at the first lag in the variogram of residuals, after
+  accounting for direct genetic effects and spatial autocorrelation
+
+3. Model comparison
+
+  Compare (*e.g.* AIC) _competition_ vs. _animal_ models
+
+
+---
+
+# Competition model
+
+.pull-left[![Competition model](img/competition_model.png)]
+
+.pull-right[
+- Each individual have **two** (unknown) Breeding Values (BV):
+    - `direct` BV affects its **own** phenotype,
+    - `competition` BV affects its **neghbours'**
+
+- The total effect of the neighbouring `competition` BVs is given by their **distance-weighted sum**
+]
+
+
+---
+
+# Weighted neighbour competition effect
+
+.pull-left[
+![](3_further_genetic_files/figure-html/distance-plot-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+`$$\omega_i(\alpha) = 
+  \sum_{k \in \partial i}
+    z_{ik}(\alpha) u_{c,k}$$`
+]
+
+Where `\(\partial i\)` be the set of __neighbouring locations__ of tree `\(i\)`, `\(u_c = (u_{c,k})'\)` the vector of __competition BVs__ and
+`\(z_{ik}(\alpha) \propto 1/d_{ik}^\alpha\)`, such that 
+`$$\sum_{k \in \partial i} z_{ik}(\alpha)^2 = 1.$$`
+
+This condition is **variance-estabilizer** ensuring `\(\forall i\)`:
+`$$\text{Var}(\omega_i) = \text{Var}(u_c) = \sigma_c^2$$`
+
+---
+# The decay parameter
+
+The **decay parameter** `\(\alpha\)` controls the **relative intensity of competition** of the neighbours
+
+.pull-left[
+![](3_further_genetic_files/figure-html/inverse-distance-plot-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+- The weights `\(z_{ik}\)` are **scale-invariant**
+
+- *e.g.* a tree twice as far is weighted `\(1/2^\alpha\)` as much
+
+- higher values of `\(\alpha\)` concentrate the weights on the closest trees
+
+]
+
+
+---
+# Random-effect representation
+
+`$$Z_d u_d + Z_c(\alpha) u_c,
+  \quad 
+  \begin{pmatrix} u_d \\ u_c \end{pmatrix} 
+  \sim \mathcal{N}\big(0, \Sigma_a \otimes A\big),
+  \quad
+  \Sigma_a = 
+  \begin{pmatrix} 
+    \sigma_d^2 &amp; \sigma_{dc} \\
+    \sigma_{dc} &amp; \sigma_c^2
+  \end{pmatrix}$$`
+
+
+- Each set of BVs is modelled as a zero-mean **random effect** with structure matrix given by the **pedigree** and independent **variances** `\(\sigma^2_d\)` and `\(\sigma^2_c\)`
+
+- Both random effects are modelled jointly with **covariance** `\(\sigma_{dc}\)`
+
+- `\(Z_d\)` is an indicator matrix linking observations and individuals
+
+- `\(Z_c(\alpha)\)` weights the competition effect of the neighbours with (fixed) **decay** parameter `\(\alpha\)`
+
+
+---
+# Permanent Environmental Competition Effect
+
+`$$Z_p u_p, \quad Z_p = Z_c, u \sim \mathcal{N}(0, \sigma_p^2 I)$$`
+
+- **Optional** companion effect with **environmental** (rather than genetic) basis
+
+- Modelled as an individual **independent** random effect that affects **neighbouring** trees in the same (weighted) way
+
+
+---
+# Implementation in breedR
+
+
+```r
+fm &lt;- remlf90(
+    fixed = ···,
+    random = ···,
+*    genetic = list(
+*      model = 'competition',
+*      pedigree = ···,
+*      coord = ···,
+*      id = ···,
+*      pec = TRUE/FALSE), 
+    data = ···,
+*    method = 'em'
+  )
+```
+
+
+---
+
+# Selection under competition
+
+
+
+
+.center[
+![](3_further_genetic_files/figure-html/competition-blups-1.png)&lt;!-- --&gt;
+]
+
+---
+class: inverse, center, middle
+
+# GBLUP &amp; Dominance effects
+
+---
+
+# Using genomic markers
+
+
+`$$Z u, \quad u \sim \mathcal{N}\big(0, \sigma_G^2 G\big)$$`
+
+- Use markers to compute a **relationship matrix** `\(G\)` for individuals
+    - Several methods available
+    - *e.g.* VanRaden et al. 2009 `$$G = XX'/\sum 2p(1-p)$$`
+
+- **Replace** the `additive-genetic` model, which uses the pedigree-based relationship matrix `\(A\)` with a `generic` model with a genomic relationship matrix `\(G\)`
+
+- `\(Z\)` is an **indicator** matrix linking observations with individuals
+
+- Predicts genetic value of **individuals**, not markers
+
+- Improved **accuracy** wrt pedigree-based evaluation
+
+---
+
+# Relationship matrices
+
+## pedigree-based vs. genomic
+
+![relationship-matrices](img/relationship-matrices.png)
+
+Note the increased level of detail in the relationship structure
+
+
+---
+
+# Implementation in breedR
+
+- breedR allows random effects with **arbitrary covariance** structures (`generic` terms, see `?remlf90`)
+
+- These additional components allow to introduce random effects with
+**arbitrary** incidence and covariance/precision matrices `\(Z\)` and `\(\Sigma\)`
+
+
+```r
+fm &lt;- remlf90(
+    ···,
+*    generic = list(
+*        G = list(Zg, Gmat),
+*        ···
+*        D = list(Zd, precision = Dmat)), 
+    data = ···
+  )
+```
+
+
+---
+
+# Applications
+
+## include __additional not-predefined components__
+
+*e.g.* Dominance, Hybrid populations, Genomic evaluation, etc. 
+
+
+
+---
+class: inverse, center, middle
+background-image: url(img/breedRhex.png)
+background-position: 50% 80%
+
+# Further common genetic models
+
+.left[
+- Competition
+
+- GBLUP
+
+- Dominance
+]
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

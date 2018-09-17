@@ -1,0 +1,25 @@
+.title-slide {
+  background-image: url(img/breedRhex.png);
+  background-position: 50% 5%; 
+  text-align: left;
+  margin-left: 15px;
+  padding-top: 220px;
+}
+
+.title-slide h1, h2  {
+  text-align: left;
+  margin-left: 15px;
+}
+
+.title-slide h3  {
+  text-align: right;
+  margin-left: 15px;
+}
+
+.title-slide .remark-slide-number {
+  display: none;
+}
+
+strong {
+  color: rgb(6,128,205);
+}

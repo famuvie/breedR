@@ -41,6 +41,7 @@ demo('globulus')
 
 ### Training workshop materials
 
+- [INRA-BioForA Training Workshop](workshop_biofora) (September 2018, Orléans, France)
 - [Poland Local Training Workshop](workshop_IBL) (December 2015, Warsaw) 
 - [International Official Training Workshop](workshop) (June 2015, Jaca, Spain)
 

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Exploiter breedR pour l’évaluation génétique d’un dispositif forestier expérimental</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Facundo Muñoz facundo.munoz@cirad.fr   famuvie" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="libs/font-awesome/css/fontawesome-all.min.css" type="text/css" />
+    <link rel="stylesheet" href="breedR.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Exploiter breedR pour l’évaluation génétique d’un dispositif forestier expérimental
+### Facundo Muñoz<br/><a href="mailto:facundo.munoz@cirad.fr">facundo.munoz@cirad.fr</a><br/><i class="fab fa-twitter"></i> <i class="fab fa-github"></i> famuvie
+### Orléans, Sep. 18, 2018
+
+---
+
+
+
+
+background-image: url(img/breedRhex.png)
+class: center, bottom
+
+# http://famuvie.github.io/breedR/
+
+---
+
+# Démarche de la formation
+
+- Fichier `excercises.R` qui sert de __guide__ structurante :
+
+    - consignes
+    
+    - code _templates_
+
+- __Diapositives__ pour apporter éléments de motivation et discussion
+
+- __Manuels__ `breedR` pour creuser
+
+---
+class: inverse, center, middle
+
+# Objectifs opérationnels
+
+
+---
+class: middle
+
+
+1. Analyser un test de __descendance simple__ (1 caractère, 1 site)
+
+1. Tenir compte des __effets environnementaux__
+
+1. Ajuster autres __modèles génétiques courants__
+
+1. Analyser __plusieurs caractères__ simultanément
+
+1. Estimer l’__interaction GxE__ dans des dispositifs multi-site
+
+1. Se servir d'un serveur de calcul pour __paralléliser__ les analyses
+
+
+
+
+---
+
+# 1. Analyser un test de descendance simple (1 caractère, 1 site)
+
+1. __Estimer__ des effets fixes et aléatoires
+
+1. Extraire et __représenter__ graphiquement les estimateurs
+
+1. Estimer des __effets additifs__ individuelles ou de groupe
+
+--- 
+
+1. Calculer l'__héritabilité__ du dispositif  (après-midi)
+
+
+---
+
+# 2. Tenir compte des effets environnementaux
+
+1. Vérifier l'__indépendance__ spatiale des résidus
+
+1. Contrôler la variabilité environnementale à l'aide de __modèles
+spatiaux__
+
+
+---
+
+# 3. Ajuster autres modèles génétiques courants
+
+.center[(explicatif)]
+
+1. Estimer des effets génétiques de __compétition__
+
+1. Estimer des effets additifs individuelles à partir d'une matrice
+d'apparentement génomique (__GBLUP__)
+
+1. Estimer des effets génétiques individuelles de __dominance__
+
+
+---
+
+# 4. Analyser plusieurs caractères simultanément
+
+.middle[.center[(explicatif)]]
+
+
+# 5. Estimer l’interaction GxE dans des dispositifs multi-site
+
+
+# 6. Se servir d'un serveur de calcul pour paralléliser les analyses
+
+.middle[.center[(explicatif, démonstratif)]]
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

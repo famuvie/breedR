@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Remote parallel computation</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Facundo Muñoz facundo.munoz@cirad.fr   famuvie" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="libs/font-awesome/css/fontawesome-all.min.css" type="text/css" />
+    <link rel="stylesheet" href="breedR.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Remote parallel computation
+### Facundo Muñoz<br/><a href="mailto:facundo.munoz@cirad.fr">facundo.munoz@cirad.fr</a><br/><i class="fab fa-twitter"></i> <i class="fab fa-github"></i> famuvie
+### Orléans, Sep. 18, 2018
+
+---
+
+
+
+
+background-image: url(img/remote_computation.png)
+
+
+
+---
+## Remote computation
+
+- You have access to a **Linux** server through **SSH**
+
+- You can perform `breedR`'s computations __remotely__
+
+- Take advantage of more **memory** or **faster** processors
+
+- **Parallelize** jobs
+
+- Free **local resources** while fitting models
+
+- See `?remote` for details
+
+
+---
+# Configuring a server
+
+1. Windows users: install `cygwin` with `ssh` beforehand (http://cygwin.org/)
+
+1. configure the client and server machines so that password-less [SSH authentication works](http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/)
+
+1. Set breedR options `remote.host`, `remote.user`, `remote.port` and `remote.bin` (see `?breedR.setOption`)
+
+    - Optionally, set these options permanently in `$HOME/.breedRrc`
+
+```r
+writeLines(
+  c("remote.host = '147.99.222.196'",
+    "remote.user = 'yourusername'",
+    "remote.bin  = '/usr/local/lib/R/site-library/breedR/bin/'"),
+  con = file.path(Sys.getenv('HOME'), '.breedRrc'))
+```
+
+
+---
+
+## Fitting models remotely
+
+
+```r
+res &lt;- remlf90(..., breedR.bin = "remote")
+```
+
+
+- Fit model **remotely**
+
+- R-console stays in **stand-by** until job is finished
+
+- When job finishes (provided that connection keeps alive), results are automatically **retrieved**
+
+### Identical in use to local computing, but without the processor/memory burden
+
+---
+
+## Submitting jobs
+
+
+```r
+res &lt;- remlf90(..., breedR.bin = "submit")
+```
+
+
+- Fit model **remotely**
+
+- Connection is **closed** in the meanwhile
+
+- R-console is **active**
+
+- Typing `res` **queries** the server for the job status (Running/Finished/Aborted)
+
+- __Retrieve__ results with `breedR.qget(job_id)`
+
+---
+
+## Parallel computing
+
+- After you **submit** a job, you are free to submit more (specially with multiple-processor servers)
+
+- Query the **status** of all jobs with `breedR.qstat()`
+
+- **Kill** some job with `breedR.qdel(res)` or all jobs with `breedR.qnuke()`
+
+
+---
+class: inverse, center, middle
+background-image: url(img/breedRhex.png)
+background-position: 50% 90%
+
+# Remote parallel computation
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

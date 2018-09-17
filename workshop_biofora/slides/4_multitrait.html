@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Multi-trait models</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Facundo Muñoz facundo.munoz@cirad.fr   famuvie" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="libs/font-awesome/css/fontawesome-all.min.css" type="text/css" />
+    <link rel="stylesheet" href="breedR.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Multi-trait models
+### Facundo Muñoz<br/><a href="mailto:facundo.munoz@cirad.fr">facundo.munoz@cirad.fr</a><br/><i class="fab fa-twitter"></i> <i class="fab fa-github"></i> famuvie
+### Orléans, Sep. 18, 2018
+
+---
+
+
+
+
+# Multivariate Linear Mixed Models
+## 2-trait case
+
+`$$\begin{aligned}
+    Y_1 &amp; = X\beta_1 + Zu_1 + \varepsilon_1 \\
+    Y_2 &amp; = X\beta_2 + Zu_2 + \varepsilon_2, \\
+    (u_1, u_2)' &amp; \sim N(0, \Sigma_u \otimes G) \\
+    (\varepsilon_1, \varepsilon_2)' &amp; \sim N(0, \Sigma \otimes I_n).
+  \end{aligned}$$`
+
+- `\(\Sigma_u\)` and `\(\Sigma\)` either **diagonal** or **fully-parameterized** `\(2\times 2\)` matrices
+
+- Some of the fixed or random effects can affect only a **subset of the traits**
+    - *e.g.* fixed effect of operator
+
+---
+
+# Limitation
+## of breedR's implementation
+
+- All fixed and random effects are assumed to be **trait-specific**
+
+    - **transversal effects** not directly supported (ultimately by PROGSF90)
+
+- Simpler covariance structures **not supported**
+
+    - *e.g.* independent effects with shared variance, exchangeable structure
+    
+- A workaround is to **reshape the dataset** to long-layout
+
+---
+background-image: url(img/reshaping.png)
+background-position: 80% 30%
+background-size: 40%
+
+# Multi-trait with reshaping
+## wide to long-layout
+
+
+- Reshaping operation:
+    - Stack traits into a **single variable** `value`
+    - Additional variable `trait`
+    - Duplicate individual information and other variables
+
+- Use single-trait models with MET syntax
+    - `trait` instead of `site`
+    
+- This overcomes the limitations breedR's multi-trait implementation
+    - more complex models like multi-trait **and** multi-site become cumbersome
+
+
+---
+
+# Implementation in `breedR`
+
+Specify the different traits in the main formula using `cbind()`.
+
+
+```r
+## Filter site and select relevant variables
+dat &lt;- 
+  droplevels(
+    douglas[douglas$site == "s3",
+            names(douglas)[!grepl("H0[^4]|AN|BR|site",
+                                  names(douglas))]]
+  )
+
+res &lt;- 
+  remlf90(
+    fixed = cbind(H04, C13) ~ orig,
+    genetic = list(
+      model = 'add_animal', 
+      pedigree = dat[, 1:3],
+      id = 'self'),
+    data = dat
+  )
+```
+
+---
+
+A full covariance matrix across traits is estimated for each random effect,
+and all results, including heritabilities, are expressed effect-wise:
+
+
+```
+## Formula: cbind(H04, C13) ~ 0 + orig + pedigree 
+##    Data: dat 
+##    AIC   BIC logLik
+##  30968 31010 -15476
+## 
+## Parameters of special components:
+## 
+## 
+## Variance components:
+##                                       Estimated variances   S.E.
+## genetic.direct.H04                                  918.1  438.6
+## genetic.direct.H04_genetic.direct.C13              1872.4  824.0
+## genetic.direct.C13                                 5827.6 1829.6
+## Residual.H04                                       8373.7  461.7
+## Residual.H04_Residual.C13                         10922.0  755.3
+## Residual.C13                                      18439.0 1484.2
+## 
+##                  Estimate    S.E.
+## Heritability:H04   0.0990 0.04589
+## Heritability:C13   0.2391 0.07036
+## 
+## Fixed effects:
+##              value    s.e.
+## orig.H04.pA 352.00  6.2389
+## orig.H04.pB 370.90 10.7947
+## orig.H04.pC 346.93 13.0788
+## orig.H04.pF 339.66  6.2268
+## orig.H04.pG 313.00 24.0430
+## orig.H04.pH 305.39 19.9334
+## orig.H04.pI 323.29 20.0946
+## orig.H04.pJ 343.87 19.8567
+## orig.H04.pK 335.48 19.6409
+## orig.C13.pA 460.01 13.6444
+## orig.C13.pB 494.58 19.8635
+## orig.C13.pC 430.86 25.5477
+## orig.C13.pF 429.48 12.5501
+## orig.C13.pG 376.42 48.3133
+## orig.C13.pH 376.98 43.4266
+## orig.C13.pI 404.62 43.6194
+## orig.C13.pJ 418.91 43.2856
+## orig.C13.pK 441.99 43.0567
+```
+
+---
+class: inverse, center, middle
+background-image: url(img/breedRhex.png)
+background-position: 50% 90%
+
+# Multi-trait models
+
+.left[
+- Basic multivariate syntax
+
+- Long-shape with `trait` variable
+]
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

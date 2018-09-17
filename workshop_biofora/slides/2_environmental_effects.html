@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Environmental effects</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Facundo Muñoz facundo.munoz@cirad.fr   famuvie" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="libs/font-awesome/css/fontawesome-all.min.css" type="text/css" />
+    <link rel="stylesheet" href="breedR.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Environmental effects
+### Facundo Muñoz<br/><a href="mailto:facundo.munoz@cirad.fr">facundo.munoz@cirad.fr</a><br/><i class="fab fa-twitter"></i> <i class="fab fa-github"></i> famuvie
+### Orléans, Sep. 18, 2018
+
+---
+
+
+
+
+background-image: url(img/spatial-background.png)
+background-size: cover
+
+
+
+---
+class: middle, inverse
+
+# Excercises 1 and 2
+
+## Fit an animal model without the `blocks` effect
+
+    - for use as a reference
+
+## Asess the spatial independence of residuals by 
+
+    - plotting their spatial distribution
+    
+    - interpreting the variogram of residuals
+    
+
+
+---
+
+# Motivation
+
+- **Environmental** sources of variation
+
+- **Bias** genetic estimates 
+
+- The residuals of any LMM must be __noise__
+
+- Recommended to **routinely** include spatial effects (Gilmour,
+Cullis, and Verbyla 1997; Dutkowski et al. 2002)
+
+
+---
+
+# Spatial autocorrelation
+
+## observations that are close to each other __tend to be more similar__ that observations that are far away (in the positive case)
+
+.center[
+![](2_environmental_effects_files/figure-html/autocorrelation-1.png)&lt;!-- --&gt;
+]
+
+---
+
+# Empirical (isotropic) semivariogram
+
+`$$\gamma(h) = \frac12 V[Z(\mathbf{u}) - Z(\mathbf{v})],
+\quad \text{dist}(\mathbf{u}, \mathbf{v}) = h$$`
+
+.center[
+![](2_environmental_effects_files/figure-html/variogram-animal-1.png)&lt;!-- --&gt;
+]
+
+
+---
+
+# Examining residual autocorrelation in breedR
+
+
+```r
+res &lt;- remlf90(···)
+```
+
+
+```r
+plot(res, type = "residuals")
+```
+
+
+```r
+variogram(res)
+```
+
+
+---
+class: middle, inverse
+
+# Excercise 3
+
+## Extend `fm4` with each of the three possible spatial models in `breedR`
+
+
+
+
+
+---
+
+# Spatial models in breedR
+
+![](2_environmental_effects_files/figure-html/unnamed-chunk-6-1.png)&lt;!-- --&gt;
+
+
+---
+
+# Blocks model
+
+`$$Zu, \quad u \sim \mathcal{N}(0, \sigma_s^2 I)$$`
+
+- `\(u\)` is the vector of random effects for the blocks
+
+- `\(Z\)` is an indicator matrix such that `\(Z[i,j] = 1\)` if the observation `\(i\)` belongs to block `\(j\)`
+
+- `\(\sigma_s^2\)` is the spatial variance parameter
+
+- The **block** effect, is a very particular case of spatial effect:
+    - It is designed from the beginning, possibly using prior knowledge
+    - Can account for non-spatial effects (e.g. operator)
+    - Introduces **independent** effects between blocks
+    - Most neighbours are within the same block (i.e. share the same effect)
+
+---
+
+# Blocks in breedR
+
+
+
+```r
+fm_bl &lt;- remlf90(
+    ···
+    spatial = list(
+      model = 'blocks',  # spatial model name
+      coord = ···,       # matrix or data.frame with coordinates
+*      id = 'bl'),     # name of the variable 
+    ···
+  )
+```
+
+It is equivalent to a `random` effect `bl` (with coordinates)
+
+---
+
+# Splines
+
+A **cubic B-spline** `\(B(x)\)`: 
+
+.center[
+![](2_environmental_effects_files/figure-html/single-spline-plot-irregular-knots-1.png)&lt;!-- --&gt;
+]
+
+- **Piecewise** curve defined in the intervals determined by 5 **knots**
+
+- Each *piece* is a polynomial of 3rd degree
+
+---
+
+# Splines
+
+A **cubic B-spline** `\(B(x)\)` with regularly spaced knots:
+
+.center[
+![](2_environmental_effects_files/figure-html/single-spline-plot-1.png)&lt;!-- --&gt;
+]
+
+- The curve is constrained for `\(C^2\)` **continuity** at each knot
+
+- Only 1 degree of freedom controls the **scale**
+
+
+---
+
+# Splines
+
+A number of overlapping curves form a **base** of B-splines `\(\{B_j(x)\}\)`
+
+.center[
+
+
+![](2_environmental_effects_files/figure-html/splines-base-1.png)&lt;!-- --&gt;
+]
+
+---
+
+# Splines
+
+Each, can be **scaled** using a coefficient `\(\{u_j B_j(x)\}\)`
+
+
+
+
+.center[
+![](2_environmental_effects_files/figure-html/splines-scaled-1.png)&lt;!-- --&gt;
+]
+
+---
+
+# Splines
+
+And **summed** to a **linear combination** `\(f(x) = \sum_{j} u_j B_j(x)\)`
+
+
+
+
+
+.center[
+![](2_environmental_effects_files/figure-html/splines-combined-plot-1.png)&lt;!-- --&gt;
+]
+---
+
+# Bidimensional Splines in a Mixed Model
+
+- `\(f(x) = \sum_{j} u_j B_j(x)\)` provides a **spline representation** of a wide family of curves, in terms of a vector of coefficients `\(u\)`
+
+- For any set of points `\(x = \{x_i\}\)`, the vector of values `\(f(x_i)\)` can be written as a matrix operation `\(f = \big[B_j(x_i)\big] u\)`
+
+- breedR extends this to **two dimensions** and defines a random effect
+    `$$B u, \quad u \sim \mathcal{N}(0, \sigma_s^2 R_s)$$`
+
+    - `\(u\)` is the vector of spline effects
+    
+    - `\(B\)` is the matrix of spline bases evaluated at the observations
+    
+    - `\(\sigma_s^2\)` is the spatial variance parameter
+    
+    - `\(R_s\)` imposes a fixed positive correlation between coefficients of neighbouring spline bases
+
+
+---
+
+# Splines in breedR
+
+
+```r
+fm_sp &lt;- remlf90(
+    ···
+    spatial = list(
+      model   = 'splines',  # spatial model name
+      coord   = ···,        # matrix or data.frame with coordinates
+*     n.knots = c(nk1, nk2)  # N of internal knots in each dim
+    ···
+  )
+```
+
+
+---
+
+# Number of knots of a `splines` model
+
+- The **smoothness** of the spatial surface can be controlled modifying the number of base functions
+
+- This is directly determined by the **number of knots** (nok) in each dimension
+
+- If not explicitly set, it is determined heuristically by breedR as a function of the number of observations
+
+.center[
+![](2_environmental_effects_files/figure-html/determine-nknots-1.png)&lt;!-- --&gt;
+]
+
+---
+
+# First-Order Autoregressive Process
+
+- An AR1($\rho$) on the line is a collection of random variables `\(\{x_i\}\)` where
+`$$x_t = \rho x_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim \mathcal{N}(0,1), |\rho| &lt; 1$$`
+
+- A few random simulations with `\(\rho = 0.5\)`:
+
+
+
+.center[
+![](2_environmental_effects_files/figure-html/AR1-plot-1.png)&lt;!-- --&gt;
+]
+---
+
+# Bidimensional First-Order Autoregressive Process
+
+breedR extends this model to the plane using and defines a component
+
+`$$Zu, \quad u \sim \mathcal{N}(0, \sigma_s^2 R_{\mathrm{AR}})$$`
+
+- `\(u\)` is the vector of random effects **for each individual location** on a regular grid
+
+- `\(Z\)` is an **indicator matrix** such that `\(Z[i,j] = 1\)` if the observation `\(i\)` is at site `\(j\)`
+
+- `\(\sigma_s^2\)` is the spatial variance parameter
+
+- `\(R_{\mathrm{AR}}\)` defines a separable correlation structure based on the Kronecker product of two AR1 processes
+
+
+---
+
+# AR in breedR
+
+
+```r
+fm_ar &lt;- remlf90(
+    ···
+    spatial = list(
+      model   = 'AR',       # spatial model name
+      coord   = ···,        # matrix or data.frame with coordinates
+*     rho   = c(r1, r2)   # autocorrelation coef in each dim
+    ···
+  )
+```
+
+
+---
+
+# Autoregressive parameters of a `AR` model
+
+- The **smoothness** of the `AR` effects can be controlled by the autoregressive parameters `\((\rho_x, \rho_y)\)` in each dimension
+
+- They can be **given explicitly**
+
+- Otherwise, breedR fits a model for each combination of parameters in a default grid and returns the most likely values
+
+&lt;!-- .center[![AR-grid-search](img/AR-grid-search.pdf)] --&gt;
+
+
+---
+class: middle, inverse
+
+# Excercise 4
+
+## Plot and compare the predicted spatial effect from each model
+    
+You can simply use the `plot()` function with `type = "spatial"`
+(also `fullspatial`, check the difference).
+
+In order to compare the three plots under the same scale, use
+`compare.plots(list(p1, p2, p3))`. See `?compare.plots`.
+
+
+
+---
+class: inverse, center, middle
+background-image: url(img/breedRhex.png)
+background-position: 50% 80%
+
+# Environmental effects
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

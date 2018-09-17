@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Genotype-Environment interaction</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Facundo Muñoz facundo.munoz@cirad.fr   famuvie" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="libs/font-awesome/css/fontawesome-all.min.css" type="text/css" />
+    <link rel="stylesheet" href="breedR.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Genotype-Environment interaction
+## in multi-site trials
+### Facundo Muñoz<br/><a href="mailto:facundo.munoz@cirad.fr">facundo.munoz@cirad.fr</a><br/><i class="fab fa-twitter"></i> <i class="fab fa-github"></i> famuvie
+### Orléans, Sep. 18, 2018
+
+---
+
+
+
+
+class: middle, inverse
+
+# Excercise 1
+
+## Fit a __reference__ model for the variable `C13` of the `douglas` dataset (included with `breedR` with fixed effects of provenance (`orig`) and site (`site`) and a random family (`mum`) effect
+
+
+
+---
+
+## Douglas dataset
+
+.center[
+![](5_GxE_files/figure-html/douglas-sites-1.png)&lt;!-- --&gt;
+]
+
+- Genetic material (provenances and families) planted in 3 sites
+
+- Circumference in 2013 (`C13`) measured in the 3 sites
+
+
+
+---
+
+class: middle, inverse
+
+# Excercise 2
+
+## Fit a simple __interaction model__ with constant variance accross sites.
+
+
+
+---
+
+# Multiple _environments_
+
+- **Environments** may refer to sites, but also to years or climates
+
+- Here we will develop the __multi-site__ case. 
+
+- The other cases might require different
+approaches (e.g. continuous variation, shared spatial effects, etc.)
+
+
+---
+
+# Basic interaction
+
+## which are the __genotype__ and __environment__ variables in the `globulus` dataset?
+
+- Remember from module 1 how to crate __interactions__
+
+- Is this interaction a __fixed__ or __random__ effect?
+
+- what did I mean by _constant variance across sites_?
+
+
+---
+
+# Basic interaction model
+
+`$$\begin{aligned}
+  \text{C13} &amp; \sim \text{orig} + \text{site} + \text{mum} + f_e + \varepsilon \\
+  \text{mum} &amp; \sim \mathcal N(0, \sigma_f^2) \\
+  f_e &amp; \sim \mathcal N(0, \sigma_{f:e}^2) \\
+  \varepsilon &amp; \sim \mathcal N(0, \sigma^2)
+\end{aligned}$$`
+
+---
+
+class: middle, inverse
+
+# Excercise 3
+
+## Extend the previous model to account for __site-varying interaction__ variances.
+
+
+
+---
+
+# Heterogeneous-variance interaction model
+
+`$$\begin{aligned}
+  \text{C13} &amp; \sim \text{orig} + \text{site} + \text{mum} + \sum_{e=1}^3 f_e \mathbb{1}_{e} + \varepsilon \\
+  \text{mum} &amp; \sim \mathcal N(0, \sigma_f^2) \\
+  f_1 &amp; \sim \mathcal N(0, \sigma_{f:1}^2) \\
+  f_2 &amp; \sim \mathcal N(0, \sigma_{f:2}^2) \\
+  f_3 &amp; \sim \mathcal N(0, \sigma_{f:3}^2) \\
+  \varepsilon &amp; \sim \mathcal N(0, \sigma^2)
+\end{aligned}$$`
+
+
+---
+
+# Data preparation
+
+- The previous model requires creating 3 new variables to represent
+the interactions with each site
+
+| site | family | f1 |  f2  |  f3  |
+|:----:|:------:|:--:|:----:|:----:|
+|  s1  |   1    | 1  |      |      |
+|  s1  |   2    | 2  |      |      |
+|  s2  |   1    |    |  1   |      |
+|  s2  |   2    |    |  2   |      |
+|  s3  |   1    |    |      |   1  |
+|  s3  |   2    |    |      |   2  |
+
+- When added, only one of them will affect the __likelihood__
+of each observation, depending on its site
+
+- `breedR` will automatically fit three __independent variances__
+
+
+---
+class: middle, inverse
+
+# Excercise 4
+
+## Examine and compare the site-specific breeding values from each of the three models above
+
+
+---
+
+# Extracting Breeding Values
+
+- Remember from Module 1 how to extract PBVs safely (`model.matrix() %*% ranef()`)
+
+- Here, the PBVs are the sum of the main effects and the interactions
+
+
+---
+
+# Genetic correlations
+
+- Ideally, we would like to fit the following model:
+
+`$$\begin{aligned}
+  \text{C13} &amp; \sim \text{orig} + \text{site} + \text{mum} + \sum_{e=1}^3 f_e \mathbb{1}_{e} + \varepsilon \\
+  \text{mum} &amp; \sim \mathcal N(0, \sigma_f^2) \\
+    (f_1, f_2, f_3)' &amp; \sim
+    \mathcal{N}\big(0, \Sigma_{G\times E} \otimes \mathrm I\big) \\
+  \varepsilon &amp; \sim \mathcal N(0, \sigma^2)
+\end{aligned}$$`
+  but unfortunately, `breedR` does not support it.
+
+- Instead, we can always check the __empirical correlations__ of the
+PBVs from the previous model.
+
+- We can also compute the Type-B genetic correlation (as a function of variances)
+
+---
+
+# Ecovalence
+
+Similarly, we can derive the _Ecovalence_ and other measures of
+interactivity from the PBVs
+
+
+---
+
+# Site-specific spatial effects
+
+We can leverage the `generic` model to fit three independent spatial effects
+
+
+
+
+```r
+## Use breedR internal functions to compute splines models on each site
+sp1 &lt;- breedR:::breedr_splines(douglas[douglas$site == 's1', c('x', 'y')])
+sp2 &lt;- ...; sp3 &lt;- ...
+
+## Manually build the full incidence matrices with 0
+## and the values computed before
+mm1 &lt;- model.matrix(sp1)
+inc.sp1 &lt;- Matrix::Matrix(0, nrow = nrow(douglas), ncol = ncol(mm1))
+inc.sp1[douglas$site == 's1', ] &lt;- mm1
+inc.sp2 &lt;- ...; inc.sp2 &lt;- ...
+
+reml.spl &lt;- remlf90(
+  ...
+  generic = list(sp1 = list(inc.sp1, breedR:::get_structure(sp1)),
+                 sp2 = ...
+                 sp3 = ...),
+  ···,
+  method = 'em'
+)
+```
+
+
+
+
+
+---
+# Site-specific spatial effects
+
+.center[
+![](5_GxE_files/figure-html/plot-splines-1.png)&lt;!-- --&gt;
+]
+
+
+---
+class: inverse, center, middle
+background-image: url(img/breedRhex.png)
+background-position: 50% 90%
+
+# Genotype-Environment interaction
+
+## In multi-site trials
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

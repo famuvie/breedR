@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Statistical analysis of a simple progeny test</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Facundo Muñoz facundo.munoz@cirad.fr   famuvie" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="libs/font-awesome/css/fontawesome-all.min.css" type="text/css" />
+    <link rel="stylesheet" href="breedR.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Statistical analysis of a ‘simple’ progeny test
+### Facundo Muñoz<br/><a href="mailto:facundo.munoz@cirad.fr">facundo.munoz@cirad.fr</a><br/><i class="fab fa-twitter"></i> <i class="fab fa-github"></i> famuvie
+### Orléans, Sep. 18, 2018
+
+---
+
+
+
+
+background-image: url(img/progeny_test.jpg)
+background-size: cover
+
+
+
+---
+class: middle, inverse
+
+# Excercise 1
+
+## Fit a progeny model to the globulus dataset with __breedR__
+
+Use variables `phe_X` as response and `mum` as grouping variable
+from the `globulus` dataset (included with `breedR`)
+
+.left[
+
+```r
+## Template
+fm0 &lt;- remlf90(
+  fixed = y ~ 1,  # response + fixed effects
+  random = ~ g,   # random effects
+  data = D)       # dataset
+```
+]
+
+
+
+---
+class: inverse, center, middle
+
+# Progeny Tests
+
+
+---
+### Elements of a dataset
+
+- __response__ variable `\(y\)` 
+
+    - trait of interest, only 1 ('simple' remember?)
+
+- __ancestor__ `\(g\)` 
+
+    - or genotype, genetic group, family, provenance, or any __grouping__
+    variable.
+
+
+---
+### Globulus dataset
+
+
+```r
+knitr::kable(head(globulus), format = "html")
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; self &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; dad &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; mum &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; gen &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; gg &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; bl &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; phe_X &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; x &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; y &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 69 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 64 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15.756 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 70 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 41 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11.141 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 71 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 56 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19.258 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 55 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.775 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 73 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19.099 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 74 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 50 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19.258 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+### Statistical model
+
+We __assume__ that the observed value for an individual from group `\(g\)` is
+
+&lt;!-- $$ --&gt;
+&lt;!--   \begin{aligned} --&gt;
+&lt;!--     y_g   &amp;\sim \mathcal{N}(\mu_g, \sigma^2) \\ --&gt;
+&lt;!--     \mu_g &amp;\sim \mathcal{N}(\mu_0, \sigma_g^2) --&gt;
+&lt;!--   \end{aligned} --&gt;
+&lt;!-- $$ --&gt;
+&lt;!-- Use a traditional "mixed effects" formulation which will be more --&gt;
+&lt;!-- familiar to participants --&gt;
+
+$$ y_g \sim \mu_0 + \mu_g + \varepsilon$$
+with `\(\mu_g \sim \mathcal N(0, \sigma_g^2)\)` and `\(\varepsilon \sim \mathcal N(0, \sigma^2)\)`
+
+.center[
+![](1_progeny_test_files/figure-html/unnamed-chunk-3-1.png)&lt;!-- --&gt;
+]
+
+
+---
+class: middle, inverse
+
+# Excercise 2
+
+## Include further effects
+
+1. Extend `fm0` by including a __fixed effect of the provenance__ (variable `gg`)
+and a __random block effect__ (variable `bl`).
+
+2. Specify sensible __initial variances__ for the random components
+
+3. Extend `fm1` by including an __interaction__ between cross-classified
+variables
+
+---
+
+# Random or fixed?
+
+
+- Can I change variables from __fixed__ to __random__ and viceversa?
+
+- How that would change the results and their __interpretation__?
+
+---
+
+# Initial variances
+
+
+- Good practice: specify __initial values__ for all the variances in the 
+model
+
+- `breedR` provides sensible default values, but sometimes you can help
+
+
+```r
+fm1 &lt;- remlf90(
+  ···,
+*  var.ini = list(···, resid = ···) 
+)
+```
+
+
+---
+
+# Interactions
+
+
+- What is an __interaction effect__?
+
+- When can we estimate interactions?
+
+---
+
+# Nested or crossed variables
+
+## A property of the __data__, not the model
+
+- In globulus, the **family** (`mum`) is _nested_ within the **provenance** (`gg`)
+
+- This is a matter of (good) codification: 
+
+.pull-left[
+Nested factors
+
+|gg  | mum |
+|---:|:----|
+|A   | 1   |
+|A   | 2   |
+|B   | 3   |
+|B   | 4   |
+]
+
+.pull-right[
+Cross-classified factors
+
+|gg  | mum |
+|---:|:----|
+|A   | 1   |
+|A   | 2   |
+|B   | 1   |
+|B   | 2   |
+]
+
+
+---
+
+# Specifying interactions in breedR
+
+## Create a new variable!!
+
+- See `?base::interaction`
+
+- If F1 and F2 are factors
+  
+  ```r
+  F12 &lt;- factor(F1:F2)
+  ```
+  is another factor with all the __observed__ level combinations
+    
+- Use this variable as another __term__ in the model
+
+---
+class: middle, inverse
+
+# Excercise 3. 
+
+## Extract results
+
+1. Use functions `summary()`, `fixef()` and `ranef()` to extract __estimates__
+
+2. __Variance estimates__ are stored in `fm2$var`
+
+3. __Plot__ observed phenotype and `residual()`s vs `fitted()` values to assess
+the model predictive ability and to diagnose residuals
+
+
+---
+class: middle, inverse
+
+# Excersise 4. 
+
+## Pedigrees
+
+1. Replace the genetic variable `mum` at _family_ level, by an _animal
+model_ with a genetic effect at _individual_ level.
+
+2. Retrieve the predicted individual breeding values. Make sure they
+are in the same order as observed in the globulus dataset.
+
+
+---
+
+# The _animal_ model
+
+$$ y \sim \mu_0 + a + \varepsilon$$
+with `\(a \sim \mathcal N(0, \sigma_a^2 \mathrm{A})\)` and `\(\varepsilon \sim \mathcal N(0, \sigma^2)\)`
+
+where `\(\mathrm{A}\)` is the __relationship matrix__, derived from the
+__pedigree__
+
+.center[![pedigree](img/pedigree-background.png)]
+
+---
+
+# Additive Genetic Effect
+
+
+- Random effect at **individual level**
+
+- Based on a **pedigree**
+
+- BLUP of **Breeding Values** from own and relatives' phenotypes
+
+- Represents the **additive component** of the genetic value 
+
+- More __general__:
+    - family effect is a particular case
+    - accounts for more than one generation
+    - mixed relationships
+
+- More __flexible__: allows to select individuals within families
+
+
+---
+
+# Specification in `breedR`
+
+
+```r
+fm3 &lt;- remlf90(
+  fixed = ···,
+  random = ···,
+*  genetic = list(
+*    model = 'add_animal',  # model name for the term
+*    pedigree = ···,        # pedigree (see Details in ?remlf90)
+*    id = ···),             # variable name of the individual
+  data = globulus
+)
+```
+
+---
+# Specifying a _pedigree_
+
+- A 3-column `data.frame` or `matrix` with the codes for each
+individual and its parents
+
+- A **family** effect is easily translated into a pedigree:
+
+    - use the **family code** as the identification of a fictitious
+    **mother**
+
+    - use `0` or `NA` as codes for the **unknown fathers**
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; self &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; dad &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; mum &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 69 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 64 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 70 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 41 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 71 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 56 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 55 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 73 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 74 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 50 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+# Retrieving BVs from the fitted model
+
+## Be careful about the __ordering__ 
+
+- `ranef(·)$genetic` typically __does not match__ the order of observed
+individuals (founders, clones, recoding)
+
+- `\(Z\,a\)` = `model.matrix(·)$genetic %*% ranef(·)$genetic` always give 
+the PBV for all observed individuals in the dataset, in that order.
+
+
+---
+
+# Sorting BVs
+
+
+.pull-left[
+Observed data:
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; self &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; dad &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; mum &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+`$$\underbrace{
+  \begin{bmatrix}
+    0 &amp; 0 &amp; 0 &amp; 1 \\
+    0 &amp; 0 &amp; 1 &amp; 0
+  \end{bmatrix}}_\text{model.matrix(·)\$genetic}
+  \cdot
+  \underbrace{
+  \begin{bmatrix}
+    a_1 \\
+    a_2 \\
+    a_3 \\
+    a_4
+  \end{bmatrix}}_\text{ranef(·)\$genetic}
+  =
+  \begin{bmatrix}
+    a_4\\
+    a_3 
+  \end{bmatrix}$$`
+]
+
+.pull-right[
+Implied pedigree:
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; self &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; dad &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; mum &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NA &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+![](1_progeny_test_files/figure-html/unnamed-chunk-8-1.png)&lt;!-- --&gt;
+]
+
+---
+class: middle, inverse
+
+# Excercise 5. 
+
+## Heritability
+
+Compute the heritability of the globulus dataset using the three
+available methods.
+
+
+
+---
+
+# Methods for computing heritability
+
+|Method  | Limitations |
+|:-------|:------------|
+|1. Automatic   | `genetic` term&lt;br&gt; method `ai`&lt;br&gt; fixed formula   |
+|2. Explicit Formula   | method `ai`&lt;br&gt;   |
+|3. Bootstrap   | - &lt;br&gt;  |
+
+
+See: `RShowDoc("Heritability", package = "breedR")`.
+
+
+---
+
+# Formula syntax
+
+For a single trait model such as:
+
+
+```r
+fm &lt;- remlf90(
+  fixed = y ~ x1 + x2,
+  random = u + v,
+  genetic = ···,
+* progsf90.options = paste('se_covar_function h2', h2fml),
+  data = globulus
+```
+
+count the model terms in order as:
+
+| term: | x1 | x2 | u | v | `genetic` |
+|------:|:--|:--|:--|:--|:--|
+| i: | 1 | 2 | 3 | 4 | 5 |
+
+And build a formula string __without spaces__ as in:
+
+```r
+h2fml &lt;- 'G_5_5_1_1/(G_5_5_1_1+G_4_4_1_1+R_1_1)'
+```
+
+
+
+---
+
+# Bootstrap procedure
+
+1. __Fit__ the model to your data.
+
+2. Write a function to __simulate observations__ from the fitted model.
+   You can use `breedR.sample.phenotype()` if the model is simple enough
+  
+  
+  ```r
+  resample_data &lt;- function(fit) {
+    ## Use the estimated values in fit to produce a new data.frame
+    ## of the same size and with the same variables as globulus.
+    return(dat)
+  }
+  ```
+
+3: write a function to fit a simulated dataset and extract the target
+values
+
+  
+  ```r
+  sim_target() &lt;- function(dat) {
+    ## Fit the same model as fm3 to this fake dataset dat
+    ## Return the point estimates of all variances and heritability
+    return(estimates)
+  }
+  ```
+
+---
+
+# Resample parameters of interest
+
+4: Replicate the data-generation+estimation process many times
+
+__Warning__: this can take a while, depending on the model and the
+dataset.
+
+
+```r
+boot_estimates &lt;- function(N, fit) {
+  ans &lt;- replicate(N, sim_target(dat = resample_globulus(fit)))
+  return(as.data.frame(t(ans)))
+}
+
+empirical_dist &lt;- boot_estimates(N = 100, fit = fm3)
+```
+
+---
+class: inverse, center, middle
+background-image: url(img/breedRhex.png)
+background-position: 50% 80%
+
+## This should account for most analyses of 'simple' progeny tests
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
