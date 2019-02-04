@@ -501,11 +501,20 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       varcomp <- cbind('Estimated variances' = as.numeric(reml.out[varcomp.idx]))
       rownames(varcomp) <- c(names(effects)[effect.type == 'random'], 'Residual')
     } else {
-      varcomp.str <- lapply(mapply(function(x, y) x + 1:y,
-                                   varcomp.idx-1,
-                                   rangroup.sizes,
-                                   SIMPLIFY = FALSE),
-                            function(x) reml.out[x])
+      ## Variance component blocks
+      varcomp.str <- 
+        lapply(varcomp.idx, extract_block, x = reml.out)
+      
+      ## Check that blocks sizes are a multiple of effect sizes
+      stopifnot(
+        all(
+          vapply(
+            seq_along(rangroup.sizes),
+            function(i) length(varcomp.str[[i]]) %% rangroup.sizes[[i]] == 0,
+            TRUE
+          )
+        )
+      )
 
       # names for the members of a group (if more than one)
       get_subnames <- function(name) {
@@ -528,11 +537,20 @@ parse_results <- function (solfile, effects, mf, reml.out, method, mcout) {
       if (all(rangroup.sizes == 1)){
         varcomp <- cbind(varcomp, 'S.E.' = as.numeric(reml.out[varsd.idx]))
       } else {
-        varsd.str <- lapply(mapply(function(x, y) x + 1:y,
-                                   varsd.idx-1,
-                                   rangroup.sizes,
-                                   SIMPLIFY = FALSE),
-                            function(x) reml.out[x])
+        varsd.str <- 
+          lapply(varsd.idx, extract_block, x = reml.out)
+
+        ## Check that blocks sizes are a multiple of effect sizes
+        stopifnot(
+          all(
+            vapply(
+              seq_along(rangroup.sizes),
+              function(i) length(varsd.str[[i]]) %% rangroup.sizes[[i]] == 0,
+              TRUE
+            )
+          )
+        )
+        
         varsd <- mapply(parse.txtmat, varsd.str, subnames, SIMPLIFY = FALSE)
         names(varsd) <- c(names(effects)[effect.type == 'random'], 'Residual')
         varcomp <- cbind("Estimated variances" = varcomp,
@@ -764,9 +782,9 @@ pf90_default_heritability <- function (rglist, traits = NULL, quiet = FALSE) {
 
 #' Parse a matrix from a text output robustly
 #' 
-#' Each row of the matrix is a string. If rows are too long, they can continue
-#' in another line. Hence, the number of lines might be a multiple of the number
-#' of columns
+#' Each row of the matrix is a string. If rows are too long, they can
+#' continue in another line. Hence, the number of lines might be a
+#' multiple of the number of columns
 #' 
 #' @param x A character vector with space-separated numbers
 #' @param names A character vector with row and column names for the output matrix.
@@ -810,7 +828,7 @@ parse.txtmat <- function(x, names = NULL, square = TRUE) {
   }
   
   ## ensure matrix even if only a number
-  ans <- as.matrix(simplify2array(ans))
+  ans <- t(as.matrix(simplify2array(ans)))
   
   ## if no sub-names passed, remove all naming
   if( is.null(names) ) names(ans) <- dimnames(ans) <- NULL
@@ -818,5 +836,76 @@ parse.txtmat <- function(x, names = NULL, square = TRUE) {
   else dimnames(ans) <- list(names, names)
   
   return(ans)
+}
+
+
+
+#' Extract a block of lines from a section of the REML log
+#'
+#' @param l numeric. Line number where the block starts. Just
+#'   \emph{after} the section heading.
+#' @param x character vector. Lines of the log.
+#'
+#' @return character vector. Lines of text corresponding to numeric
+#'   values under the section.
+#'
+#' @examples
+#'   test_log <- 
+#'     c("REML log",
+#'       "Some info",
+#'       "Covariance matrix",
+#'       "   1.23E2   4.56E-02   7.89E-03    ",
+#'       "   1.23E2   4.56E-02   7.89E-03    "
+#'       )
+#'   breedR:::extract_block(4, test_log)
+extract_block <- function(l, x) {
+  
+  numeric_exp <- "^[-E[:digit:][:space:]\\.]*$"
+  text_exp <- "^[[:alpha:][:punct:][:space:]]*$"
+  
+  ## The content of the line l-1 must be text (section heading)
+  ## While the current one must be numeric (beginning of the block)
+  stopifnot(
+    !is_numericlog(x[l-1]),
+    is_numericlog(x[l])
+  )
+  
+  ## Next text line (beginning of next block)
+  ## There is always a last block of SE
+  text_lines <- which(!is_numericlog(x))
+  if ( l - 1 == tail(text_lines, 1) ) {
+    ## last block in the file
+    end.l <- length(x)
+  } else{
+    end.l <- head(text_lines[text_lines > l-1], 1) - 1
+  }
+
+  ## The content of the lines in between must be numeric
+  stopifnot( all(is_numericlog(x[l:end.l])) )
+  
+  return(x[l:end.l])
+}
+
+
+#' Test whether a string from a REML log is numeric
+#' 
+#' A numeric string is a text string that contains only numbers
+#' that can be expressed in scientific format.
+#' 
+#' Some alphabetic symbols are expected. For instance, in 1.23E-02.
+#' However, while spaces are expected, an empty line is not considered
+#' numeric.
+#'
+#' @param x character vector.
+#'
+#' @return logical value.
+#'
+#' @examples
+#' breedR:::is_numericlog("  1.23E-02   1  ")
+#' breedR:::is_numericlog("  var   1  ")
+#' breedR:::is_numericlog("   ")
+is_numericlog <- function(x) {
+  num_re <- "^[-E[:digit:][:space:]\\.]*$"
+  grepl(num_re, x) & !grepl("^[[:space:]]*$", x)
 }
 
