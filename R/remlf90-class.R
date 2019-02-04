@@ -483,6 +483,12 @@ remlf90 <- function(fixed,
   cdir <- setwd(tmpdir)
   on.exit(setwd(cdir))
   
+  ## write breedR_model for recovery
+  save(
+    effects, mf, method, mcout,
+    file = file.path("breedR_model.RData")
+  )
+  
   ## Determine the breedR program to use (either local or remote)
   remote = FALSE
   submit = FALSE
@@ -535,8 +541,11 @@ remlf90 <- function(fixed,
   if( !debug ) {
     # Error catching
     stopifnot(is.null(attr(reml.out, 'status')))
-    
+
     if( !submit ) {
+      ## Save reml.out for recovery
+      writeLines(reml.out, file.path(tmpdir, "reml.out"))
+      
       # Parse solutions
       ans <- parse_results(file.path(tmpdir, 'solutions'), effects, mf, reml.out, method, mcout)
     } else {
