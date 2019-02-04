@@ -1,4 +1,6 @@
+* Parse large covariance matrices more robustly from REML logs (#101)
 
+* Store breedR model and REML log in temp dir for recovery (#100)
 
 * More informative error messages on specification of initial variances (#79)
 
