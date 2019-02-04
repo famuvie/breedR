@@ -481,18 +481,39 @@ breedR_release <- function(
   
   ## builds and deploys packages if necessary
   if (win.update) {
-    if (!silent) message('Building windows binary pacakge ..')
-    build_win()
+    
+    local_releases <- list.files(
+      file.path(
+        paste0(
+          "../../breedR_releases/v",
+          pkg$version
+        )
+      ),
+      pattern = "zip",
+      full.names = TRUE,
+      recursive = TRUE
+    )
+    
+    if (!file.exists(local_release)) {
+      stop("First build a windows version with r-hub or winbuilder",
+           "and put it into ../../breedR_releases")
+    }
+    
+    for (i in seq_along(local_releases)) {
+      drat::insertPackage(local_releases[[i]], repodir)
+    }
+    # if (!silent) message('Building windows binary pacakge ..')
+    # build_win()
     # version="R-release"
     # built_path <- grep(pkg$version, list.files(contrib.url(repodir, 'source'), full.names = TRUE), value = TRUE)
     # url <- paste0("ftp://win-builder.r-project.org/", version,
     # "/", basename(built_path))
     # devtools:::upload_ftp(file = built_path, url = url)
 
-    if (!silent)
-      ## Manually deploy later
-      message('Wait for email from buildwin service and deploy with:\n',
-              deparse(bquote(drat::insertPackage(pkg, .(repodir)))))
+    # if (!silent)
+    #   ## Manually deploy later
+    #   message('Wait for email from buildwin service and deploy with:\n',
+    #           deparse(bquote(drat::insertPackage(pkg, .(repodir)))))
   } else {
     if (!silent) message('Windows binaries are up to date')
   }
@@ -501,6 +522,17 @@ breedR_release <- function(
     if (!silent) message('Building source pacakge ..')
     src.fn <- devtools::build(args = "--compact-vignettes=\"gs+qpdf\"")
     
+    src.fn <- list.files(
+      file.path(
+        paste0(
+          "../../breedR_releases/v",
+          pkg$version
+        )
+      ),
+      pattern = "gz",
+      full.names = TRUE,
+      recursive = TRUE
+    )
     ## deploy
     drat::insertPackage(src.fn, repodir)
   }
