@@ -1,0 +1,8 @@
+Package: breedR
+Version: 0.12-3
+Depends: R (>= 3.1.2), sp
+Imports: ggplot2, graphics, grDevices, Matrix (>= 1.2.0), methods, nlme, pedigree, pedigreemm, splines,
+            stats, utils
+Suggests: doParallel, fields, GGally, grid, INLA, MASS, msm, plyr, dplyr, spam, testthat, knitr, rmarkdown,
+            tidyr
+License: GPL-3 | file LICENSE
