@@ -19,12 +19,6 @@ r_binary_packages:
   - testthat
 
 before_install:
-  # Travis is on 64bit and it will not be able to run 32bit binaries
-  # through system2() with argument stdout, which causes the call
-  # to be made through a popen() system call.
-  # pre-install 32bit libraries
-  - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch > /dev/null; fi
-  # pre-install INLA (after its dependencies) to avoid build error
   - Rscript -e "install.packages(c('sp', 'Matrix', 'splines'), repos = 'http://cran.rstudio.com/')"
   - Rscript -e "install.packages('INLA', repos = 'http://www.math.ntnu.no/inla/R/testing')"
   - Rscript -e 'install.packages("nlme", lib="/home/travis/R-bin/lib/R/library/")'
