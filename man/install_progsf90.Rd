@@ -4,9 +4,10 @@
 \alias{install_progsf90}
 \title{Install PROGSF90 binary dependencies}
 \usage{
-install_progsf90(url = breedr_progsf90_repo(), dest = system.file("bin",
-  package = "breedR"), platform = breedR.os.type(),
-  arch = breedR.os.32or64bit(), quiet = !interactive())
+install_progsf90(url = breedr_progsf90_repo(),
+  dest = system.file("bin", package = "breedR"),
+  platform = breedR.os.type(), arch = breedR.os.32or64bit(),
+  quiet = !interactive())
 }
 \arguments{
 \item{url}{where to download the files from}

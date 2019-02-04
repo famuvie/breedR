@@ -4,8 +4,8 @@
 \alias{default_initial_variance}
 \title{Default initial value for variance components}
 \usage{
-default_initial_variance(x, dim = 1, cor.trait = NULL, cor.effect = 0.1,
-  digits = NULL)
+default_initial_variance(x, dim = 1, cor.trait = NULL,
+  cor.effect = 0.1, digits = NULL)
 }
 \arguments{
 \item{x}{numeric vector or matrix with the phenotypic observations. Each 

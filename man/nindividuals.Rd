@@ -19,3 +19,4 @@ Other metagene: \code{\link{Extract.metagene}},
   \code{\link{get_ntraits}}, \code{\link{get_pedigree}},
   \code{\link{ngenerations}}
 }
+\concept{metagene}

@@ -37,3 +37,4 @@ Internal function.
 \item \code{spatial}: Get the param from a \code{spatial} object
 }}
 
+\concept{spatial}

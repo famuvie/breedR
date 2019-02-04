@@ -57,8 +57,6 @@ returns a data frame with one row per individual, with the spatial
 A basic interface to the \href{http://www.igv.fi.cnr.it/noveltree/}{metagene}
 simulator.
 
-Plot method for metagene objects
-
 This function returns the data frame with the pedigree and phenotypes of the
 simulated individuals.
 }

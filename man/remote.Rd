@@ -10,10 +10,6 @@
 \alias{print.breedR.q}
 \alias{breedR.remote_load}
 \alias{submit}
-\alias{breedR.qdel}
-\alias{breedR.qstat}
-\alias{breedR.qnuke}
-\alias{breedR.remote_load}
 \title{Control and view a remote breedR-queue of submitted jobs}
 \usage{
 breedR.qget(id, remove = TRUE)

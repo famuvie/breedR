@@ -5,13 +5,12 @@
 \alias{breedR.getOption}
 \alias{breedR.options}
 \alias{breedR.setOption}
-\alias{breedR.setOption}
 \title{Set and get global options for breedR}
 \usage{
 breedR.getOption(option = c("ar.eval", "breedR.bin", "splines.nok",
-  "default.initial.variance", "col.seq", "col.div", "cygwin", "cygwin.home",
-  "ssh.auth.sock", "remote.host", "remote.user", "remote.port", "remote.bin",
-  "ssh.options"))
+  "default.initial.variance", "col.seq", "col.div", "cygwin",
+  "cygwin.home", "ssh.auth.sock", "remote.host", "remote.user",
+  "remote.port", "remote.bin", "ssh.options"))
 
 breedR.setOption(...)
 }
