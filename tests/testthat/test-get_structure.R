@@ -61,5 +61,8 @@ test_that('get_structure() retrieves a list of structure matrices from a model f
   breedr.str <- get_structure(res)
   
   expect_is(breedr.str, 'list')
-  sapply(breedr.str, expect_is, 'Matrix')
+  for (i in seq_along(breedr.str)) {
+    expect_is(breedr.str[[i]], "Matrix")
+  }
+  
 })
