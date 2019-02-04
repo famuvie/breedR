@@ -12,7 +12,7 @@ Authors@R: c(person("Facundo", "Muñoz",
     person("Timothée", "Flutre", role="ctb")
     )
 Author: Facundo Muñoz with libraries by Ignacy Misztal
-Maintainer: Facundo Muñoz <facundo.munoz@inra.fr>
+Maintainer: Facundo Muñoz <facundo.munoz@cirad.fr>
 Description: Statistical tools to build predictive models
     for the breeders community. It aims to assess the genetic value of
     individuals under a number of situations, including spatial
