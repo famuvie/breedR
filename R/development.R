@@ -592,7 +592,7 @@ breedR_build_win <- function() {
 
 
 breedR_spellcheck <- function() {
-  ign_txt <- c('AIREMLF90', 'anisotropic', 'AR', 'AUTH', 'autofill', 'backends',
+  ign_txt <- c('ai', 'AIREMLF90', 'anisotropic', 'AR', 'AUTH', 'autofill', 'backends',
                'bidimensional', 'bin', 'blupf90', 'breedr', 'BV', 'Cantet',
                'Cappa', 'Chemometrics', 'condVar', 'competition', 'cygwin',
                'dir', 'DNS', 'Dutkowski', 'edu', 'Eilers', 'em', 'Geosciences',

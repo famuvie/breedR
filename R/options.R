@@ -241,7 +241,7 @@ breedR.setOption <- function(...) {
 #' initial \strong{correlations} across traits equal the empirical correlations,
 #' except if \code{cor.trait} is not \code{NULL}.
 #' 
-#' \eqn{\psi(dim)} is intendend to model correlated random effects within
+#' \eqn{\psi(dim)} is intended to model correlated random effects within
 #' traits, and only has an effect when \code{dim} > 1.
 #' 
 #' If any column in \code{x} is constant (i.e. empirical variance of 0) then the

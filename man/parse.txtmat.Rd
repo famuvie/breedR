@@ -16,7 +16,7 @@ parse.txtmat(x, names = NULL, square = TRUE)
 If the matrix is not necessarily}
 }
 \description{
-Each row of the matrix is a string. If rows are too long, they can continue
-in another line. Hence, the number of lines might be a multiple of the number
-of columns
+Each row of the matrix is a string. If rows are too long, they can
+continue in another line. Hence, the number of lines might be a
+multiple of the number of columns
 }
