@@ -1,9 +1,15 @@
+# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 language: r
+
+env:
+  - R_REMOTES_NO_ERRORS_FROM_WARNINGS=true
+
 
 # We have some warnings due to Misztal's binaries
 # This avoids issuing an error  
 warnings_are_errors: false
 sudo: required
+cache: packages
 
 r_build_args: --no-build-vignettes
 
