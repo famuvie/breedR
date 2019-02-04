@@ -13,12 +13,13 @@ r_binary_packages:
   - Matrix
   - ggplot2
   - lme4
+  - nlme
   - reshape2
   - MASS
   - plyr
   - testthat
 
 before_install:
-  - Rscript -e "install.packages(c('sp', 'Matrix', 'splines'), repos = 'http://cran.rstudio.com/')"
-  - Rscript -e "install.packages('INLA', repos = 'http://www.math.ntnu.no/inla/R/testing')"
-  - Rscript -e 'install.packages("nlme", lib="/home/travis/R-bin/lib/R/library/")'
+  ## These are needed as pre-requisites for installing INLA
+  - Rscript -e "install.packages(c('sp', 'Matrix', 'shiny'), repos = 'http://cran.rstudio.com/')"
+  - Rscript -e "install.packages('INLA', repos = 'http:/inla.r-inla-download.org/R/testing')"
