@@ -15,6 +15,11 @@ cache:
 
 # Adapt as necessary starting from here
 
+environment:
+  # https://github.com/krlmlr/r-appveyor/issues/124
+  _R_CHECK_DOC_SIZES_: FALSE
+  _R_CHECK_DOC_SIZES2_: FALSE
+
 build_script:
   - travis-tool.sh install_deps
 
