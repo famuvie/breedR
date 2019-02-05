@@ -507,7 +507,7 @@ breedR_release <- function(
       recursive = TRUE
     )
     
-    if (!file.exists(local_release)) {
+    if (!all(file.exists(local_releases))) {
       stop("First build a windows version with r-hub or winbuilder",
            "and put it into ../../breedR_releases")
     }
@@ -532,8 +532,8 @@ breedR_release <- function(
   }
   
   if (src.update) {
-    if (!silent) message('Building source pacakge ..')
-    src.fn <- devtools::build(args = "--compact-vignettes=\"gs+qpdf\"")
+    # if (!silent) message('Building source pacakge ..')
+    # src.fn <- devtools::build(args = "--compact-vignettes=\"gs+qpdf\"")
     
     src.fn <- list.files(
       file.path(
