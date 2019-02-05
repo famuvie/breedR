@@ -905,7 +905,7 @@ extract_block <- function(l, x) {
 #' breedR:::is_numericlog("  var   1  ")
 #' breedR:::is_numericlog("   ")
 is_numericlog <- function(x) {
-  num_re <- "^[-E[:digit:][:space:]\\.]*$"
+  num_re <- "^[-+E[:digit:][:space:]\\.]*$"
   grepl(num_re, x) & !grepl("^[[:space:]]*$", x)
 }
 
