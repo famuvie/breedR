@@ -447,6 +447,19 @@ breedR.update_drat <- function(
   }
 }
 
+## Create a directory for the new release. Including a src subdir.
+breedR_newrelease <- function(path = "../../breedR_releases") {
+  pkg <- as.package(".")
+  versiondir <- paste0("v", pkg$version)
+  releasedir <- normalizePath(file.path(path, versiondir, "src"))
+  if (dir.exists(releasedir)) {
+    stop("Current version of breedR is already released. Bump version?")
+  }
+  
+  dir.create(releasedir, recursive = TRUE)
+  return(releasedir)
+}
+
 ## Releases package versions to the web (or any other repository)
 ## Compares released and current versions, and releases only if necessary
 ## Calls build() for releasing the source and build_win() for the windows binaries
