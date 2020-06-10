@@ -20,7 +20,7 @@ breedR.is.element <- function(name, alist) {
   ## the value is non null and not NA.
   if (any(names(alist) == name)) {
     idx = which(names(alist) == name)
-    if (!is.null(alist[[idx]]) && !suppressWarnings(is.na(alist[[idx]]))) {
+    if (!is.null(alist[[idx]])) {
       return (TRUE)
     } else {
       return (FALSE)
