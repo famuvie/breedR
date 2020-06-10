@@ -74,8 +74,8 @@ dat <- data.frame(
   id  = sum(n.founders) + seq.int(n.obs),
   dad = obs.parents.idx[, 1],
   mum = obs.parents.idx[, 2],
-  fam = apply(obs.parents.idx, 1, cross2fam),
-  sp  = apply(obs.parents.idx, 1, cross2pop),
+  fam = as.factor(apply(obs.parents.idx, 1, cross2fam)),
+  sp  = as.factor(apply(obs.parents.idx, 1, cross2pop)),
   bv  = apply(obs.parents.idx, 1, 
               function(x) mean(founders$BV[x]) + msp(x)),
   resid = rnorm(n.obs, sd = sqrt(sigma2['resid'])))
