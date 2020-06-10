@@ -32,8 +32,6 @@ otherwise remove it (default).}
 
 \item{retry}{numeric. In case of connection failure, number of times to retry
 before giving up and returning \code{NA}.}
-
-\item{...}{Other arguments. Not used.}
 }
 \value{
 \code{breedR.qstat} returns an \code{breedR.q}-object with 

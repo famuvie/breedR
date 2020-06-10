@@ -17,7 +17,6 @@
 #'   otherwise remove it (default).
 #' @param retry numeric. In case of connection failure, number of times to retry
 #'   before giving up and returning \code{NA}.
-#' @param ... Other arguments. Not used.
 #'   
 #' @details \code{breedR.qstat} shows job(s) on the server, \code{breedR.qget} 
 #'   fetches the results (and by default remove the files on the server), 
