@@ -10,8 +10,14 @@
 \alias{breedR.sample.ranef}
 \title{Simulation of phenotypes and model components}
 \usage{
-breedR.sample.phenotype(fixed = NULL, random = NULL, genetic = NULL,
-  spatial = NULL, residual.variance = 1, N = NULL)
+breedR.sample.phenotype(
+  fixed = NULL,
+  random = NULL,
+  genetic = NULL,
+  spatial = NULL,
+  residual.variance = 1,
+  N = NULL
+)
 
 breedR.sample.AR(size, rho, sigma2, N = 1)
 
@@ -21,8 +27,7 @@ breedR.sample.BV(ped, Sigma, N = 1)
 
 breedR.sample.pedigree(Nobs, Nparents, check.factorial = TRUE)
 
-breedR.sample.ranef(dim, var, Nlevels, labels = NULL, N = Nlevels,
-  vname = "X")
+breedR.sample.ranef(dim, var, Nlevels, labels = NULL, N = Nlevels, vname = "X")
 }
 \arguments{
 \item{fixed}{a numeric vector of regression coefficients.}

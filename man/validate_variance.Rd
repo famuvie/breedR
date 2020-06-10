@@ -4,8 +4,12 @@
 \alias{validate_variance}
 \title{Check properties for a covariance matrix}
 \usage{
-validate_variance(x, dimension = dim(as.matrix(x)), what = "var.ini",
-  where = "")
+validate_variance(
+  x,
+  dimension = dim(as.matrix(x)),
+  what = "var.ini",
+  where = ""
+)
 }
 \arguments{
 \item{x}{number or matrix.}

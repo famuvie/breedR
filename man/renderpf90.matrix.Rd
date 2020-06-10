@@ -27,6 +27,7 @@ For each row, it keeps the non-zero elements and their respective column
 index. The gaps are filled with zeros.
 }
 \seealso{
-Other renderpf90: \code{\link{renderpf90}}
+Other renderpf90: 
+\code{\link{renderpf90}()}
 }
 \concept{renderpf90}

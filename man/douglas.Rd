@@ -4,7 +4,8 @@
 \name{douglas}
 \alias{douglas}
 \title{Multi-site Douglas-fir dataset}
-\format{A dataframe with 1021 individuals and the following 9 variables
+\format{
+A dataframe with 1021 individuals and the following 9 variables
 \itemize{
   \item{\code{self}}{   id of the tree}
   \item{\code{dad}}{    id of sire or 0 if unknown}
@@ -18,7 +19,8 @@
   \item{\code{C13}}{    circumference as measured in 2013}
   \item{\code{AN}}{     factor angle quality with 5 levels}
   \item{\code{BR}}{     factor branching quality with 5 levels}
-}}
+}
+}
 \description{
 Provenance test with measurements of height and circumference
 }

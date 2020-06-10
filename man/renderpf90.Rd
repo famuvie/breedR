@@ -111,6 +111,7 @@ an AR effect.
 }}
 
 \seealso{
-Other renderpf90: \code{\link{renderpf90.matrix}}
+Other renderpf90: 
+\code{\link{renderpf90.matrix}()}
 }
 \concept{renderpf90}

@@ -5,8 +5,13 @@
 \alias{print.breedR.variogram}
 \title{Empirical variograms of residuals}
 \usage{
-variogram(x, plot = c("all", "isotropic", "anisotropic", "perspective",
-  "heat", "none"), R, coord, z)
+variogram(
+  x,
+  plot = c("all", "isotropic", "anisotropic", "perspective", "heat", "none"),
+  R,
+  coord,
+  z
+)
 
 \method{print}{breedR.variogram}(x, minN = 30, ...)
 }
@@ -73,7 +78,7 @@ Zd <- model.matrix(res)$genetic
 PBV <- Zd \%*\% ranef(res)$genetic
 
 # variogram() needs coordinates to compute distances
-# either you use the \\code{coord} argument, or you do:
+# either you use the \code{coord} argument, or you do:
 coordinates(res) <- globulus[, c('x', 'y')]
 
 # there is residual autocorrelation

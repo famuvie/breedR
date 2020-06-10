@@ -15,8 +15,10 @@ get_ntraits(x, ...)
 Extract the number of traits
 }
 \seealso{
-Other metagene: \code{\link{Extract.metagene}},
-  \code{\link{get_pedigree}}, \code{\link{ngenerations}},
-  \code{\link{nindividuals}}
+Other metagene: 
+\code{\link{Extract.metagene}},
+\code{\link{get_pedigree}()},
+\code{\link{ngenerations}()},
+\code{\link{nindividuals}()}
 }
 \concept{metagene}

@@ -4,7 +4,8 @@
 \name{larix}
 \alias{larix}
 \title{Longitudinal Larix dataset}
-\format{A dataframe with 11897 observations of the following variables
+\format{
+A dataframe with 11897 observations of the following variables
 \itemize{
   \item{\code{self}}{   id of the tree}
   \item{\code{dad}}{    id of sire}
@@ -18,7 +19,8 @@
   \item{\code{mi}}{     martone index}
   \item{\code{LAS}}{    phenotype LAS}
   \item{\code{DOS}}{    phenotype DOS}
-}}
+}
+}
 \description{
 Repeated measurements of microdensity data along 16 years, with climatic
 covariates.

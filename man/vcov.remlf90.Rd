@@ -4,8 +4,11 @@
 \alias{vcov.remlf90}
 \title{Covariance matrix of a fitted remlf90 object}
 \usage{
-\method{vcov}{remlf90}(object, effect = c("spatial", "genetic",
-  "genetic_direct", "genetic_competition", "pec"), ...)
+\method{vcov}{remlf90}(
+  object,
+  effect = c("spatial", "genetic", "genetic_direct", "genetic_competition", "pec"),
+  ...
+)
 }
 \arguments{
 \item{object}{a fitted model of class \code{remlf90}}

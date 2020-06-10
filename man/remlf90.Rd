@@ -4,10 +4,20 @@
 \alias{remlf90}
 \title{Inference with REMLF90}
 \usage{
-remlf90(fixed, random = NULL, genetic = NULL, spatial = NULL,
-  generic = NULL, data, var.ini = NULL, method = c("ai", "em"),
-  breedR.bin = breedR.getOption("breedR.bin"), progsf90.options = NULL,
-  weights = NULL, debug = FALSE)
+remlf90(
+  fixed,
+  random = NULL,
+  genetic = NULL,
+  spatial = NULL,
+  generic = NULL,
+  data,
+  var.ini = NULL,
+  method = c("ai", "em"),
+  breedR.bin = breedR.getOption("breedR.bin"),
+  progsf90.options = NULL,
+  weights = NULL,
+  debug = FALSE
+)
 }
 \arguments{
 \item{fixed}{an object of class \link{formula} (or one that can be coerced to

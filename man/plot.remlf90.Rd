@@ -4,8 +4,12 @@
 \alias{plot.remlf90}
 \title{Spatial plot of a model's fit components}
 \usage{
-\method{plot}{remlf90}(x, type = c("phenotype", "fitted", "spatial",
-  "fullspatial", "residuals"), z = NULL, ...)
+\method{plot}{remlf90}(
+  x,
+  type = c("phenotype", "fitted", "spatial", "fullspatial", "residuals"),
+  z = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{A \code{breedR} object}

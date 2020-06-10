@@ -59,4 +59,4 @@ URL: https://github.com/famuvie/breedR
 BugReports: https://github.com/famuvie/breedR/issues
 Additional_repositories: http://inla.r-inla-download.org/R/testing
 VignetteBuilder: knitr
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0

@@ -4,7 +4,8 @@
 \name{globulus}
 \alias{globulus}
 \title{Eucalyptus Globulus dataset}
-\format{A dataframe with 1021 individuals and the following 9 variables
+\format{
+A dataframe with 1021 individuals and the following 9 variables
 \itemize{
   \item{\code{self}}{ id of the tree}
   \item{\code{dad}}{  id of sire or 0 if unknown}
@@ -14,7 +15,8 @@
   \item{\code{bl}}{   block}
   \item{\code{phe_X}}{observed phenotype}
   \item{\code{x, y}}{ coordinates (in m)}
-}}
+}
+}
 \description{
 Open-pollinated field test with one generation of 1021 individuals.
 }

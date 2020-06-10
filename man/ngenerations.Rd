@@ -15,8 +15,10 @@ ngenerations(x, ...)
 Number of generations
 }
 \seealso{
-Other metagene: \code{\link{Extract.metagene}},
-  \code{\link{get_ntraits}}, \code{\link{get_pedigree}},
-  \code{\link{nindividuals}}
+Other metagene: 
+\code{\link{Extract.metagene}},
+\code{\link{get_ntraits}()},
+\code{\link{get_pedigree}()},
+\code{\link{nindividuals}()}
 }
 \concept{metagene}

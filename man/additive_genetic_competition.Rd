@@ -4,8 +4,7 @@
 \alias{additive_genetic_competition}
 \title{Build an additive-genetic competition model}
 \usage{
-additive_genetic_competition(pedigree, coordinates, id, decay,
-  autofill = TRUE)
+additive_genetic_competition(pedigree, coordinates, id, decay, autofill = TRUE)
 }
 \arguments{
 \item{pedigree}{object of class 'pedigree'}

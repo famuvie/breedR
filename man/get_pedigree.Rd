@@ -49,9 +49,11 @@ Internal function.
   \code{pedigreemm}
 }
 \seealso{
-Other metagene: \code{\link{Extract.metagene}},
-  \code{\link{get_ntraits}}, \code{\link{ngenerations}},
-  \code{\link{nindividuals}}
+Other metagene: 
+\code{\link{Extract.metagene}},
+\code{\link{get_ntraits}()},
+\code{\link{ngenerations}()},
+\code{\link{nindividuals}()}
 }
 \concept{genetic}
 \concept{metagene}

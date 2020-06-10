@@ -4,8 +4,15 @@
 \alias{breedr_splines}
 \title{Build a splines model}
 \usage{
-breedr_splines(coordinates, n.knots = NULL, autofill = TRUE,
-  degree = 3, sparse = TRUE, strategy = "uniformgrid", ...)
+breedr_splines(
+  coordinates,
+  n.knots = NULL,
+  autofill = TRUE,
+  degree = 3,
+  sparse = TRUE,
+  strategy = "uniformgrid",
+  ...
+)
 }
 \arguments{
 \item{coordinates}{matrix(-like) of observation coordinates}
