@@ -42,8 +42,10 @@ run_expectations <- function(m) {
   
   mf <- try(build.mf(fc))
 
+  fc_txt <- paste(deparse(fc), collapse = " ")
+  
   ## The model frame builds OK
-  test_that(paste('The model', deparse(fc), 'runs OK'), {
+  test_that(paste('The model', fc_txt, 'runs OK'), {
     expect_true(!inherits(mf, 'try-error'))
   })
   
@@ -52,13 +54,13 @@ run_expectations <- function(m) {
     
     # The intercept attr. should always be 0 to avoid problems later
     # with the model matrix. The intercept is manually introduced.
-    test_that(paste('The intercept attribute is set to 0 for model', fc), {
+    test_that(paste('The intercept attribute is set to 0 for model', fc_txt), {
       expect_identical(attr(attr(mf, 'terms'), 'intercept'), 0L)
     })
     
     # If there was an intercept either implicit or explicit in the formula
     # There should be an "Intercept" covariate full of 1s, and only in that case.
-    test_that(paste('An intercept is manually added to model', fc, 'if and only if it is required'), {
+    test_that(paste('An intercept is manually added to model', fc_txt, 'if and only if it is required'), {
       expect_true(m$int == 1 & exists('Intercept', mf) | m$int == 0 & !exists('Intercept', mf))
     })
   }
@@ -81,22 +83,22 @@ run_expectations <- function(m) {
 
     
     ## The effects list builds OK
-    test_that(paste('build.effects() builds the model', deparse(fc)), {
+    test_that(paste('build.effects() builds the model', fc_txt), {
       expect_true(!inherits(eff, 'try-error'))
     })
     
     if( !inherits(eff, 'try-error') ){
       ## Parse correctly the variables in model frame
-      test_that(paste('All variables have been accounted for, in model', fc), {
+      test_that(paste('All variables have been accounted for, in model', fc_txt), {
         expect_identical(names(mf)[-1], names(eff))
       })
       
-      test_that(paste('Fixed effects recognised in model', fc), {
+      test_that(paste('Fixed effects recognised in model', fc_txt), {
         expect_identical(fixef,
                          names(which(sapply(eff, inherits, 'fixed'))))
       })
       
-      test_that(paste('Random effects recognised in model', fc), {
+      test_that(paste('Random effects recognised in model', fc_txt), {
         expect_identical(ranef,
                          names(which(sapply(eff, inherits, 'effect_group'))))
       })
