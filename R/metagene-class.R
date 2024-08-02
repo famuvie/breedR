@@ -368,7 +368,7 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   
   # Randomize individuals
   spatial.order <- sample(meta$self[-founders.idx], N)
-  spatial.coord <- head(as.data.frame(INLA::inla.node2lattice.mapping(nr, nc)), N)
+  spatial.coord <- head(as.data.frame(node2lattice_mapping(nr, nc)), N)
   SP <- sp::SpatialPoints(spatial.coord[order(spatial.order), ])
   
   #### Simulate spatial field
@@ -376,10 +376,13 @@ sim.spatial.metagene <- function(meta, variance = 0.5, range = 0.5, ...) {
   # The spatial unit will be the distance between consecutive trees
   
   # Generate INLA mesh
-  mesh <- INLA::inla.mesh.2d(loc = coordinates(SP),
-                       cutoff = floor(.04*nr),
-                       offset = floor(c(.05, .2)*nr),
-                       max.edge = floor(c(.05, .1)*nr))
+  mesh <- fmesher::fm_mesh_2d_inla(
+    loc = coordinates(SP),
+    cutoff = floor(.04*nr),
+    offset = floor(c(.05, .2)*nr),
+    max.edge = floor(c(.05, .1)*nr)
+  )
+
   # plot(mesh)
   
   # SPDE structure The variance of the spatial effect is a proportion of the 
@@ -475,3 +478,20 @@ setMethod('coordinates<-', signature = 'metagene',
             NULL
           }
 )
+
+#' Define mapping between a lattice and nodes
+#' 
+#' Borrowed from {INLA}
+node2lattice_mapping <- function (nrow, ncol) 
+{
+  stopifnot(nrow > 0 && ncol > 0)
+  return(inla.node2lattice(seq.int(nrow * ncol), nrow, ncol))
+}
+node2lattice <- function (node, nrow, ncol) 
+{
+  stopifnot(nrow > 0 && ncol > 0)
+  icol <- (node - 1) %/% nrow
+  irow <- (node - 1) %% nrow
+  return(list(irow = irow + 1, icol = icol + 1))
+}
+

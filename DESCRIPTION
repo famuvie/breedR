@@ -39,6 +39,7 @@ Imports:
 Suggests:
     doParallel,
     fields,
+    fmesher,
     GGally,
     grid,
     INLA,
