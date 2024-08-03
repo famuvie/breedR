@@ -75,41 +75,41 @@ For the \code{ar} class, everything reduces to a generic effect
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: For unknown classes, just returns the object untouched
+\item \code{renderpf90(default)}: For unknown classes, just returns the object untouched
 with a warning.
 
-\item \code{fixed}: For fixed effects.
+\item \code{renderpf90(fixed)}: For fixed effects.
 
-\item \code{diagonal}: For diagonal effects. Assumed grouping variables.
+\item \code{renderpf90(diagonal)}: For diagonal effects. Assumed grouping variables.
 
-\item \code{breedr_modelframe}: Render a full \code{breedr_modelframe}
+\item \code{renderpf90(breedr_modelframe)}: Render a full \code{breedr_modelframe}
 
-\item \code{effect_group}: Render groups of effects into pf90 code
+\item \code{renderpf90(effect_group)}: Render groups of effects into pf90 code
 
-\item \code{generic}: Compute the parameters of a progsf90 representation of
+\item \code{renderpf90(generic)}: Compute the parameters of a progsf90 representation of
 a generic effect.
 
-\item \code{additive_genetic_animal}: Compute the parameters of a progsf90 representation of
+\item \code{renderpf90(additive_genetic_animal)}: Compute the parameters of a progsf90 representation of
 a additive_genetic_animal effect.
 
-\item \code{additive_genetic_competition}: Compute the parameters of a progsf90 representation of
+\item \code{renderpf90(additive_genetic_competition)}: Compute the parameters of a progsf90 representation of
 a additive_genetic_competition effect.
 
-\item \code{permanent_environmental_competition}: Compute the parameters of a progsf90 representation of
+\item \code{renderpf90(permanent_environmental_competition)}: Compute the parameters of a progsf90 representation of
 a permanent_environmental_competition effect. Has the same incidence matrix
 than the additive_genetic_competition effect but an unstructured covariance
 matrix.
 
-\item \code{splines}: Compute the parameters of a progsf90 representation of
+\item \code{renderpf90(splines)}: Compute the parameters of a progsf90 representation of
 a splines effect.
 
-\item \code{blocks}: Compute the parameters of a progsf90 representation of
+\item \code{renderpf90(blocks)}: Compute the parameters of a progsf90 representation of
 a blocks effect.
 
-\item \code{ar}: Compute the parameters of a progsf90 representation of
+\item \code{renderpf90(ar)}: Compute the parameters of a progsf90 representation of
 an AR effect.
-}}
 
+}}
 \seealso{
 Other renderpf90: 
 \code{\link{renderpf90.matrix}()}

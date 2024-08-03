@@ -463,7 +463,7 @@ breedR_newrelease <- function(path = "../../breedR_releases") {
 ## Releases package versions to the web (or any other repository)
 ## Compares released and current versions, and releases only if necessary
 ## Calls build() for releasing the source and build_win() for the windows binaries
-## No binary relase for mac.
+## No binary release for mac.
 breedR_release <- function(
   repodir = normalizePath('../breedR-web'),
   silent = FALSE
@@ -495,6 +495,7 @@ breedR_release <- function(
   ## builds and deploys packages if necessary
   if (win.update) {
     
+    ## Read windows builds from local repository of breedR packages
     local_releases <- list.files(
       file.path(
         paste0(
@@ -510,12 +511,20 @@ breedR_release <- function(
     if (!all(file.exists(local_releases))) {
       stop("First build a windows version with r-hub or winbuilder",
            "and put it into ../../breedR_releases")
+      cr <- rhub::rhub_check(
+        platforms = paste0("windows")
+      )
+      lapply(
+        cr$urls$artifacts,
+        download.file,
+        destfile = "../../breedR_releases"
+      )
     }
     
     for (i in seq_along(local_releases)) {
       drat::insertPackage(local_releases[[i]], repodir)
     }
-    # if (!silent) message('Building windows binary pacakge ..')
+    # if (!silent) message('Building windows binary package ..')
     # build_win()
     # version="R-release"
     # built_path <- grep(pkg$version, list.files(contrib.url(repodir, 'source'), full.names = TRUE), value = TRUE)
@@ -550,6 +559,7 @@ breedR_release <- function(
     drat::insertPackage(src.fn, repodir)
   }
   
+  # mac_build <- rhub::check(".", platform = "macos-highsierra-release")
   
   if (!silent && (win.update || src.update))
     message('Finnished. Dont forget to commit breedR-web and push.')

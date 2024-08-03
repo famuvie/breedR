@@ -22,10 +22,10 @@ neighbours.at(x, dir)
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{matrix}: Returns the matrix of neighbours in the specified
+\item \code{neighbours.at(matrix)}: Returns the matrix of neighbours in the specified
 direction
 
-\item \code{list}: Returns the list of matrices of neighbours in the
+\item \code{neighbours.at(list)}: Returns the list of matrices of neighbours in the
 specified direction
-}}
 
+}}

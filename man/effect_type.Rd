@@ -21,8 +21,8 @@ breedR mixed model is \code{fixed} or \code{random}
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{effect_group}: Type of an \code{effect_group}
+\item \code{effect_type(effect_group)}: Type of an \code{effect_group}
 
-\item \code{breedr_effect}: Type of an \code{breedr_effect}
+\item \code{effect_type(breedr_effect)}: Type of an \code{breedr_effect}
+
 }}
-

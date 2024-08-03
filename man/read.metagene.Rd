@@ -64,25 +64,25 @@ simulated individuals.
 Read the output file (the one with the pedigree. Usually: insim.002) of the 
 Metagene program, and build an object of class metagene.
 }
-\section{Methods (by generic)}{
+\section{Functions}{
 \itemize{
-\item \code{summary}: summary of a metagene object
+\item \code{summary(metagene)}: summary of a metagene object
 
-\item \code{print}: print summary method
+\item \code{print(summary.metagene)}: print summary method
 
-\item \code{plot}: plots either genetic and phenotypic values, or the
+\item \code{plot(metagene)}: plots either genetic and phenotypic values, or the
 spatial component of the phenotype. Pass further
 \code{\link[ggplot2]{ggplot}} layers in ...
 
-\item \code{get_ntraits}: gets the number of traits
+\item \code{get_ntraits(metagene)}: gets the number of traits
 
-\item \code{ngenerations}: gets the number of generations
+\item \code{ngenerations(metagene)}: gets the number of generations
 
-\item \code{nindividuals}: gets the number of individuals
+\item \code{nindividuals(metagene)}: gets the number of individuals
 
-\item \code{as.data.frame}: Coerce to a data.frame
+\item \code{as.data.frame(metagene)}: Coerce to a data.frame
+
 }}
-
 \references{
 \url{http://www.igv.fi.cnr.it/noveltree/}
 }

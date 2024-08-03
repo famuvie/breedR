@@ -31,19 +31,19 @@ Returns an object from the formal class \code{pedigree}.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{metagene}: Get the pedigree from a \code{metagene} object
+\item \code{get_pedigree(metagene)}: Get the pedigree from a \code{metagene} object
 
-\item \code{remlf90}: Get the pedigree from a remlf90 object
+\item \code{get_pedigree(remlf90)}: Get the pedigree from a remlf90 object
 
-\item \code{breedr_modelframe}: Get the pedigree from a breedr_modelframe object.
+\item \code{get_pedigree(breedr_modelframe)}: Get the pedigree from a breedr_modelframe object.
 Internal function.
 
-\item \code{effect_group}: Get the pedigree from a effect_group object.
+\item \code{get_pedigree(effect_group)}: Get the pedigree from a effect_group object.
 Internal function.
 
-\item \code{genetic}: Get the pedigree from a \code{genetic} object
+\item \code{get_pedigree(genetic)}: Get the pedigree from a \code{genetic} object
+
 }}
-
 \references{
 \code{\link[pedigreemm]{pedigree-class}} from package
   \code{pedigreemm}

@@ -57,4 +57,20 @@ Traits}. Sinauer Associates, Inc.
 \seealso{
 \code{\link[pedigreemm]{pedigreemm}}
 }
+\author{
+\strong{Maintainer}: Facundo Muñoz \email{facundo.munoz@cirad.fr}
+
+Authors:
+\itemize{
+  \item Leopoldo Sanchez
+}
+
+Other contributors:
+\itemize{
+  \item Ignacy Misztal [contributor]
+  \item Pablo Cappa [contributor]
+  \item Timothée Flutre [contributor]
+}
+
+}
 \keyword{package}

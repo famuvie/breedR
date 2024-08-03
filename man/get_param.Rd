@@ -26,15 +26,15 @@ Parameters of a breedR component
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{remlf90}: Get the param from a remlf90 object
+\item \code{get_param(remlf90)}: Get the param from a remlf90 object
 
-\item \code{breedr_modelframe}: Get the param from a breedr_modelframe object.
+\item \code{get_param(breedr_modelframe)}: Get the param from a breedr_modelframe object.
 Internal function.
 
-\item \code{effect_group}: Get the param from a effect_group object.
+\item \code{get_param(effect_group)}: Get the param from a effect_group object.
 Internal function.
 
-\item \code{spatial}: Get the param from a \code{spatial} object
+\item \code{get_param(spatial)}: Get the param from a \code{spatial} object
+
 }}
-
 \concept{spatial}

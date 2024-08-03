@@ -28,12 +28,12 @@ in the group.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{breedR}: Return the structure matrices of all structured random effects
+\item \code{get_structure(breedR)}: Return the structure matrices of all structured random effects
 
-\item \code{effect_group}: Check that all elements share the same structure
+\item \code{get_structure(effect_group)}: Check that all elements share the same structure
 and return it.
 
-\item \code{breedr_effect}: Return the structure matrix with an attribute
+\item \code{get_structure(breedr_effect)}: Return the structure matrix with an attribute
 indicating its \code{type}.
-}}
 
+}}

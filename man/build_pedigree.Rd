@@ -45,13 +45,13 @@ is attached to the pedigree, such that \code{map[i] = j} means that code
 original codes, \code{map[x]} gives the new codes. Conversely, \code{match(y,
 map)} back-transforms to original codes.
 }
-\section{Methods (by generic)}{
+\section{Functions}{
 \itemize{
-\item \code{as.data.frame}: Coerce to a data.frame. One row per individual,
+\item \code{as.data.frame(pedigree)}: Coerce to a data.frame. One row per individual,
 the first column being the identification code, and the other two columns
 are dad and mum codes respectively.
-}}
 
+}}
 \examples{
 # Founders are missing in the globulus dataset
 data(globulus)
