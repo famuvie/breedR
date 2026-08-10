@@ -194,19 +194,20 @@ Z_sca <- Ind %*% as(as.numeric(dat$fam), 'indMatrix')
 ## The structure variances are diagonal
 D <- diag(sum(n.founders))
 
-res2 <- remlf90(y ~ sp,
-                generic = list(
-                  E = list(incidence  = Z_EE,
-                           covariance = A_EE),
-                  J = list(incidence  = Z_JJ,
-                           covariance = A_JJ),
-                  dad = list(incidence = Z_dad,
-                             covariance = D),
-                  mum = list(incidence = Z_mum,
-                             covariance = D),
-                  sca = list(incidence = Z_sca,
-                             covariance = diag(nlevels(dat$fam)))),
-                data = transform(dat)
+res2 <- remlf90(
+  y ~ sp,
+  generic = list(
+    E = list(incidence  = Z_EE,
+             covariance = A_EE),
+    J = list(incidence  = Z_JJ,
+             covariance = A_JJ),
+    dad = list(incidence = Z_dad,
+               covariance = D),
+    mum = list(incidence = Z_mum,
+               covariance = D),
+    sca = list(incidence = Z_sca,
+               covariance = diag(nlevels(dat$fam)))),
+  data = transform(dat)
 )
 ```
 

@@ -5,6 +5,13 @@
 breedR
 ======
 
+**Notice:** This R-package is not being actively maintained any more. If you
+want to take over the maintenance or the development, I'm ready to help. But
+I cannot afford continuing the support and maintenance. Thanks for your understanding.
+
+
+
+
 ### Statistical methods for forest genetic resources analysts
 
 This [R](http://cran.r-project.org/ "CRAN") package provides frequentist and
@@ -33,7 +40,7 @@ the package, follow the installation instructions at the [dissemination
 site](http://famuvie.github.io/breedR/).
 
 ```R
-devtools::install_github('famuvie/breedR')
+pak::pak('famuvie/breedR')
 ```
 
 #### Getting started
@@ -49,7 +56,8 @@ demo('globulus')
 ```
 
 #### Test cycle
-breedR is in [beta](https://en.wikipedia.org/wiki/Development_stage#Beta) stage. Collaboration is welcome!
+
+
 - Check the automated tests
     ```R
     library('testthat')
